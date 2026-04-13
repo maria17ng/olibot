@@ -1,0 +1,7 @@
+// Foojay toolchain resolver: if Java 21 JDK is not installed locally,
+// Gradle downloads it automatically to ~/.gradle/jdks/ (no sudo needed).
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+}
+
+rootProject.name = 'olibot'

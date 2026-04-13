@@ -8,124 +8,292 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Queue;
 import java.util.concurrent.*;
+import java.util.regex.*;
 import java.util.logging.Logger;
 
 /**
  * OlibotEnv — CArtAgO Environment Artifact
  *
- * This artifact acts as the bridge between the Python FastAPI backend
- * and the JaCaMo Jason agent. It embeds a lightweight HTTP server that
- * receives percepts from Python and exposes them to the agent.
+ * Bridge between the Python FastAPI backend and the Jason BDI agent.
+ * Embeds a lightweight HTTP server on the configured port.
  *
- * Communication flow:
- *   Python POST /percept  →  OlibotEnv  →  Jason agent belief update
- *   Jason agent decision  →  OlibotEnv  →  Python GET /decision
+ * ── Communication protocol ───────────────────────────────────────────
  *
- * The artifact uses Java's built-in com.sun.net.httpserver (no extra deps).
+ *   1. Python sends a percept:
+ *        POST /percept  {student_id, intent, entities, success_rate,
+ *                        current_beliefs, current_topic, is_correct}
+ *      → OlibotEnv parses the JSON and updates observable properties.
+ *      → The Jason agent sees the updated beliefs and fires !respond(...).
+ *
+ *   2. Jason agent produces a decision:
+ *        Jason plan calls the CArtAgO operation:
+ *          postDecision(action, hintLevel, topicId, instruction,
+ *                       isCorrect, nextTopicId)
+ *      → OlibotEnv serialises the decision to JSON and adds it to a queue.
+ *
+ *   3. Python reads the decision:
+ *        GET /decision
+ *      → Server blocks (up to DECISION_TIMEOUT_MS) waiting for the agent.
+ *      → Returns the JSON decision or HTTP 408 on timeout.
+ *
+ * ── Observable properties (→ Jason beliefs) ─────────────────────────
+ *
+ *   percept_count(N)          — incremented on each new percept (trigger)
+ *   current_student_id(N)
+ *   current_intent("...")
+ *   current_success_rate(F)
+ *   current_topic_id("...")
+ *   current_is_correct("null"|"true"|"false")
+ *
+ * ── CArtAgO operations (callable from Jason plans) ──────────────────
+ *
+ *   postDecision(action, hintLevel, topicId, instruction,
+ *                isCorrect, nextTopicId)
+ *     Formats and enqueues the JSON decision so Python can retrieve it.
  */
 public class OlibotEnv extends Artifact {
 
-    private static final Logger logger = Logger.getLogger(OlibotEnv.class.getName());
+    private static final Logger log = Logger.getLogger(OlibotEnv.class.getName());
+
+    /** How long GET /decision waits for the agent before returning 408. */
+    private static final int DECISION_TIMEOUT_MS = 8_000;
 
     private HttpServer httpServer;
     private int port;
-
-    // Thread-safe queue: Python posts percepts, agent consumes them
-    private final BlockingQueue<String> perceptQueue = new LinkedBlockingQueue<>();
-
-    // Thread-safe slot: agent posts decisions, Python reads them
-    private volatile String lastDecision = "";
+    private int perceptCount = 0;
 
     /**
-     * Called by JaCaMo on artifact initialization.
-     *
-     * @param port The HTTP port to listen on (configured in olibot.jcm)
+     * Thread-safe queue: Java agent posts decisions, Python reads them.
+     * Using capacity=1 ensures no stale decisions accumulate.
+     */
+    private final BlockingQueue<String> decisionQueue = new ArrayBlockingQueue<>(1);
+
+    /**
+     * Queue for incoming percept JSON bodies from HTTP handler threads.
+     * The HTTP thread enqueues here and schedules an @INTERNAL_OPERATION
+     * via execInternalOp("applyPercept") so that updateObsProperty is
+     * always called from within the CArtAgO operation context.
+     */
+    private final Queue<String> perceptJsonQueue = new ConcurrentLinkedQueue<>();
+
+    // ── Artifact lifecycle ──────────────────────────────────────────────
+
+    /**
+     * Called by JaCaMo when the artifact is created (port comes from olibot.jcm).
+     * Initialises observable properties and starts the HTTP server.
      */
     void init(int port) {
         this.port = port;
+
+        // All observable properties become beliefs in the focused Jason agent.
+        // They are initialised here and updated on each incoming percept.
+        defineObsProperty("percept_count",        0);
+        defineObsProperty("current_student_id",   0);
+        defineObsProperty("current_intent",        "none");
+        defineObsProperty("current_success_rate",  0.0);
+        defineObsProperty("current_topic_id",      "general");
+        defineObsProperty("current_is_correct",    "null");
+
         try {
             startHttpServer();
-            logger.info("[OlibotEnv] HTTP server started on port " + port);
+            log.info("[OlibotEnv] HTTP server started on port " + port);
         } catch (IOException e) {
-            logger.severe("[OlibotEnv] Failed to start HTTP server: " + e.getMessage());
+            log.severe("[OlibotEnv] Failed to start HTTP server: " + e.getMessage());
         }
     }
 
+    // ── CArtAgO operations (called from olibot.asl) ─────────────────────
+
     /**
-     * CArtAgO operation: called by the Jason agent to post its decision
-     * so the Python backend can pick it up via GET /decision.
+     * Called by the Jason agent to send its pedagogical decision back to Python.
+     *
+     * @param action      BDI action name  (e.g. "give_hint", "praise")
+     * @param hintLevel   Scaffolding level (1–3)
+     * @param topicId     Active curriculum topic ID
+     * @param instruction Human-readable directive for the NLG module
+     * @param isCorrect   "true" / "false" / "null"
+     * @param nextTopicId Next topic ID or "null"
      */
     @OPERATION
-    void postDecision(String decisionJson) {
-        this.lastDecision = decisionJson;
-        logger.info("[OlibotEnv] Decision posted: " + decisionJson);
+    void postDecision(String action, int hintLevel, String topicId,
+                      String instruction, String isCorrect, String nextTopicId) {
+
+        // Escape double-quotes in the instruction string to keep JSON valid
+        String safeInstruction = instruction.replace("\\", "\\\\").replace("\"", "'");
+
+        String nextTopicJson = nextTopicId.equals("null")
+                ? "null"
+                : "\"" + nextTopicId + "\"";
+
+        String json = "{"
+                + "\"action\":\"" + action + "\","
+                + "\"hint_level\":" + hintLevel + ","
+                + "\"topic_id\":\"" + topicId + "\","
+                + "\"instruction\":\"" + safeInstruction + "\","
+                + "\"is_correct\":" + isCorrect + ","
+                + "\"next_topic_id\":" + nextTopicJson
+                + "}";
+
+        // Drain any stale decision before offering the new one
+        decisionQueue.clear();
+        decisionQueue.offer(json);
+        log.info("[OlibotEnv] Decision posted: action=" + action + " hint=" + hintLevel);
     }
 
     /**
-     * CArtAgO operation: agent polls this to get the next pending percept.
-     * Blocks up to 100ms then returns empty string if none available.
+     * @INTERNAL_OPERATION — runs inside CArtAgO's managed thread context.
+     *
+     * Dequeues one percept JSON body and updates all observable properties.
+     * Because this runs in the CArtAgO context, updateObsProperty correctly
+     * propagates belief updates to every focused Jason agent.
+     *
+     * Scheduled from the HTTP handler thread via execInternalOp("applyPercept").
      */
-    @OPERATION
-    void getNextPercept(OpFeedbackParam<String> result) {
-        try {
-            String percept = perceptQueue.poll(100, TimeUnit.MILLISECONDS);
-            result.set(percept != null ? percept : "");
-        } catch (InterruptedException e) {
-            result.set("");
+    @INTERNAL_OPERATION
+    void applyPercept() {
+        String body = perceptJsonQueue.poll();
+        if (body == null) {
+            log.warning("[OlibotEnv] applyPercept called but queue is empty");
+            return;
         }
+
+        int    studentId   = extractInt(body,    "student_id");
+        String intent      = extractString(body, "intent");
+        double successRate = extractDouble(body,  "success_rate");
+        String topicId     = extractString(body, "current_topic");
+        String isCorrect   = extractNullableBoolean(body, "is_correct");
+
+        updateObsProperty("current_student_id",  studentId);
+        updateObsProperty("current_intent",       intent.isEmpty() ? "unknown" : intent);
+        updateObsProperty("current_success_rate", successRate);
+        updateObsProperty("current_topic_id",     topicId.isEmpty() ? "general" : topicId);
+        updateObsProperty("current_is_correct",   isCorrect);
+
+        // Trigger last — by the time +percept_count(N) fires in the agent,
+        // all other beliefs are already updated.
+        updateObsProperty("percept_count", ++perceptCount);
+        log.info("[OlibotEnv] applyPercept done: count=" + perceptCount
+                + " intent=" + intent + " SR=" + successRate);
     }
 
-    // -------------------------------------------------------
-    // Internal HTTP server
-    // -------------------------------------------------------
+    // ── HTTP server ─────────────────────────────────────────────────────
 
     private void startHttpServer() throws IOException {
         httpServer = HttpServer.create(new InetSocketAddress(port), 0);
-
-        // POST /percept — Python sends a new student percept
-        httpServer.createContext("/percept", new PerceptHandler());
-
-        // GET /decision — Python reads the agent's last decision
+        httpServer.createContext("/percept",  new PerceptHandler());
         httpServer.createContext("/decision", new DecisionHandler());
-
         httpServer.setExecutor(Executors.newCachedThreadPool());
         httpServer.start();
     }
 
+    /**
+     * POST /percept
+     *
+     * Receives a JSON percept from Python, parses it, updates observable
+     * properties, and finally increments percept_count — which triggers
+     * the +percept_count(N) plan in the Jason agent.
+     *
+     * Property update ordering is preserved by CArtAgO's event queue, so
+     * by the time +percept_count fires, all other beliefs are already updated.
+     */
     private class PerceptHandler implements HttpHandler {
         @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(405, -1);
+        public void handle(HttpExchange ex) throws IOException {
+            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+                ex.sendResponseHeaders(405, -1);
                 return;
             }
-            String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            perceptQueue.offer(body);
 
-            // Signal the Jason agent that a new percept arrived
-            defineObsProperty("new_percept", body);
+            // Clear any stale decision from the previous cycle (e.g. the
+            // initial percept_count(0) trigger that fires at agent startup)
+            decisionQueue.clear();
 
-            String response = "{\"status\": \"received\"}";
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
-            exchange.sendResponseHeaders(200, response.length());
-            exchange.getResponseBody().write(response.getBytes(StandardCharsets.UTF_8));
-            exchange.close();
+            String body = new String(
+                    ex.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            log.info("[OlibotEnv] Percept received: " + body.substring(0, Math.min(body.length(), 120)));
+
+            // Enqueue the raw JSON body and schedule the CArtAgO internal
+            // operation.  updateObsProperty MUST be called from within a
+            // CArtAgO operation context (init / @OPERATION / @INTERNAL_OPERATION)
+            // or belief updates will not propagate to observing agents.
+            perceptJsonQueue.offer(body);
+            execInternalOp("applyPercept");
+
+            // perceptCount is incremented inside applyPercept, but we need
+            // an id for the response.  Use a local preview (approx).
+            respond(ex, 200, "{\"status\":\"received\",\"percept_id\":" + (perceptCount + 1) + "}");
         }
     }
 
+    /**
+     * GET /decision
+     *
+     * Blocks until the Jason agent calls postDecision (up to DECISION_TIMEOUT_MS).
+     * Returns the JSON decision or HTTP 408 on timeout.
+     *
+     * Python's _call_jacamo does:
+     *   1. POST /percept
+     *   2. GET  /decision  ← this call
+     */
     private class DecisionHandler implements HttpHandler {
         @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(405, -1);
+        public void handle(HttpExchange ex) throws IOException {
+            if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
+                ex.sendResponseHeaders(405, -1);
                 return;
             }
-            byte[] bytes = lastDecision.getBytes(StandardCharsets.UTF_8);
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
-            exchange.sendResponseHeaders(200, bytes.length);
-            exchange.getResponseBody().write(bytes);
-            exchange.close();
+
+            try {
+                String decision = decisionQueue.poll(DECISION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+                if (decision != null) {
+                    respond(ex, 200, decision);
+                } else {
+                    log.warning("[OlibotEnv] Timeout waiting for agent decision");
+                    respond(ex, 408, "{\"error\":\"agent_timeout\"}");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                respond(ex, 500, "{\"error\":\"interrupted\"}");
+            }
         }
+    }
+
+    // ── JSON parsing helpers (no external library) ──────────────────────
+
+    private String extractString(String json, String key) {
+        Pattern p = Pattern.compile("\"" + key + "\"\\s*:\\s*\"([^\"]+)\"");
+        Matcher m = p.matcher(json);
+        return m.find() ? m.group(1) : "";
+    }
+
+    private int extractInt(String json, String key) {
+        Pattern p = Pattern.compile("\"" + key + "\"\\s*:\\s*(-?\\d+)");
+        Matcher m = p.matcher(json);
+        return m.find() ? Integer.parseInt(m.group(1)) : 0;
+    }
+
+    private double extractDouble(String json, String key) {
+        Pattern p = Pattern.compile("\"" + key + "\"\\s*:\\s*(-?[0-9]*\\.?[0-9]+)");
+        Matcher m = p.matcher(json);
+        return m.find() ? Double.parseDouble(m.group(1)) : 0.0;
+    }
+
+    /** Extracts a JSON boolean or null field as a string: "true", "false", "null". */
+    private String extractNullableBoolean(String json, String key) {
+        Pattern p = Pattern.compile("\"" + key + "\"\\s*:\\s*(true|false|null)");
+        Matcher m = p.matcher(json);
+        return m.find() ? m.group(1) : "null";
+    }
+
+    // ── Utility ─────────────────────────────────────────────────────────
+
+    private static void respond(HttpExchange ex, int code, String body) throws IOException {
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        ex.getResponseHeaders().set("Content-Type", "application/json");
+        ex.sendResponseHeaders(code, bytes.length);
+        ex.getResponseBody().write(bytes);
+        ex.close();
     }
 }

@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.config.settings import get_settings
 from backend.db.database import init_db
-from backend.api.routes import chat, students
+from backend.api.routes import chat, students, reports
 
 settings = get_settings()
 
@@ -32,6 +32,7 @@ app.add_middleware(
 # Register routers
 app.include_router(chat.router, prefix="/api/v1")
 app.include_router(students.router, prefix="/api/v1")
+app.include_router(reports.router, prefix="/api/v1")
 
 
 @app.on_event("startup")
@@ -50,4 +51,4 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=5050, reload=True)

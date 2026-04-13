@@ -1,0 +1,68 @@
+/*
+ * OLIBOT JaCaMo Build File
+ *
+ * Uses the Gradle wrapper (./gradlew) — no local Gradle install needed.
+ *
+ * First run downloads:
+ *   - Gradle 8.10.2 (~180 MB, cached in ~/.gradle)
+ *   - JaCaMo + dependencies (~80 MB, cached in ~/.gradle)
+ *
+ * Usage:
+ *   ./gradlew run   → compile + start the JaCaMo agent on port 8080
+ */
+plugins {
+    id 'java'
+}
+
+group = 'olibot'
+version = '1.0'
+
+// Use the Java 11 toolchain — this is the JDK with javac available on this machine.
+// Java 21 (the default JVM) is JRE-only on this system (no javac).
+// Gradle will auto-discover Java 11 from /usr/lib/jvm/java-11-openjdk-amd64.
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
+repositories {
+    maven { url "https://raw.githubusercontent.com/jacamo-lang/mvn-repo/master" }
+    maven { url "https://repo.gradle.org/gradle/libs-releases" }
+    mavenCentral()
+}
+
+dependencies {
+    // JaCaMo 1.3.0 — includes Jason (BDI), CArtAgO (env), Moise (org)
+    implementation 'org.jacamo:jacamo:1.3.0'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/env']   // OlibotEnv.java
+        }
+        resources {
+            srcDirs = ['src/agt']  // olibot.asl picked up at runtime by JaCaMo
+        }
+    }
+}
+
+task run(type: JavaExec, dependsOn: compileJava) {
+    description = 'Start the OLIBOT JaCaMo BDI agent'
+    group = 'application'
+
+    mainClass = 'jacamo.infra.JaCaMoLauncher'
+    classpath = sourceSets.main.runtimeClasspath
+    args = ['olibot.jcm']
+    workingDir = projectDir
+
+    jvmArgs = [
+        '--add-exports', 'java.base/com.sun.net.httpserver=ALL-UNNAMED',
+        '--add-opens',   'java.base/java.lang=ALL-UNNAMED',
+    ]
+
+    doFirst {
+        mkdir 'log'
+    }
+}

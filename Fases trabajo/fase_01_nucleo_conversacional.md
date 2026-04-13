@@ -22,7 +22,7 @@ React Frontend (puerto 5173)
         │
         │  HTTP POST /api/v1/chat/message
         ▼
-FastAPI Backend (puerto 8000)
+FastAPI Backend (puerto 5050)
         │
         ├──► NLU (Ollama) → Extrae Intent del mensaje del niño
         │
@@ -148,7 +148,7 @@ python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-python -m uvicorn backend.main:app --reload
+python -m uvicorn backend.main:app --reload --port 5050
 
 # 3. Frontend React (nueva terminal)
 cd olibot/frontend
@@ -157,7 +157,7 @@ npm run dev
 ```
 
 Acceder a: `http://localhost:5173`
-API docs: `http://localhost:8000/docs`
+API docs: `http://localhost:5050/docs`
 
 ---
 

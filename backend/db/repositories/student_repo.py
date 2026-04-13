@@ -48,6 +48,13 @@ class StudentRepository:
         self.db.refresh(student)
         return student
 
+    def increment_sessions(self, student_id: int) -> None:
+        """Increments the student's total_sessions counter by 1."""
+        student = self.get_by_id(student_id)
+        if student:
+            student.total_sessions += 1
+            self.db.commit()
+
     def delete(self, student_id: int) -> bool:
         student = self.get_by_id(student_id)
         if not student:

@@ -3,7 +3,7 @@ Repository pattern for Session and Message database operations.
 """
 from datetime import datetime
 from sqlalchemy.orm import Session
-from backend.db.models import SessionModel, MessageModel
+from backend.db.models import SessionModel, MessageModel, ActivityModel
 
 
 class SessionRepository:
@@ -86,3 +86,51 @@ class SessionRepository:
             .order_by(MessageModel.timestamp.asc())
             .all()
         )
+
+    def get_sessions_for_student(self, student_id: int) -> list[SessionModel]:
+        return (
+            self.db.query(SessionModel)
+            .filter(SessionModel.student_id == student_id)
+            .order_by(SessionModel.started_at.desc())
+            .all()
+        )
+
+    def log_activity(
+        self,
+        session_id: int,
+        topic_id: str,
+        student_response: str | None,
+        is_correct: bool | None,
+        hint_level_used: int = 1,
+    ) -> ActivityModel:
+        """
+        Records a structured activity attempt.
+        Called whenever the BDI evaluates an attempt_answer intent.
+        Also increments the session's correct/incorrect counters.
+        """
+        activity = ActivityModel(
+            session_id=session_id,
+            topic_id=topic_id,
+            student_response=student_response,
+            is_correct=is_correct,
+            hint_level_used=hint_level_used,
+        )
+        self.db.add(activity)
+
+        if is_correct is not None:
+            session = self.get_by_id(session_id)
+            if session:
+                if is_correct:
+                    session.correct_answers += 1
+                else:
+                    session.incorrect_answers += 1
+
+        self.db.commit()
+        self.db.refresh(activity)
+        return activity
+
+    def increment_hints(self, session_id: int):
+        session = self.get_by_id(session_id)
+        if session:
+            session.hints_given += 1
+            self.db.commit()

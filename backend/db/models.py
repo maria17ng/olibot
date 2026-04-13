@@ -64,6 +64,7 @@ class SessionModel(Base):
 
     student = relationship("StudentModel", back_populates="sessions")
     messages = relationship("MessageModel", back_populates="session", cascade="all, delete")
+    activities = relationship("ActivityModel", back_populates="session", cascade="all, delete")
 
     @property
     def success_rate(self) -> float:
@@ -97,3 +98,50 @@ class MessageModel(Base):
 
     def __repr__(self):
         return f"<Message(id={self.id}, role='{self.role}', session_id={self.session_id})>"
+
+
+class ActivityModel(Base):
+    """
+    Records a single structured activity attempt by a student.
+
+    An activity is distinct from a chat message: it captures the
+    pedagogical outcome of a turn (correct/incorrect) for a specific
+    curriculum topic.
+
+    BDI belief update trigger:
+        When is_correct is set, the BDI bridge calls:
+            ScaffoldingEngine.record_attempt(beliefs, topic_id, is_correct)
+        which updates:
+            mastery(TopicId, Attempts+1, Correct+delta, IsMastered)
+
+    Used for:
+        - Parent reports (progress per topic)
+        - Scaffolding level computation
+        - BDI belief base updates
+    """
+    __tablename__ = "activities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer, ForeignKey("sessions.id"), nullable=False)
+
+    # Curriculum topic being practiced (e.g. "vocal_a", "numero_3")
+    topic_id = Column(String(100), nullable=False)
+
+    # The text the student produced as their answer (may be None for hint requests)
+    student_response = Column(Text, nullable=True)
+
+    # Evaluation result (None = not evaluated, e.g. hint requests)
+    is_correct = Column(Boolean, nullable=True)
+
+    # Scaffolding level that was active during this activity (1-3)
+    hint_level_used = Column(Integer, default=1)
+
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    session = relationship("SessionModel", back_populates="activities")
+
+    def __repr__(self):
+        return (
+            f"<Activity(id={self.id}, topic='{self.topic_id}', "
+            f"correct={self.is_correct}, session_id={self.session_id})>"
+        )

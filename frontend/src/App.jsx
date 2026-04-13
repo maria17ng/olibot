@@ -1,13 +1,23 @@
 /**
  * OLIBOT — Main Application Component
- * Manages the selected student state and lays out the UI.
+ *
+ * Fase 3 additions:
+ *   - "Informes" button in the header opens the ProgressReport panel
+ *   - ProgressReport is a modal overlay (shown on top of the chat)
  */
 import { useState } from "react";
 import StudentSelector from "./components/StudentSelector";
 import ChatWindow from "./components/ChatWindow";
+import ProgressReport from "./components/ProgressReport";
 
 export default function App() {
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showReport, setShowReport] = useState(false);
+
+  const handleSelectStudent = (student) => {
+    setSelectedStudent(student);
+    setShowReport(false);
+  };
 
   return (
     <div
@@ -31,6 +41,7 @@ export default function App() {
           alignItems: "center",
           gap: "12px",
           boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+          flexShrink: 0,
         }}
       >
         <span style={{ fontSize: "36px" }}>🤖</span>
@@ -40,15 +51,36 @@ export default function App() {
             Tu tutor inteligente — Objective Learning Intelligent BOT
           </p>
         </div>
+
         {selectedStudent && (
-          <div style={{ marginLeft: "auto", fontSize: "14px", opacity: 0.9 }}>
-            Alumno: <strong>{selectedStudent.name}</strong>
-          </div>
+          <>
+            <div style={{ marginLeft: "auto", fontSize: "14px", opacity: 0.9 }}>
+              Alumno: <strong>{selectedStudent.name}</strong>
+            </div>
+            <button
+              onClick={() => setShowReport(true)}
+              style={{
+                padding: "7px 14px",
+                borderRadius: "20px",
+                background: "rgba(255,255,255,0.2)",
+                border: "1px solid rgba(255,255,255,0.5)",
+                color: "white",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: "bold",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              📋 Informes
+            </button>
+          </>
         )}
       </header>
 
       {/* Student selector */}
-      <StudentSelector onSelectStudent={setSelectedStudent} />
+      <StudentSelector onSelectStudent={handleSelectStudent} />
 
       {/* Chat area */}
       <div style={{ flex: 1, overflow: "hidden" }}>
@@ -71,6 +103,14 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {/* Progress report modal */}
+      {showReport && selectedStudent && (
+        <ProgressReport
+          student={selectedStudent}
+          onClose={() => setShowReport(false)}
+        />
+      )}
     </div>
   );
 }

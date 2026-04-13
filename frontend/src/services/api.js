@@ -1,7 +1,7 @@
 /**
  * OLIBOT API client — wraps all backend REST calls.
  */
-const BASE_URL = "http://localhost:8000/api/v1";
+const BASE_URL = "http://localhost:5050/api/v1";
 
 export const api = {
   // ---- Students ----
@@ -47,6 +47,13 @@ export const api = {
       method: "POST",
     });
     if (!res.ok) throw new Error("Failed to end session");
+    return res.json();
+  },
+
+  // ---- Reports ----
+  async getReport(studentId) {
+    const res = await fetch(`${BASE_URL}/reports/${studentId}`);
+    if (!res.ok) throw new Error("Failed to fetch report");
     return res.json();
   },
 };

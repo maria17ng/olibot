@@ -25,6 +25,9 @@ class MessageOut(BaseModel):
 class ChatResponse(BaseModel):
     session_id: int
     agent_response: str
-    shield_triggered: bool       # Whether the safety shield modified the LLM output
-    detected_intent: str | None  # What intent the NLU detected in the student's message
-    current_beliefs: dict        # Snapshot of the student's belief base after the turn
+    shield_triggered: bool        # Whether the safety shield modified the LLM output
+    detected_intent: str | None   # What intent the NLU detected in the student's message
+    current_beliefs: dict         # Snapshot of the student's belief base after the turn
+    is_correct: bool | None = None       # For attempt_answer: was it correct? (None = not evaluated)
+    next_topic_id: str | None = None     # Set when the student masters a topic → session switches
+    current_topic_id: str | None = None  # The active curriculum topic for this turn

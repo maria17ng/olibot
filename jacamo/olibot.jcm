@@ -4,21 +4,15 @@
  * Defines the Multi-Agent System structure:
  *   - Agent:       olibot (Jason BDI agent)
  *   - Environment: OlibotEnv (CArtAgO artifact exposing REST API to Python)
- *   - Organisation: (Moise - to be added in future phases)
  */
 mas olibot {
 
     agent olibot : olibot.asl {
-        focus: olibot_workspace.olibot_env
-        beliefs:
-            // Default pedagogical parameters
-            zdp_threshold(0.6)    // Below this success rate → student needs more support
-            max_hint_level(3)     // Maximum scaffolding hint level
+        beliefs: zdp_threshold(0.6)
+                 max_hint_level(3)
     }
 
     workspace olibot_workspace {
-        artifact olibot_env : env.OlibotEnv(8080) {
-            // Port 8080 exposes the REST API that the Python backend calls
-        }
+        artifact olibot_env : env.OlibotEnv(8080)
     }
 }

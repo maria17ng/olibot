@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     # JaCaMo BDI Agent (REST bridge)
     jacamo_base_url: str = "http://localhost:8080"
-    jacamo_enabled: bool = False  # Set True when JaCaMo is running
+    jacamo_enabled: bool = True  # Set True when JaCaMo is running
 
     # Safety Shield
     safety_shield_strict: bool = True  # Enforces scaffolding, no direct answers

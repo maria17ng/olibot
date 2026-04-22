@@ -1,15 +1,20 @@
 /**
- * ChatWindow — main conversational interface.
+ * ChatWindow — interfaz conversacional principal con soporte de voz.
  *
- * Fase 3 additions:
- *   - Shows the current curriculum topic in a badge
- *   - Passes is_correct / next_topic_id / current_topic_id to MessageBubble
- *   - Displays a session stats bar (hints used, success rate)
- *   - Handles topic advancement: updates topic badge when next_topic_id arrives
+ * Fase 5 (voz):
+ *   - Botón de micrófono como entrada principal (STT via Web Speech API)
+ *   - TTS automático en cada respuesta del agente (Web Speech API)
+ *   - Feedback visual mientras el niño habla (texto intermedio + animación)
+ *   - Input de texto mantenido como fallback (modo desarrollo / sin micrófono)
+ *
+ * Fase 3 (previo):
+ *   - Badge de tema activo y barra de estadísticas de sesión
+ *   - Feedback visual de respuestas correctas/incorrectas en MessageBubble
  */
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { api } from "../services/api";
 import MessageBubble from "./MessageBubble";
+import { useSpeech } from "../hooks/useSpeech";
 
 export default function ChatWindow({ student }) {
   const [messages, setMessages] = useState([]);
@@ -20,13 +25,30 @@ export default function ChatWindow({ student }) {
   const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0, hints: 0 });
   const bottomRef = useRef(null);
 
-  // Welcome message when a student is selected
+  // ── Voice ─────────────────────────────────────────────────────────────────
+
+  // handleSend is defined later; useCallback lets us pass it to useSpeech
+  // without a dependency cycle. We forward via a ref.
+  const sendRef = useRef(null);
+
+  const handleTranscript = useCallback((text) => {
+    // Called by useSpeech when STT produces a final result.
+    // Inserts the transcript and triggers send.
+    if (sendRef.current) sendRef.current(text);
+  }, []);
+
+  const { supported, listening, speaking, interimTranscript, startListening, speak, stopSpeaking } =
+    useSpeech({ onTranscript: handleTranscript });
+
+  // ── Welcome message ───────────────────────────────────────────────────────
+
   useEffect(() => {
     if (student) {
+      const welcome = `¡Hola ${student.name}! Soy OLIBOT, tu robot amigo. ¿Estás listo para aprender hoy?`;
       setMessages([
         {
           role: "agent",
-          content: `¡Hola ${student.name}! 🌈 Soy OLIBOT, tu robot amigo. ¿Estás listo para aprender hoy? 🚀`,
+          content: welcome + " 🌈🚀",
           shield_triggered: false,
           detected_intent: "greet",
           is_correct: null,
@@ -37,21 +59,28 @@ export default function ChatWindow({ student }) {
       setSessionId(null);
       setCurrentTopicId(null);
       setSessionStats({ correct: 0, incorrect: 0, hints: 0 });
+      // Speak welcome message when student is selected
+      speak(welcome);
     }
-  }, [student]);
+  }, [student]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-scroll to the latest message
+  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!input.trim() || loading) return;
+  // ── Core send logic ───────────────────────────────────────────────────────
+
+  const sendMessage = useCallback(async (text) => {
+    const trimmed = text.trim();
+    if (!trimmed || loading) return;
+
+    // Stop any ongoing TTS before processing the new turn
+    stopSpeaking();
 
     const userMsg = {
       role: "user",
-      content: input,
+      content: trimmed,
       shield_triggered: false,
       detected_intent: null,
       is_correct: null,
@@ -64,43 +93,46 @@ export default function ChatWindow({ student }) {
     setLoading(true);
 
     try {
-      const response = await api.sendMessage(student.id, input, sessionId);
+      const response = await api.sendMessage(student.id, trimmed, sessionId);
       setSessionId(response.session_id);
 
-      // Update current topic — if the agent is advancing to a new topic, show the new one
       const newTopicId = response.next_topic_id || response.current_topic_id;
       if (newTopicId) setCurrentTopicId(newTopicId);
 
-      // Update session stats
       if (response.detected_intent === "attempt_answer") {
-        if (response.is_correct === true) {
+        if (response.is_correct === true)
           setSessionStats((s) => ({ ...s, correct: s.correct + 1 }));
-        } else if (response.is_correct === false) {
+        else if (response.is_correct === false)
           setSessionStats((s) => ({ ...s, incorrect: s.incorrect + 1 }));
-        }
       }
-      if (response.detected_intent === "ask_for_hint" || response.detected_intent === "ask_for_answer") {
+      if (
+        response.detected_intent === "ask_for_hint" ||
+        response.detected_intent === "ask_for_answer"
+      ) {
         setSessionStats((s) => ({ ...s, hints: s.hints + 1 }));
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "agent",
-          content: response.agent_response,
-          shield_triggered: response.shield_triggered,
-          detected_intent: response.detected_intent,
-          is_correct: response.is_correct ?? null,
-          next_topic_id: response.next_topic_id ?? null,
-          current_topic_id: response.current_topic_id ?? null,
-        },
-      ]);
+      const agentMsg = {
+        role: "agent",
+        content: response.agent_response,
+        shield_triggered: response.shield_triggered,
+        detected_intent: response.detected_intent,
+        is_correct: response.is_correct ?? null,
+        next_topic_id: response.next_topic_id ?? null,
+        current_topic_id: response.current_topic_id ?? null,
+      };
+
+      setMessages((prev) => [...prev, agentMsg]);
+
+      // Speak the agent's response automatically
+      speak(response.agent_response);
     } catch {
+      const errMsg = "Lo siento, tuve un problema. ¿Lo intentamos otra vez?";
       setMessages((prev) => [
         ...prev,
         {
           role: "agent",
-          content: "Lo siento, tuve un problema. ¿Lo intentamos otra vez? 🙈",
+          content: errMsg + " 🙈",
           shield_triggered: false,
           detected_intent: null,
           is_correct: null,
@@ -108,18 +140,35 @@ export default function ChatWindow({ student }) {
           current_topic_id: null,
         },
       ]);
+      speak(errMsg);
     } finally {
       setLoading(false);
     }
+  }, [loading, sessionId, student, speak, stopSpeaking]);
+
+  // Keep the ref in sync so handleTranscript can always call the latest version
+  useEffect(() => {
+    sendRef.current = sendMessage;
+  }, [sendMessage]);
+
+  // ── Form submit (text input fallback) ─────────────────────────────────────
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    sendMessage(input);
   };
 
+  // ── Stats ─────────────────────────────────────────────────────────────────
+
   const totalAttempts = sessionStats.correct + sessionStats.incorrect;
-  const successRate = totalAttempts > 0
-    ? Math.round((sessionStats.correct / totalAttempts) * 100)
-    : null;
+  const successRate =
+    totalAttempts > 0 ? Math.round((sessionStats.correct / totalAttempts) * 100) : null;
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+
       {/* Topic + session stats bar */}
       <div
         style={{
@@ -165,7 +214,8 @@ export default function ChatWindow({ student }) {
             <span
               style={{
                 fontWeight: "bold",
-                color: successRate >= 60 ? "#15803d" : successRate >= 30 ? "#b45309" : "#dc2626",
+                color:
+                  successRate >= 60 ? "#15803d" : successRate >= 30 ? "#b45309" : "#dc2626",
               }}
             >
               {successRate}% aciertos
@@ -184,49 +234,133 @@ export default function ChatWindow({ student }) {
             🤖 OLIBOT está pensando...
           </div>
         )}
+        {/* Interim transcript feedback */}
+        {interimTranscript && (
+          <div
+            style={{
+              textAlign: "right",
+              padding: "8px 16px",
+              color: "#6b7280",
+              fontStyle: "italic",
+              fontSize: "15px",
+            }}
+          >
+            🎙️ {interimTranscript}…
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
       {/* Input area */}
-      <form
-        onSubmit={handleSend}
+      <div
         style={{
-          display: "flex",
-          gap: "8px",
-          padding: "12px 16px",
           borderTop: "1px solid #e0e0e0",
+          padding: "16px",
+          background: "white",
         }}
       >
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Escribe aquí... 📝"
-          disabled={loading}
-          style={{
-            flex: 1,
-            padding: "12px 16px",
-            borderRadius: "24px",
-            border: "2px solid #4a90d9",
-            fontSize: "16px",
-            outline: "none",
-          }}
-        />
-        <button
-          type="submit"
-          disabled={loading || !input.trim()}
-          style={{
-            padding: "12px 20px",
-            borderRadius: "24px",
-            background: loading ? "#ccc" : "#4a90d9",
-            color: "white",
-            border: "none",
-            cursor: loading ? "not-allowed" : "pointer",
-            fontSize: "18px",
-          }}
-        >
-          ➤
-        </button>
-      </form>
+        {/* Mic button — main interaction for children */}
+        {supported && (
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
+            <button
+              onClick={listening ? undefined : startListening}
+              disabled={loading || speaking}
+              title={listening ? "Escuchando…" : speaking ? "OLIBOT está hablando…" : "Habla con OLIBOT"}
+              style={{
+                width: "80px",
+                height: "80px",
+                borderRadius: "50%",
+                border: "none",
+                cursor: loading || speaking ? "not-allowed" : "pointer",
+                fontSize: "36px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: listening
+                  ? "#dc2626"
+                  : speaking
+                  ? "#f59e0b"
+                  : "#4a90d9",
+                color: "white",
+                boxShadow: listening
+                  ? "0 0 0 8px rgba(220,38,38,0.25), 0 0 0 16px rgba(220,38,38,0.10)"
+                  : "0 4px 12px rgba(74,144,217,0.4)",
+                transition: "all 0.2s ease",
+                animation: listening ? "pulse 1.2s infinite" : "none",
+              }}
+            >
+              {listening ? "🔴" : speaking ? "🔊" : "🎙️"}
+            </button>
+
+            <style>{`
+              @keyframes pulse {
+                0%   { box-shadow: 0 0 0 0   rgba(220,38,38,0.5), 0 0 0 0   rgba(220,38,38,0.3); }
+                70%  { box-shadow: 0 0 0 12px rgba(220,38,38,0),   0 0 0 20px rgba(220,38,38,0); }
+                100% { box-shadow: 0 0 0 0   rgba(220,38,38,0),   0 0 0 0   rgba(220,38,38,0); }
+              }
+            `}</style>
+          </div>
+        )}
+
+        {/* Status label under mic button */}
+        {supported && (
+          <p
+            style={{
+              textAlign: "center",
+              fontSize: "13px",
+              color: listening ? "#dc2626" : speaking ? "#f59e0b" : "#6b7280",
+              margin: "0 0 12px",
+              fontWeight: listening || speaking ? "bold" : "normal",
+            }}
+          >
+            {listening
+              ? "Te estoy escuchando…"
+              : speaking
+              ? "OLIBOT está hablando…"
+              : "Pulsa el micrófono y habla"}
+          </p>
+        )}
+
+        {!supported && (
+          <p style={{ textAlign: "center", fontSize: "13px", color: "#dc2626", marginBottom: "8px" }}>
+            Tu navegador no soporta voz. Usa el texto.
+          </p>
+        )}
+
+        {/* Text input — fallback / development mode */}
+        <form onSubmit={handleSubmit} style={{ display: "flex", gap: "8px" }}>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={supported ? "O escribe aquí…" : "Escribe aquí… 📝"}
+            disabled={loading || listening}
+            style={{
+              flex: 1,
+              padding: "10px 16px",
+              borderRadius: "24px",
+              border: "2px solid #d1d5db",
+              fontSize: "15px",
+              outline: "none",
+              color: "#374151",
+            }}
+          />
+          <button
+            type="submit"
+            disabled={loading || listening || !input.trim()}
+            style={{
+              padding: "10px 18px",
+              borderRadius: "24px",
+              background: loading || !input.trim() ? "#d1d5db" : "#4a90d9",
+              color: "white",
+              border: "none",
+              cursor: loading || !input.trim() ? "not-allowed" : "pointer",
+              fontSize: "18px",
+            }}
+          >
+            ➤
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

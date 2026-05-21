@@ -40,12 +40,13 @@ import java.util.logging.Logger;
  *
  * ── Observable properties (→ Jason beliefs) ─────────────────────────
  *
- *   percept_count(N)          — incremented on each new percept (trigger)
+ *   percept_count(N)              — incremented on each new percept (trigger)
  *   current_student_id(N)
  *   current_intent("...")
  *   current_success_rate(F)
  *   current_topic_id("...")
  *   current_is_correct("null"|"true"|"false")
+ *   current_requested_topic("...") — topic ID from request_specific_topic intent ("none" if absent)
  *
  * ── CArtAgO operations (callable from Jason plans) ──────────────────
  *
@@ -89,12 +90,13 @@ public class OlibotEnv extends Artifact {
 
         // All observable properties become beliefs in the focused Jason agent.
         // They are initialised here and updated on each incoming percept.
-        defineObsProperty("percept_count",        0);
-        defineObsProperty("current_student_id",   0);
-        defineObsProperty("current_intent",        "none");
-        defineObsProperty("current_success_rate",  0.0);
-        defineObsProperty("current_topic_id",      "general");
-        defineObsProperty("current_is_correct",    "null");
+        defineObsProperty("percept_count",           0);
+        defineObsProperty("current_student_id",    0);
+        defineObsProperty("current_intent",         "none");
+        defineObsProperty("current_success_rate",   0.0);
+        defineObsProperty("current_topic_id",       "general");
+        defineObsProperty("current_is_correct",     "null");
+        defineObsProperty("current_requested_topic","none");
 
         try {
             startHttpServer();
@@ -159,17 +161,19 @@ public class OlibotEnv extends Artifact {
             return;
         }
 
-        int    studentId   = extractInt(body,    "student_id");
-        String intent      = extractString(body, "intent");
-        double successRate = extractDouble(body,  "success_rate");
-        String topicId     = extractString(body, "current_topic");
-        String isCorrect   = extractNullableBoolean(body, "is_correct");
+        int    studentId      = extractInt(body,    "student_id");
+        String intent         = extractString(body, "intent");
+        double successRate    = extractDouble(body,  "success_rate");
+        String topicId        = extractString(body, "current_topic");
+        String isCorrect      = extractNullableBoolean(body, "is_correct");
+        String requestedTopic = extractString(body, "requested_topic");
 
-        updateObsProperty("current_student_id",  studentId);
-        updateObsProperty("current_intent",       intent.isEmpty() ? "unknown" : intent);
-        updateObsProperty("current_success_rate", successRate);
-        updateObsProperty("current_topic_id",     topicId.isEmpty() ? "general" : topicId);
-        updateObsProperty("current_is_correct",   isCorrect);
+        updateObsProperty("current_student_id",     studentId);
+        updateObsProperty("current_intent",          intent.isEmpty() ? "unknown" : intent);
+        updateObsProperty("current_success_rate",    successRate);
+        updateObsProperty("current_topic_id",        topicId.isEmpty() ? "general" : topicId);
+        updateObsProperty("current_is_correct",      isCorrect);
+        updateObsProperty("current_requested_topic", requestedTopic.isEmpty() ? "none" : requestedTopic);
 
         // Trigger last — by the time +percept_count(N) fires in the agent,
         // all other beliefs are already updated.

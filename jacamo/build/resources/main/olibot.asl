@@ -75,9 +75,10 @@ min_attempts(3).
      & current_success_rate(SR)
      & current_topic_id(T)
      & current_student_id(SId)
+     & current_requested_topic(RT)
     <-
     .print("[OLIBOT] Processing percept #", N, " | intent=", Intent,
-           " SR=", SR, " topic=", T, " student=", SId);
+           " SR=", SR, " topic=", T, " student=", SId, " requested=", RT);
     -+current_student(SId);
     -+current_topic(T);
     !respond(Intent, SR, T).
@@ -147,14 +148,51 @@ min_attempts(3).
         "null", "null")[artifact_name("olibot_env"), wsp("olibot_workspace")].
 
 /*
- * PLAN: greet
+ * PLAN: greet — proactively propose today's topic and offer to change
  *
  * Python mirror: PythonBDIFallback — greet branch
  */
 +!respond("greet", _, T) <-
-    .print("[OLIBOT] greet → greet_and_start, topic=", T);
-    postDecision("greet_and_start", 0, T,
-        "Greet the student warmly and introduce today topic with enthusiasm.",
+    .print("[OLIBOT] greet → greet_and_propose, topic=", T);
+    postDecision("greet_and_propose", 0, T,
+        "Greet the student warmly. Propose today topic enthusiastically and ask if they want to start or try something else.",
+        "null", "null")[artifact_name("olibot_env"), wsp("olibot_workspace")].
+
+/*
+ * PLAN: request_topic_change
+ *
+ * Student wants to practice something different.
+ * Agent offers alternatives (Python will inject curriculum-aware names via NLG).
+ * Python mirror: PythonBDIFallback — request_topic_change branch
+ */
++!respond("request_topic_change", _, T) <-
+    .print("[OLIBOT] request_topic_change → offer_alternatives, current=", T);
+    postDecision("offer_alternatives", 0, T,
+        "Student wants to change topic. Offer 2-3 alternatives from the available curriculum enthusiastically.",
+        "null", "null")[artifact_name("olibot_env"), wsp("olibot_workspace")].
+
+/*
+ * PLAN: request_specific_topic
+ *
+ * Student explicitly asks for a specific letter or number.
+ * The requested topic comes from current_requested_topic belief (set by OlibotEnv).
+ * If the topic is available, accept and switch; otherwise redirect.
+ *
+ * Python mirror: PythonBDIFallback — request_specific_topic branch
+ */
++!respond("request_specific_topic", _, T)
+    :  current_requested_topic(RT) & RT \== "none"
+    <-
+    .print("[OLIBOT] request_specific_topic → accept_topic_change, requested=", RT);
+    postDecision("accept_topic_change", 0, RT,
+        "Student wants to practice a specific topic. Accept enthusiastically and start it.",
+        "null", RT)[artifact_name("olibot_env"), wsp("olibot_workspace")].
+
+/* Fallback: no requested topic extracted */
++!respond("request_specific_topic", _, T) <-
+    .print("[OLIBOT] request_specific_topic (no topic) → offer_alternatives");
+    postDecision("offer_alternatives", 0, T,
+        "Student wants something specific but unclear. Ask what they want to practice.",
         "null", "null")[artifact_name("olibot_env"), wsp("olibot_workspace")].
 
 /*

@@ -25,7 +25,7 @@ export default function App() {
         display: "flex",
         flexDirection: "column",
         height: "100vh",
-        maxWidth: "800px",
+        maxWidth: "1200px",
         margin: "0 auto",
         fontFamily: "'Segoe UI', sans-serif",
         backgroundColor: "#f9fbff",

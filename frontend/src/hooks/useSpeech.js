@@ -17,6 +17,18 @@
 import { useState, useRef, useCallback } from "react";
 
 const STT_LANG = "es-ES";
+
+/**
+ * Corrige palabras que el STT confunde habitualmente con "OLIBOT".
+ * Se amplía según lo que se observe en pruebas reales.
+ */
+function fixTranscript(text) {
+  return text
+    .replace(/\bolivot\b/gi, "OLIBOT")
+    .replace(/\bolívot\b/gi, "OLIBOT")
+    .replace(/\boli bot\b/gi, "OLIBOT")
+    .replace(/\bolivbot\b/gi, "OLIBOT");
+}
 const TTS_LANG = "es-ES";
 const TTS_RATE = 0.82;   // más lento — adaptado a niños de 3-5 años
 const TTS_PITCH = 1.15;  // tono ligeramente más alto — más amigable
@@ -65,7 +77,7 @@ export function useSpeech({ onTranscript }) {
       setInterimTranscript(interim || final);
       if (final) {
         setInterimTranscript("");
-        onTranscript(final.trim());
+        onTranscript(fixTranscript(final.trim()));
       }
     };
 
@@ -99,8 +111,13 @@ export function useSpeech({ onTranscript }) {
   const speak = useCallback((text) => {
     if (!window.speechSynthesis) return;
 
-    // Limpiar el texto de emojis y caracteres especiales que confunden al TTS
-    const clean = text.replace(/[\u{1F000}-\u{1FFFF}]/gu, "").trim();
+    // Limpieza para TTS:
+    // 1. "OLIBOT" en mayúsculas se deletrea; la versión mixta se pronuncia como palabra.
+    // 2. Eliminar emojis (rango Unicode de emojis, diacríticos especiales...).
+    const clean = text
+      .replace(/\bOLIBOT\b/g, "Olibót")
+      .replace(/[\u{1F000}-\u{1FFFF}]/gu, "")
+      .trim();
     if (!clean) return;
 
     window.speechSynthesis.cancel();

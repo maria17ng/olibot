@@ -95,7 +95,7 @@ class SessionManager:
             raise ValueError(f"Student {student_id} not found")
 
         # ── 2. Get or create session (topic auto-selected via CurriculumEngine)
-        session = self._get_or_create_session(student_id, session_id, student.beliefs)
+        session = self._get_or_create_session(student_id, session_id, student.beliefs, int(student.age or 4))
 
         # ── 3. Resolve active curriculum topic from session record ─────────
         current_topic: CurriculumTopic | None = CURRICULUM.get(session.topic)
@@ -112,6 +112,7 @@ class SessionManager:
             student=student,
             session_success_rate=session.success_rate,
             current_topic=current_topic,
+            student_age=int(student.age or 4),
         )
 
         # ── 6. NLG: generate LLM response following BDI instruction ────────
@@ -211,6 +212,7 @@ class SessionManager:
         student_id: int,
         session_id: int | None,
         student_beliefs: dict,
+        student_age: int = 4,
     ) -> SessionModel:
         """
         Returns an existing active session or creates a new one.
@@ -230,8 +232,8 @@ class SessionManager:
             if session and session.is_active:
                 return session
 
-        # Auto-select topic using CurriculumEngine
-        next_topic = _curriculum.get_next_topic(student_beliefs)
+        # Auto-select topic using CurriculumEngine (age-filtered)
+        next_topic = _curriculum.get_next_topic(student_beliefs, student_age)
         topic_id = next_topic.id if next_topic else "general"
 
         session = self.session_repo.create_session(

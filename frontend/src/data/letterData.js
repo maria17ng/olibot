@@ -21,16 +21,19 @@ export const LETTER_DATA = {
   // Formas simples de grafomotricidad. Sin letra — solo el trazo.
 
   LINEA_H: {
+    tutorial: "Vamos a hacer líneas horizontales, de un lado al otro. Hay que mover el dedo desde el punto azul hasta el otro extremo sin levantarlo ni salirse de los puntitos.",
     strokes: [
       { points: [{x:0.10,y:0.50},{x:0.35,y:0.50},{x:0.60,y:0.50},{x:0.90,y:0.50}], arrowAngle:0 },
     ],
   },
   LINEA_V: {
+    tutorial: "Vamos a hacer líneas verticales, de arriba hacia abajo. Hay que poner el dedo en el punto azul de arriba y bajarlo despacito hasta abajo sin levantarlo ni salirse.",
     strokes: [
       { points: [{x:0.50,y:0.10},{x:0.50,y:0.35},{x:0.50,y:0.65},{x:0.50,y:0.90}], arrowAngle:90 },
     ],
   },
   CURVA: {
+    tutorial: "Vamos a hacer curvas, como olas del mar. El dedo sube y baja suavemente siguiendo todos los puntitos, sin salirse.",
     strokes: [
       { points: [
         {x:0.10,y:0.50},{x:0.22,y:0.28},{x:0.38,y:0.50},
@@ -39,6 +42,7 @@ export const LETTER_DATA = {
     ],
   },
   ZIGZAG: {
+    tutorial: "Vamos a hacer zigzag. El dedo va arriba, luego abajo, luego arriba otra vez, siguiendo los puntitos en zigzag.",
     strokes: [
       { points: [
         {x:0.10,y:0.72},{x:0.28,y:0.28},{x:0.46,y:0.72},
@@ -47,6 +51,7 @@ export const LETTER_DATA = {
     ],
   },
   CIRCULO: {
+    tutorial: "Vamos a hacer un círculo. Empieza en el punto azul y rodea todo con el dedo sin levantarlo, hasta volver al punto de inicio.",
     strokes: [
       { points: [
         {x:0.50,y:0.10},{x:0.78,y:0.18},{x:0.90,y:0.44},{x:0.90,y:0.58},
@@ -56,6 +61,7 @@ export const LETTER_DATA = {
     ],
   },
   ANGULO: {
+    tutorial: "Vamos a hacer un ángulo, como una montaña. Hay que bajar el dedo hasta la punta y luego subir por el otro lado.",
     strokes: [
       { points: [
         {x:0.10,y:0.85},{x:0.28,y:0.55},{x:0.50,y:0.18},{x:0.72,y:0.55},{x:0.90,y:0.85},
@@ -65,6 +71,7 @@ export const LETTER_DATA = {
 
   // ── VOCALES ───────────────────────────────────────────────────────────────
   A: {
+    tutorial: "Vamos a trazar la letra A. Tiene tres trazos. Primero bajamos por la izquierda, luego por la derecha, y por último trazamos la rayita del medio.",
     strokes: [
       { points: [{x:0.50,y:0.06},{x:0.38,y:0.38},{x:0.25,y:0.70},{x:0.18,y:0.93}], arrowAngle:135 },
       { points: [{x:0.50,y:0.06},{x:0.62,y:0.38},{x:0.75,y:0.70},{x:0.82,y:0.93}], arrowAngle:45  },
@@ -72,6 +79,7 @@ export const LETTER_DATA = {
     ],
   },
   E: {
+    tutorial: "Vamos a trazar la letra E. Tiene cuatro trazos: primero bajamos, y luego hacemos tres rayitas hacia la derecha, de arriba abajo.",
     strokes: [
       { points: [{x:0.27,y:0.08},{x:0.27,y:0.50},{x:0.27,y:0.92}], arrowAngle:90 },
       { points: [{x:0.27,y:0.08},{x:0.53,y:0.08},{x:0.78,y:0.08}], arrowAngle:0  },
@@ -80,11 +88,13 @@ export const LETTER_DATA = {
     ],
   },
   I: {
+    tutorial: "Vamos a trazar la letra I. Es una sola línea recta hacia abajo. Ponemos el dedo en el punto azul y bajamos sin torcernos.",
     strokes: [
       { points: [{x:0.50,y:0.08},{x:0.50,y:0.50},{x:0.50,y:0.92}], arrowAngle:90 },
     ],
   },
   O: {
+    tutorial: "Vamos a trazar la letra O. Es un óvalo. Empezamos arriba y rodeamos todo con el dedo sin levantarlo, hasta volver al inicio.",
     strokes: [
       { points: [
         {x:0.50,y:0.05},{x:0.75,y:0.12},{x:0.90,y:0.35},{x:0.93,y:0.55},
@@ -95,6 +105,7 @@ export const LETTER_DATA = {
     ],
   },
   U: {
+    tutorial: "Vamos a trazar la letra U. El dedo baja, se curva por abajo y vuelve a subir por el otro lado.",
     strokes: [
       { points: [
         {x:0.25,y:0.08},{x:0.25,y:0.40},{x:0.25,y:0.65},
@@ -112,6 +123,7 @@ export const LETTER_DATA = {
   a: {
     // Trazo 1: círculo (de derecha, hacia arriba, en sentido antihorario)
     // Trazo 2: trazo vertical bajando por el lado derecho del círculo
+    tutorial: "Empieza en el punto azul, haz un circulo y luego baja el dedo por el lado.",
     strokes: [
       { points: [
           {x:0.72,y:0.38},{x:0.58,y:0.22},{x:0.40,y:0.22},{x:0.25,y:0.35},
@@ -124,6 +136,7 @@ export const LETTER_DATA = {
   e: {
     // Un solo trazo: empieza a la derecha del centro, va a la izquierda por el
     // ecuador (línea media), sube, rodea la letra y termina a la izquierda.
+    tutorial: "Empieza en el punto azul, ve a la izquierda y rodea la letra con el dedo.",
     strokes: [
       { points: [
           {x:0.72,y:0.50},{x:0.50,y:0.50},{x:0.28,y:0.50},
@@ -137,6 +150,7 @@ export const LETTER_DATA = {
   i: {
     // Trazo 1: palito vertical (zona media del canvas)
     // Trazo 2: el punto (trazo muy corto en la parte superior)
+    tutorial: "Baja el dedo desde el punto azul. Luego marca el puntito de arriba.",
     strokes: [
       { points: [{x:0.50,y:0.33},{x:0.50,y:0.78}], arrowAngle: 90 },
       { points: [{x:0.44,y:0.16},{x:0.56,y:0.16}], arrowAngle: 0  },
@@ -145,6 +159,7 @@ export const LETTER_DATA = {
 
   o: {
     // Oval completa, sentido antihorario empezando por arriba
+    tutorial: "Empieza en el punto azul y rodea con el dedo haciendo un ovalo cerrado.",
     strokes: [
       { points: [
           {x:0.50,y:0.20},{x:0.30,y:0.26},{x:0.20,y:0.42},
@@ -157,6 +172,7 @@ export const LETTER_DATA = {
 
   u: {
     // Un solo trazo: baja por la izquierda, curva en el fondo, sube por la derecha
+    tutorial: "Empieza en el punto azul, baja el dedo, curva abajo y sube por el otro lado.",
     strokes: [
       { points: [
           {x:0.28,y:0.22},{x:0.28,y:0.45},{x:0.28,y:0.60},
@@ -168,6 +184,7 @@ export const LETTER_DATA = {
 
   // ── CONSONANTES ───────────────────────────────────────────────────────────
   B: {
+    tutorial: "Baja el dedo desde el punto azul. Luego traza las dos curvas hacia la derecha.",
     strokes: [
       { points: [{x:0.25,y:0.08},{x:0.25,y:0.50},{x:0.25,y:0.92}], arrowAngle:90 },
       { points: [{x:0.25,y:0.08},{x:0.55,y:0.10},{x:0.72,y:0.22},{x:0.72,y:0.40},{x:0.55,y:0.52},{x:0.25,y:0.52}], arrowAngle:0 },
@@ -175,6 +192,7 @@ export const LETTER_DATA = {
     ],
   },
   C: {
+    tutorial: "Empieza en el punto azul y curva el dedo hacia abajo rodeando la letra.",
     strokes: [
       { points: [
         {x:0.78,y:0.22},{x:0.60,y:0.08},{x:0.38,y:0.08},
@@ -184,6 +202,7 @@ export const LETTER_DATA = {
     ],
   },
   D: {
+    tutorial: "Baja el dedo desde el punto azul. Luego traza la curva grande hacia la derecha.",
     strokes: [
       { points: [{x:0.25,y:0.08},{x:0.25,y:0.50},{x:0.25,y:0.92}], arrowAngle:90 },
       { points: [
@@ -193,6 +212,7 @@ export const LETTER_DATA = {
     ],
   },
   F: {
+    tutorial: "Baja el dedo desde el punto azul. Traza la rayita de arriba y la del medio.",
     strokes: [
       { points: [{x:0.25,y:0.08},{x:0.25,y:0.50},{x:0.25,y:0.92}], arrowAngle:90 },
       { points: [{x:0.25,y:0.08},{x:0.52,y:0.08},{x:0.78,y:0.08}], arrowAngle:0  },
@@ -200,6 +220,7 @@ export const LETTER_DATA = {
     ],
   },
   G: {
+    tutorial: "Empieza en el punto azul, curva el dedo rodeando y entra hacia el centro.",
     strokes: [
       { points: [
         {x:0.80,y:0.22},{x:0.60,y:0.08},{x:0.38,y:0.08},
@@ -210,6 +231,7 @@ export const LETTER_DATA = {
     ],
   },
   H: {
+    tutorial: "Baja el dedo dos veces, una por cada lado. Luego traza la rayita del medio.",
     strokes: [
       { points: [{x:0.22,y:0.08},{x:0.22,y:0.50},{x:0.22,y:0.92}], arrowAngle:90 },
       { points: [{x:0.78,y:0.08},{x:0.78,y:0.50},{x:0.78,y:0.92}], arrowAngle:90 },
@@ -217,6 +239,7 @@ export const LETTER_DATA = {
     ],
   },
   J: {
+    tutorial: "Empieza en el punto azul, baja el dedo y curva hacia la izquierda abajo.",
     strokes: [
       { points: [
         {x:0.65,y:0.08},{x:0.65,y:0.40},{x:0.65,y:0.68},
@@ -225,6 +248,7 @@ export const LETTER_DATA = {
     ],
   },
   K: {
+    tutorial: "Baja el dedo desde el punto azul. Luego traza las dos rayitas diagonales.",
     strokes: [
       { points: [{x:0.25,y:0.08},{x:0.25,y:0.50},{x:0.25,y:0.92}], arrowAngle:90  },
       { points: [{x:0.80,y:0.08},{x:0.55,y:0.35},{x:0.25,y:0.52}], arrowAngle:225 },
@@ -232,12 +256,14 @@ export const LETTER_DATA = {
     ],
   },
   L: {
+    tutorial: "Baja el dedo desde el punto azul y luego arrastra hacia la derecha.",
     strokes: [
       { points: [{x:0.30,y:0.08},{x:0.30,y:0.50},{x:0.30,y:0.92}], arrowAngle:90 },
       { points: [{x:0.30,y:0.92},{x:0.55,y:0.92},{x:0.80,y:0.92}], arrowAngle:0  },
     ],
   },
   M: {
+    tutorial: "Sube el dedo desde el punto azul, baja al centro y vuelve a subir y bajar.",
     strokes: [
       { points: [
         {x:0.15,y:0.92},{x:0.15,y:0.60},{x:0.15,y:0.08},
@@ -248,6 +274,7 @@ export const LETTER_DATA = {
     ],
   },
   N: {
+    tutorial: "Sube el dedo, baja en diagonal y sube de nuevo por el otro lado.",
     strokes: [
       { points: [{x:0.22,y:0.92},{x:0.22,y:0.50},{x:0.22,y:0.08}], arrowAngle:270 },
       { points: [{x:0.22,y:0.08},{x:0.50,y:0.50},{x:0.78,y:0.92}], arrowAngle:135 },
@@ -255,6 +282,7 @@ export const LETTER_DATA = {
     ],
   },
   P: {
+    tutorial: "Baja el dedo desde el punto azul. Luego traza la curva de arriba a la derecha.",
     strokes: [
       { points: [{x:0.25,y:0.08},{x:0.25,y:0.50},{x:0.25,y:0.92}], arrowAngle:90 },
       { points: [
@@ -264,6 +292,7 @@ export const LETTER_DATA = {
     ],
   },
   Q: {
+    tutorial: "Haz un ovalo desde el punto azul. Luego traza el rabito abajo a la derecha.",
     strokes: [
       { points: [
         {x:0.50,y:0.05},{x:0.75,y:0.12},{x:0.90,y:0.35},{x:0.93,y:0.55},
@@ -275,6 +304,7 @@ export const LETTER_DATA = {
     ],
   },
   R: {
+    tutorial: "Baja el dedo, traza la curva de arriba y luego la patita diagonal abajo.",
     strokes: [
       { points: [{x:0.25,y:0.08},{x:0.25,y:0.50},{x:0.25,y:0.92}], arrowAngle:90 },
       { points: [
@@ -285,6 +315,7 @@ export const LETTER_DATA = {
     ],
   },
   S: {
+    tutorial: "Empieza en el punto azul, curva a la izquierda arriba y luego a la derecha abajo.",
     strokes: [
       { points: [
         {x:0.78,y:0.22},{x:0.60,y:0.08},{x:0.38,y:0.08},
@@ -295,18 +326,21 @@ export const LETTER_DATA = {
     ],
   },
   T: {
+    tutorial: "Traza la rayita de arriba con el dedo. Luego baja desde el punto azul.",
     strokes: [
       { points: [{x:0.15,y:0.08},{x:0.50,y:0.08},{x:0.85,y:0.08}], arrowAngle:0  },
       { points: [{x:0.50,y:0.08},{x:0.50,y:0.50},{x:0.50,y:0.92}], arrowAngle:90 },
     ],
   },
   V: {
+    tutorial: "Baja el dedo desde el punto azul hasta la punta y luego sube al otro lado.",
     strokes: [
       { points: [{x:0.18,y:0.08},{x:0.38,y:0.50},{x:0.50,y:0.92}], arrowAngle:135 },
       { points: [{x:0.50,y:0.92},{x:0.62,y:0.50},{x:0.82,y:0.08}], arrowAngle:315 },
     ],
   },
   W: {
+    tutorial: "Empieza en el punto azul y baja y sube el dedo cuatro veces seguidas.",
     strokes: [
       { points: [
         {x:0.10,y:0.08},{x:0.22,y:0.50},{x:0.30,y:0.92},
@@ -317,12 +351,14 @@ export const LETTER_DATA = {
     ],
   },
   X: {
+    tutorial: "Empieza en el punto azul y cruza el dedo en diagonal. Luego cruza al otro lado.",
     strokes: [
       { points: [{x:0.18,y:0.08},{x:0.50,y:0.50},{x:0.82,y:0.92}], arrowAngle:135 },
       { points: [{x:0.82,y:0.08},{x:0.50,y:0.50},{x:0.18,y:0.92}], arrowAngle:225 },
     ],
   },
   Y: {
+    tutorial: "Baja los dos brazos desde arriba hasta el centro. Luego baja el palito.",
     strokes: [
       { points: [{x:0.18,y:0.08},{x:0.35,y:0.32},{x:0.50,y:0.52}], arrowAngle:135 },
       { points: [{x:0.82,y:0.08},{x:0.65,y:0.32},{x:0.50,y:0.52}], arrowAngle:225 },
@@ -330,6 +366,7 @@ export const LETTER_DATA = {
     ],
   },
   Z: {
+    tutorial: "Traza la rayita de arriba, baja en diagonal y traza la rayita de abajo.",
     strokes: [
       { points: [{x:0.18,y:0.08},{x:0.50,y:0.08},{x:0.82,y:0.08}], arrowAngle:0   },
       { points: [{x:0.82,y:0.08},{x:0.50,y:0.50},{x:0.18,y:0.92}], arrowAngle:225 },
@@ -339,6 +376,7 @@ export const LETTER_DATA = {
 
   // ── DÍGITOS ───────────────────────────────────────────────────────────────
   "0": {
+    tutorial: "Empieza en el punto azul y rodea con el dedo haciendo un ovalo completo.",
     strokes: [
       { points: [
         {x:0.50,y:0.05},{x:0.75,y:0.12},{x:0.90,y:0.35},{x:0.93,y:0.55},
@@ -349,6 +387,7 @@ export const LETTER_DATA = {
     ],
   },
   "1": {
+    tutorial: "Empieza en el punto azul y baja el dedo en linea recta hasta abajo.",
     strokes: [
       { points: [
         {x:0.38,y:0.30},{x:0.45,y:0.18},{x:0.52,y:0.08},
@@ -357,6 +396,7 @@ export const LETTER_DATA = {
     ],
   },
   "2": {
+    tutorial: "Empieza en el punto azul, curva arriba y baja en diagonal hasta la rayita.",
     strokes: [
       { points: [
         {x:0.25,y:0.30},{x:0.32,y:0.12},{x:0.50,y:0.08},
@@ -367,6 +407,7 @@ export const LETTER_DATA = {
     ],
   },
   "3": {
+    tutorial: "Empieza en el punto azul, curva a la derecha arriba y luego curva abajo.",
     strokes: [
       { points: [
         {x:0.25,y:0.18},{x:0.45,y:0.08},{x:0.68,y:0.12},
@@ -377,6 +418,7 @@ export const LETTER_DATA = {
     ],
   },
   "4": {
+    tutorial: "Baja el dedo y traza la rayita cruzada. Luego baja el palito de la derecha.",
     strokes: [
       { points: [{x:0.70,y:0.08},{x:0.70,y:0.50},{x:0.70,y:0.92}], arrowAngle:90  },
       { points: [{x:0.70,y:0.08},{x:0.45,y:0.55},{x:0.15,y:0.68}], arrowAngle:225 },
@@ -384,6 +426,7 @@ export const LETTER_DATA = {
     ],
   },
   "5": {
+    tutorial: "Empieza en el punto azul, ve a la izquierda, baja y curva hacia la derecha.",
     strokes: [
       { points: [
         {x:0.78,y:0.08},{x:0.50,y:0.08},{x:0.25,y:0.08},
@@ -395,6 +438,7 @@ export const LETTER_DATA = {
     ],
   },
   "6": {
+    tutorial: "Empieza en el punto azul, baja y curva cerrando el circulo de abajo.",
     strokes: [
       { points: [
         {x:0.75,y:0.15},{x:0.55,y:0.08},{x:0.32,y:0.15},
@@ -406,6 +450,7 @@ export const LETTER_DATA = {
     ],
   },
   "7": {
+    tutorial: "Traza la rayita de arriba y luego baja el dedo en diagonal hasta abajo.",
     strokes: [
       { points: [
         {x:0.20,y:0.08},{x:0.50,y:0.08},{x:0.82,y:0.08},
@@ -414,6 +459,7 @@ export const LETTER_DATA = {
     ],
   },
   "8": {
+    tutorial: "Empieza en el punto azul y haz dos circulos seguidos, uno arriba y otro abajo.",
     strokes: [
       // Bucle superior: start top, go right, down to middle
       { points: [
@@ -431,6 +477,7 @@ export const LETTER_DATA = {
     ],
   },
   "9": {
+    tutorial: "Empieza en el punto azul, haz el circulo de arriba y luego baja el palito.",
     strokes: [
       { points: [
         {x:0.50,y:0.08},{x:0.75,y:0.15},{x:0.83,y:0.32},
@@ -443,6 +490,38 @@ export const LETTER_DATA = {
     ],
   },
 };
+
+// ── Secuencia de letras para topics de sílaba (flujo multi-paso) ─────────────
+// Cada sílaba → array de claves de LETTER_DATA a trazar en orden.
+// Después del último trazo el agente pide pronunciar la sílaba.
+
+const SYLLABLE_LETTERS = {
+  silaba_ma: ["M", "A"],
+  silaba_mi: ["M", "I"],
+  silaba_sa: ["S", "A"],
+  silaba_la: ["L", "A"],
+  silaba_pa: ["P", "A"],
+};
+
+/**
+ * Devuelve las letras a trazar para un topic de sílaba, o null si no aplica.
+ * @param {string} topicId
+ * @returns {string[] | null}
+ */
+export function getSyllableLetters(topicId) {
+  return SYLLABLE_LETTERS[topicId] ?? null;
+}
+
+/**
+ * Devuelve los datos de trazado directamente por clave de LETTER_DATA.
+ * Útil para sílabas donde necesitamos la clave del paso actual.
+ * @param {string} key  — e.g. "M", "A", "LINEA_H"
+ * @returns {{ key: string, strokes: object[] } | null}
+ */
+export function getCharDataByKey(key) {
+  if (!key || !LETTER_DATA[key]) return null;
+  return { key, ...LETTER_DATA[key] };
+}
 
 // ── Mapeo topicId → clave de LETTER_DATA ──────────────────────────────────
 

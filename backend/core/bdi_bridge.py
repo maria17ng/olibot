@@ -103,6 +103,7 @@ class BDIDecision:
     hint_level: int = 1    # Scaffolding level (1=subtle, 3=near-direct)
     is_correct: bool | None = None   # For attempt_answer: was it right?
     next_topic_id: str | None = None  # If set, the session should switch topics
+    free_drawing_subject: str | None = None  # Subject for free drawing mode (e.g. "perro")
 
 
 class BDIBridge:
@@ -123,6 +124,7 @@ class BDIBridge:
         session_success_rate: float,
         current_topic: CurriculumTopic | None = None,
         student_age: int = 4,
+        user_message: str = "",
     ) -> BDIDecision:
         """
         Main entry point: given an intent from the NLU, the BDI agent decides
@@ -134,10 +136,11 @@ class BDIBridge:
             session_success_rate: Overall success rate for the current session
             current_topic:        Active curriculum topic (Fase 2)
             student_age:          Student age for curriculum filtering (Fase 7)
+            user_message:         Raw text of the child's message (for NLG context)
         """
         if self.enabled:
-            return await self._call_jacamo(intent, student, session_success_rate, current_topic, student_age)
-        return self._fallback.decide(intent, student, session_success_rate, current_topic, student_age)
+            return await self._call_jacamo(intent, student, session_success_rate, current_topic, student_age, user_message)
+        return self._fallback.decide(intent, student, session_success_rate, current_topic, student_age, user_message)
 
     async def _call_jacamo(
         self,
@@ -146,6 +149,7 @@ class BDIBridge:
         session_success_rate: float,
         current_topic: CurriculumTopic | None,
         student_age: int,
+        user_message: str = "",
     ) -> BDIDecision:
         """
         Two-step communication with JaCaMo:
@@ -161,6 +165,10 @@ class BDIBridge:
                 is_correct_for_percept = _curriculum.evaluate_answer(
                     current_topic.id, answer
                 )
+        elif intent.name == "tracing_complete":
+            passed = intent.entities.get("passed")
+            if passed is not None:
+                is_correct_for_percept = bool(passed)
 
         percept_payload = {
             "student_id": student.id,
@@ -172,6 +180,7 @@ class BDIBridge:
             "is_correct": is_correct_for_percept,
             "requested_topic": intent.entities.get("requested_topic_id", ""),
             "student_age": student_age,
+            "user_message": user_message,
         }
 
         try:
@@ -188,11 +197,20 @@ class BDIBridge:
             response.raise_for_status()
             data = response.json()
 
-            fallback = self._fallback.decide(intent, student, session_success_rate, current_topic, student_age)
+            fallback = self._fallback.decide(intent, student, session_success_rate, current_topic, student_age, user_message)
+
+            jacamo_action = data.get("action", fallback.action)
+            jacamo_instruction = data.get("instruction", fallback.instruction)
+
+            # Don't let JaCaMo's catch-all "redirect" override the fallback when
+            # the fallback has a more specific action (missing plan in ASL).
+            if jacamo_action == "redirect" and fallback.action != "redirect":
+                jacamo_action = fallback.action
+                jacamo_instruction = fallback.instruction
 
             return BDIDecision(
-                action=data.get("action", fallback.action),
-                instruction=data.get("instruction", fallback.instruction),
+                action=jacamo_action,
+                instruction=jacamo_instruction,
                 updated_beliefs=fallback.updated_beliefs,
                 hint_level=data.get("hint_level", fallback.hint_level),
                 is_correct=fallback.is_correct,
@@ -240,6 +258,7 @@ class PythonBDIFallback:
         session_success_rate: float,
         current_topic: CurriculumTopic | None = None,
         student_age: int = 4,
+        user_message: str = "",
     ) -> BDIDecision:
         """
         Simulates Jason plan selection based on intent, beliefs and topic.
@@ -249,7 +268,7 @@ class PythonBDIFallback:
             +!respond(Intent) : intent(attempt_answer) & correct <- praise_and_advance.
             +!respond(Intent) : topic_mastered(Topic) <- select_next_topic.
         """
-        decision = self._decide_inner(intent, student, session_success_rate, current_topic, student_age)
+        decision = self._decide_inner(intent, student, session_success_rate, current_topic, student_age, user_message)
         # Enforce age-3 constraints on the NLG instruction regardless of which plan fired
         decision.instruction = self._age3_wrap(decision.instruction, student_age)
         return decision
@@ -261,6 +280,7 @@ class PythonBDIFallback:
         session_success_rate: float,
         current_topic: CurriculumTopic | None = None,
         student_age: int = 4,
+        user_message: str = "",
     ) -> BDIDecision:
         beliefs = dict(student.beliefs)
         topic_id = current_topic.id if current_topic else "general"
@@ -298,36 +318,74 @@ class PythonBDIFallback:
             passed = intent.entities.get("passed", False)
             score  = intent.entities.get("score", 0)
 
+            # For syllable topics, extract the syllable sound from display_name
+            is_syllable = topic_id.startswith("silaba_")
+            syllable_sound = current_topic.display_name.split()[-1] if is_syllable and current_topic else ""
+
             if passed:
                 beliefs = _scaffolding.record_attempt(beliefs, topic_id, True)
                 next_topic_id = None
-                if _scaffolding.should_advance_topic(beliefs, topic_id):
+                mastery_achieved = False
+                if not is_syllable and _scaffolding.should_advance_topic(beliefs, topic_id):
+                    mastery_achieved = True
                     next_topic = _curriculum.get_next_topic(beliefs, student_age)
                     next_topic_id = next_topic.id if next_topic.id != topic_id else None
 
-                instruction = (
-                    f"The child completed tracing '{letter}' with {score}% accuracy! "
-                    "Celebrate enthusiastically. "
-                    + (f"They've mastered this topic! Introduce '{next_topic_id}' warmly."
-                       if next_topic_id else
-                       "Encourage them to keep practicing this shape.")
-                )
-                return BDIDecision(
-                    action="celebrate_tracing",
-                    instruction=instruction,
-                    updated_beliefs=beliefs,
-                    hint_level=1,
-                    is_correct=True,
-                    next_topic_id=next_topic_id,
-                )
+                if is_syllable:
+                    instruction = (
+                        f"The child traced all letters of the syllable '{syllable_sound}' with {score}% accuracy! "
+                        f"Celebrate briefly, then ask them to say '{syllable_sound}' aloud. "
+                        f"Say something like: '¡Muy bien! Ahora dilo: {syllable_sound}'"
+                    )
+                    return BDIDecision(
+                        action="celebrate_tracing",
+                        instruction=instruction,
+                        updated_beliefs=beliefs,
+                        hint_level=1,
+                        is_correct=True,
+                        next_topic_id=next_topic_id,
+                    )
+                elif mastery_achieved:
+                    instruction = (
+                        f"The child has MASTERED '{letter}'! Celebrate enthusiastically! "
+                        "Then ask what they want to do next — keep practicing this, "
+                        "try the next activity, or do free drawing. Keep it fun and exciting!"
+                    )
+                    return BDIDecision(
+                        action="mastery_achieved",
+                        instruction=instruction,
+                        updated_beliefs=beliefs,
+                        hint_level=1,
+                        is_correct=True,
+                        next_topic_id=next_topic_id,
+                    )
+                else:
+                    instruction = (
+                        f"The child completed tracing '{letter}' with {score}% accuracy! "
+                        "Celebrate enthusiastically and encourage them to keep practicing this shape."
+                    )
+                    return BDIDecision(
+                        action="celebrate_tracing",
+                        instruction=instruction,
+                        updated_beliefs=beliefs,
+                        hint_level=1,
+                        is_correct=True,
+                        next_topic_id=None,
+                    )
             else:
                 beliefs = _scaffolding.record_attempt(beliefs, topic_id, False)
                 hint_level = _scaffolding.get_hint_level(beliefs, topic_id)
                 hint_text = _curriculum.get_hint(topic_id, hint_level) if current_topic else ""
-                instruction = (
-                    f"The child attempted tracing '{letter}' but scored {score}% — needs practice. "
-                    f"Encourage kindly to try again. Level-{hint_level} hint: \"{hint_text}\""
-                )
+                if is_syllable:
+                    instruction = (
+                        f"The child tried to trace syllable '{syllable_sound}' but scored {score}% — needs practice. "
+                        f"Encourage kindly to try tracing the letters again."
+                    )
+                else:
+                    instruction = (
+                        f"The child attempted tracing '{letter}' but scored {score}% — needs practice. "
+                        f"Encourage kindly to try again. Level-{hint_level} hint: \"{hint_text}\""
+                    )
                 return BDIDecision(
                     action="encourage_retry_tracing",
                     instruction=instruction,
@@ -356,8 +414,9 @@ class PythonBDIFallback:
                     action="praise_and_advance" if next_topic_id else "praise",
                     instruction=(
                         "The student answered CORRECTLY! Celebrate enthusiastically. "
-                        + (f"They have mastered '{current_topic.display_name}'! "
-                           f"Introduce the next topic warmly."
+                        + (f"They have MASTERED '{current_topic.display_name}'! "
+                           "Celebrate with excitement, then ask what they want to do next: "
+                           "keep practising this, try the next activity, or do a fun free drawing!"
                            if next_topic_id else
                            "Encourage them to keep going.")
                     ),
@@ -411,6 +470,8 @@ class PythonBDIFallback:
                 and not beliefs.get("mastery")
             )
 
+            child_said = f"The child said: '{user_message}'. " if user_message else ""
+
             if needs_placement:
                 questions = _PLACEMENT_QUESTIONS.get(min(student_age, 5), _PLACEMENT_QUESTIONS[4])
                 first_q = questions[0]
@@ -418,7 +479,7 @@ class PythonBDIFallback:
                 beliefs["placement_question"] = 1
                 beliefs["placement_age"] = student_age
                 instruction = (
-                    "Greet the child warmly and tell them you want to see what they already know. "
+                    f"{child_said}Greet the child warmly and tell them you want to see what they already know. "
                     f"Ask: '{first_q['question']}' Use emojis. Wait for their answer."
                 )
                 return BDIDecision(
@@ -434,14 +495,14 @@ class PythonBDIFallback:
                     f"'{t.display_name}'" for t in alternatives
                 ) if alternatives else "otros temas disponibles"
                 instruction = (
-                    f"Greet the student warmly and enthusiastically PROPOSE today's activity: "
+                    f"{child_said}Respond directly to what the child said, then enthusiastically PROPOSE today's activity: "
                     f"'{current_topic.display_name}'. {current_topic.description_for_student} "
                     f"Then ask: '¿Empezamos con esto o prefieres otra cosa? También podemos "
                     f"practicar {alt_names}.' Make it exciting and child-friendly!"
                 )
             else:
                 instruction = (
-                    "Greet the student warmly. Ask what they want to practice today. "
+                    f"{child_said}Respond to what they said. Ask what they want to practice today. "
                     "Be enthusiastic and child-friendly!"
                 )
             return BDIDecision(
@@ -456,17 +517,18 @@ class PythonBDIFallback:
 
         # ── Plan: student wants to change topic ───────────────────────────────
         if intent.name == "request_topic_change":
+            child_said = f"The child said: '{user_message}'. " if user_message else ""
             alternatives = _curriculum.get_alternatives(beliefs, topic_id, student_age, 3)
             if alternatives:
                 names = ", ".join(f"'{t.display_name}'" for t in alternatives)
                 instruction = (
-                    f"The student wants to practice something different. "
-                    f"Offer these alternatives enthusiastically: {names}. "
+                    f"{child_said}Respond directly to what they asked. "
+                    f"Offer these activity options enthusiastically: {names}. "
                     f"Let them choose. Be encouraging!"
                 )
             else:
                 instruction = (
-                    "The student wants to change topic but they've covered all available topics! "
+                    f"{child_said}Respond to what they said. They've covered all available topics! "
                     "Congratulate them and suggest reviewing the current topic to improve their score."
                 )
             return BDIDecision(
@@ -518,24 +580,59 @@ class PythonBDIFallback:
                     updated_beliefs=beliefs,
                 )
 
+        # ── Plan: free drawing request ─────────────────────────────────────────
+        if intent.name == "free_drawing":
+            # Extract drawing subject from message (simple keyword match)
+            msg_lower = user_message.lower() if user_message else ""
+            subject_map = {
+                "perro": "perro", "can": "perro", "cachorro": "perro",
+                "gato": "gato", "gatito": "gato",
+                "pato": "pato",
+                "conejo": "conejo",
+                "mariposa": "mariposa",
+                "pez": "pez", "peces": "pez",
+                "pajaro": "pajaro", "pájaro": "pajaro", "pajarito": "pajaro",
+                "elefante": "elefante",
+                "sol": "sol",
+                "casa": "casa",
+                "arbol": "arbol", "árbol": "arbol",
+                "corazon": "corazon", "corazón": "corazon",
+            }
+            subject = next((v for k, v in subject_map.items() if k in msg_lower), None)
+            instruction = (
+                "The child wants to do free drawing! React with excitement. "
+                + (f"They want to draw a '{subject}'! Say something like '¡Vamos a dibujar un {subject}!' "
+                   if subject else
+                   "Ask them what they want to draw — suggest a few animals (dog, cat, duck, butterfly...).")
+            )
+            return BDIDecision(
+                action="start_free_drawing",
+                instruction=instruction,
+                updated_beliefs=beliefs,
+                free_drawing_subject=subject,
+            )
+
         # ── Plan: student expresses emotion ────────────────────────────────────
         if intent.name == "express_emotion":
+            child_said = f"The child said: '{user_message}'. " if user_message else ""
             return BDIDecision(
                 action="acknowledge_emotion",
                 instruction=(
-                    "The student expressed an emotion. Acknowledge it with empathy. "
-                    "If frustrated, reassure them. If happy, celebrate with them. "
-                    "Then gently return to the activity."
+                    f"{child_said}Acknowledge exactly what they expressed with empathy and warmth. "
+                    "If frustrated, reassure them patiently. If happy, celebrate together. "
+                    "Then gently return to the activity with encouragement."
                 ),
                 updated_beliefs=beliefs,
             )
 
         # ── Plan: off-topic / unknown → redirect (catch-all) ──────────────────
+        child_said = f"The child said: '{user_message}'. " if user_message else ""
         return BDIDecision(
             action="redirect",
             instruction=(
-                "The student went off-topic. Gently redirect them back to the lesson "
-                + (f"about {current_topic.display_name}." if current_topic else ".")
+                f"{child_said}Respond briefly and warmly to what the child said (1 sentence), "
+                "then gently redirect them back to the lesson "
+                + (f"about '{current_topic.display_name}'." if current_topic else ".")
             ),
             updated_beliefs=beliefs,
         )

@@ -2,10 +2,60 @@
 Natural Language Understanding (NLU) module.
 Translates a child's free-text message into a structured Intent
 that the BDI agent can reason about.
+
+Classification pipeline (in order of priority):
+  1. Embedding-based nearest-neighbour (nomic-embed-text) — fastest, ~50-100 ms
+     Requires: ollama pull nomic-embed-text + run generate_nlu_embeddings.py
+  2. Lightweight LLM (llama3.2:1b) — medium, ~400 ms
+     Requires: ollama pull llama3.2:1b
+  3. Main LLM (llama3.1:8b) fallback — slowest, ~1-3 s
+
+Reference for embedding approach: [18] Nussbaum et al. — Nomic Embed (2024)
 """
 import json
+import math
+from pathlib import Path
 from dataclasses import dataclass, field
 from backend.llm.ollama_client import OllamaClient
+from backend.config.settings import get_settings
+
+_settings = get_settings()
+
+# ── Embedding-based classifier ─────────────────────────────────────────────
+_EMBEDDINGS_PATH = Path(__file__).parent.parent / "data" / "nlu_embeddings.json"
+_INTENT_EMBEDDINGS: dict[str, list[list[float]]] = {}
+
+try:
+    with _EMBEDDINGS_PATH.open(encoding="utf-8") as _f:
+        _INTENT_EMBEDDINGS = json.load(_f)
+except Exception:
+    pass  # not generated yet — fall through to LLM
+
+_EMBED_CONFIDENCE_THRESHOLD = 0.72  # cosine similarity threshold for embedding classification
+
+
+def _cosine_similarity(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = math.sqrt(sum(x * x for x in a))
+    norm_b = math.sqrt(sum(x * x for x in b))
+    return dot / (norm_a * norm_b + 1e-9)
+
+
+def _classify_by_embedding(
+    message_embedding: list[float],
+) -> tuple[str, float] | None:
+    """Returns (intent_name, confidence) if above threshold, else None."""
+    if not _INTENT_EMBEDDINGS:
+        return None
+    best_intent, best_sim = "unknown", 0.0
+    for intent, examples in _INTENT_EMBEDDINGS.items():
+        sim = max(_cosine_similarity(message_embedding, ex) for ex in examples)
+        if sim > best_sim:
+            best_sim = sim
+            best_intent = intent
+    if best_sim >= _EMBED_CONFIDENCE_THRESHOLD:
+        return best_intent, best_sim
+    return None
 
 
 @dataclass
@@ -79,16 +129,71 @@ Respond ONLY with a valid JSON object, no extra text:
 
 
 class NLUProcessor:
-    """Uses the LLM to classify student messages into structured intents."""
+    """
+    Classifies student messages into structured intents using a 3-tier pipeline:
+      1. Semantic embeddings (nomic-embed-text) — fastest
+      2. Lightweight LLM (llama3.2:1b) — medium
+      3. Main LLM (llama3.1:8b) fallback — slowest
+
+    The embedding path classifies by cosine similarity against pre-computed
+    example embeddings.  Entity extraction always uses the LLM path because
+    embeddings cannot extract structured fields like {answer, letter, score}.
+
+    Reference: [18] Nussbaum et al. — Nomic Embed (2024)
+    """
 
     def __init__(self, ollama_client: OllamaClient):
-        self.llm = ollama_client
+        # Embedding client (nomic-embed-text) — optional, silently disabled if unavailable
+        embed_model = _settings.ollama_embed_model
+        self._embed_client: OllamaClient | None = (
+            OllamaClient(model=embed_model) if embed_model else None
+        )
+        # Lightweight LLM for entity extraction + fallback intent classification
+        nlu_model = _settings.ollama_nlu_model
+        if nlu_model and nlu_model != _settings.ollama_model:
+            self.llm = OllamaClient(model=nlu_model)
+            self._fallback_llm = ollama_client
+        else:
+            self.llm = ollama_client
+            self._fallback_llm = None
 
     async def extract_intent(self, student_message: str) -> Intent:
         """
-        Sends the student message to the LLM and parses the returned JSON intent.
-        Falls back to 'unknown' if parsing fails.
+        Classifies the student's message into a structured Intent.
+
+        For intents that require entity extraction (attempt_answer, tracing_complete,
+        request_specific_topic, placement_answer) the LLM path is always used
+        because embeddings cannot extract structured fields.
+        For other intents, embedding classification is tried first.
         """
+        # ── Step 1: Embedding-based intent classification ──────────────────
+        intent_from_embedding: str | None = None
+        embed_confidence: float = 0.0
+
+        if self._embed_client and _INTENT_EMBEDDINGS:
+            try:
+                msg_embedding = await self._embed_client.embed(student_message)
+                result = _classify_by_embedding(msg_embedding)
+                if result:
+                    intent_from_embedding, embed_confidence = result
+            except Exception:
+                pass  # embedding model unavailable — fall through to LLM
+
+        # Intents that need entity extraction always go through LLM
+        _needs_entities = {
+            "attempt_answer", "tracing_complete",
+            "request_specific_topic", "placement_answer",
+        }
+
+        if intent_from_embedding and intent_from_embedding not in _needs_entities:
+            return Intent(
+                name=intent_from_embedding,
+                confidence=round(embed_confidence, 3),
+                entities={},
+                raw_text=student_message,
+            )
+
+        # ── Step 2: LLM-based classification (with entity extraction) ─────
         prompt = f"Child's message: \"{student_message}\""
 
         try:
@@ -103,6 +208,29 @@ class NLUProcessor:
                 entities=parsed.get("entities", {}),
                 raw_text=student_message,
             )
-        except (json.JSONDecodeError, ValueError, KeyError):
-            # LLM returned malformed JSON → safe fallback
+        except Exception:
+            # ── Step 3: Main LLM fallback ──────────────────────────────────
+            if self._fallback_llm:
+                try:
+                    raw_response = await self._fallback_llm.generate(
+                        prompt=prompt,
+                        system_prompt=NLU_SYSTEM_PROMPT,
+                    )
+                    parsed = json.loads(raw_response)
+                    return Intent(
+                        name=parsed.get("intent", "unknown"),
+                        confidence=float(parsed.get("confidence", 0.5)),
+                        entities=parsed.get("entities", {}),
+                        raw_text=student_message,
+                    )
+                except Exception:
+                    pass
+            # If embedding gave a result (even for an entity-needing intent), use it
+            if intent_from_embedding:
+                return Intent(
+                    name=intent_from_embedding,
+                    confidence=round(embed_confidence, 3),
+                    entities={},
+                    raw_text=student_message,
+                )
             return Intent(name="unknown", confidence=0.0, raw_text=student_message)

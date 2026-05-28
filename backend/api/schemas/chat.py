@@ -31,3 +31,5 @@ class ChatResponse(BaseModel):
     is_correct: bool | None = None       # For attempt_answer: was it correct? (None = not evaluated)
     next_topic_id: str | None = None     # Set when the student masters a topic → session switches
     current_topic_id: str | None = None  # The active curriculum topic for this turn
+    bdi_action: str | None = None        # BDI action decided (e.g. mastery_achieved, start_free_drawing)
+    free_drawing_subject: str | None = None  # Subject for free drawing (e.g. "perro")

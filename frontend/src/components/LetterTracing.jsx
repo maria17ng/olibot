@@ -1,125 +1,123 @@
 /**
- * LetterTracing — panel de trazado de letras y números para niños de 3-5 años.
+ * LetterTracing — canvas de trazado para niños de 3-5 años.
  *
- * Muestra un canvas cuadrado donde el niño traza la letra/número con el dedo
- * (tablet) o el ratón. La guía visual se adapta al nivel de pista:
- *
- *   hintLevel 3 → letra guía semitransparente + puntos numerados + flechas
- *   hintLevel 2 → puntos numerados (sin letra guía)
- *   hintLevel 1 → solo puntos de inicio y fin de cada trazo
- *
- * Al completar todos los trazos (o pulsar "¡Listo!"), emite onComplete con
- * { shapeScore, orderScore, passed }.
+ * Fases visuales:
+ *   demo    → cursor rojo animado muestra cómo trazar; banner "¡Mira!" + "Toca para saltar"
+ *   tracing → el niño dibuja; pequeño botón "🔄" flotante para reiniciar
+ *   done    → overlay verde/naranja con resultado
  *
  * Props:
- *   charData   {key, strokes}   Del letterData.js. Si null, el panel no se muestra.
- *   hintLevel  1|2|3            Derivado de successRate en ChatWindow.
- *   onComplete (result) => void Callback con resultado final.
+ *   charData   {key, strokes, tutorial?}  Del letterData.js. null → no se muestra.
+ *   hintLevel  1|2|3
+ *   onComplete (result) => void
+ *   disabled   bool   — canvas bloqueado mientras OLIBOT piensa
+ *   minimal    bool   — modo pantalla completa (oculta cabecera de texto)
  */
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLetterTracing } from "../hooks/useLetterTracing";
 
-// ── Colores de resultado ─────────────────────────────────────────────────────
-const COLOR_PASS = "#15803d";
-const COLOR_FAIL = "#b45309";
-
-export default function LetterTracing({ charData, hintLevel = 3, onComplete, disabled = false }) {
+export default function LetterTracing({ charData, hintLevel = 3, onComplete, onDemoEnd, skipInitialDemo = false, disabled = false, minimal = false }) {
   const {
     canvasRef,
     currentStrokeIdx,
     totalStrokes,
     phase,
     result,
+    skipDemo,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
     reset,
-  } = useLetterTracing({ charData, hintLevel, onComplete });
+  } = useLetterTracing({ charData, hintLevel, onComplete, skipInitialDemo });
 
-  // Ajuste del tamaño del canvas al montar / cambiar tamaño de ventana
+  // Call onDemoEnd when demo transitions to tracing
+  const prevPhaseRef = useRef(phase);
+  useEffect(() => {
+    if (prevPhaseRef.current === "demo" && phase === "tracing") {
+      onDemoEnd?.();
+    }
+    prevPhaseRef.current = phase;
+  }, [phase, onDemoEnd]);
+
+  // ── Canvas sizing ─────────────────────────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const resize = () => {
-      const size = Math.min(canvas.parentElement?.clientWidth ?? 420, 420);
+      let size;
+      if (minimal) {
+        const w = window.innerWidth  - 16;
+        const h = window.innerHeight - 16;
+        size = Math.max(Math.min(w, h, 1200), 200);
+      } else {
+        size = Math.min(canvas.parentElement?.clientWidth ?? 560, 560);
+      }
       canvas.width  = size;
       canvas.height = size;
     };
     resize();
     window.addEventListener("resize", resize);
     return () => window.removeEventListener("resize", resize);
-  }, [canvasRef]);
+  }, [canvasRef, minimal]);
 
   if (!charData) return null;
 
   const pct = (v) => `${Math.round(v * 100)}%`;
-  const hintLabel = ["", "Solo puntos", "Puntos numerados", "Letra + flechas"][hintLevel] ?? "";
 
   return (
     <div
       style={{
-        background: "white",
-        borderRadius: "16px",
-        border: "2px solid #dce8f5",
-        padding: "12px",
+        background: minimal ? "transparent" : "white",
+        borderRadius: minimal ? "0" : "16px",
+        border: minimal ? "none" : "2px solid #dce8f5",
+        padding: minimal ? "0" : "12px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         gap: "8px",
         userSelect: "none",
         WebkitUserSelect: "none",
+        width: minimal ? "100%" : undefined,
       }}
     >
-      {/* Cabecera: letra activa + nivel de pista */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
-        <span
-          style={{
-            fontSize: "36px",
-            fontWeight: "bold",
-            color: "#1e3a5f",
-            lineHeight: 1,
-            minWidth: "40px",
-            textAlign: "center",
-          }}
-        >
-          {charData.key}
-        </span>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: "13px", fontWeight: "bold", color: "#374151" }}>
-            ¡Traza la letra {charData.key}!
+      {/* Header — non-minimal only */}
+      {!minimal && (
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
+          <span style={{ fontSize: "36px", fontWeight: "bold", color: "#1e3a5f", lineHeight: 1, minWidth: "40px", textAlign: "center" }}>
+            {charData.key}
+          </span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "13px", fontWeight: "bold", color: "#374151" }}>
+              ¡Traza la letra {charData.key}!
+            </div>
+            <div style={{ fontSize: "11px", color: "#9ca3af" }}>
+              {["", "Solo puntos", "Puntos numerados", "Letra + flechas"][hintLevel] ?? ""}
+              {" · "}Trazo {Math.min(currentStrokeIdx + 1, totalStrokes)}/{totalStrokes}
+            </div>
           </div>
-          <div style={{ fontSize: "11px", color: "#9ca3af" }}>
-            {hintLabel} · Trazo {Math.min(currentStrokeIdx + 1, totalStrokes)}/{totalStrokes}
+          <div style={{ display: "flex", gap: "4px" }}>
+            {Array.from({ length: totalStrokes }, (_, i) => (
+              <div key={i} style={{ width: "10px", height: "10px", borderRadius: "50%", background: i < currentStrokeIdx ? "#15803d" : i === currentStrokeIdx ? "#4a90d9" : "#e5e7eb", border: i === currentStrokeIdx ? "2px solid #1e40af" : "none" }} />
+            ))}
           </div>
         </div>
-        {/* Progreso de trazos */}
-        <div style={{ display: "flex", gap: "4px" }}>
+      )}
+
+      {/* Stroke progress dots — minimal only, multi-stroke */}
+      {minimal && totalStrokes > 1 && (
+        <div style={{ display: "flex", gap: "10px", marginBottom: "2px" }}>
           {Array.from({ length: totalStrokes }, (_, i) => (
-            <div
-              key={i}
-              style={{
-                width: "10px",
-                height: "10px",
-                borderRadius: "50%",
-                background:
-                  i < currentStrokeIdx
-                    ? "#15803d"
-                    : i === currentStrokeIdx
-                    ? "#4a90d9"
-                    : "#e5e7eb",
-                border: i === currentStrokeIdx ? "2px solid #1e40af" : "none",
-              }}
-            />
+            <div key={i} style={{ width: "16px", height: "16px", borderRadius: "50%", background: i < currentStrokeIdx ? "#15803d" : i === currentStrokeIdx ? "#4a90d9" : "#e5e7eb", border: i === currentStrokeIdx ? "2px solid #1e40af" : "none" }} />
           ))}
         </div>
-      </div>
+      )}
 
-      {/* Canvas */}
+      {/* Canvas container */}
       <div
         style={{
           position: "relative",
           touchAction: "none",
-          cursor: disabled ? "not-allowed" : phase === "done" ? "default" : "crosshair",
+          cursor: disabled ? "not-allowed" : phase === "done" ? "default" : phase === "demo" ? "pointer" : "crosshair",
         }}
       >
         <canvas
@@ -139,7 +137,9 @@ export default function LetterTracing({ charData, hintLevel = 3, onComplete, dis
           onPointerCancel={disabled ? undefined : handlePointerUp}
         />
 
-        {/* Loading overlay — shown while OLIBOT is thinking */}
+        {/* Demo phase: no text overlay — the robot speaks the instructions via TTS */}
+
+        {/* ── Loading overlay ───────────────────────────────────────────────── */}
         {disabled && (
           <div
             style={{
@@ -169,16 +169,14 @@ export default function LetterTracing({ charData, hintLevel = 3, onComplete, dis
           </div>
         )}
 
-        {/* Overlay de resultado */}
+        {/* ── Result overlay ────────────────────────────────────────────────── */}
         {phase === "done" && result && (
           <div
             style={{
               position: "absolute",
               inset: 0,
               borderRadius: "12px",
-              background: result.passed
-                ? "rgba(21,128,61,0.88)"
-                : "rgba(180,83,9,0.88)",
+              background: result.passed ? "rgba(21,128,61,0.88)" : "rgba(180,83,9,0.88)",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -189,71 +187,87 @@ export default function LetterTracing({ charData, hintLevel = 3, onComplete, dis
               gap: "6px",
             }}
           >
-            <div style={{ fontSize: "48px" }}>{result.passed ? "⭐" : "💪"}</div>
-            <div>{result.passed ? "¡Muy bien!" : "¡Casi! Inténtalo otra vez"}</div>
-            <div style={{ fontSize: "12px", fontWeight: "normal", opacity: 0.9 }}>
+            <div style={{ fontSize: minimal ? "72px" : "48px" }}>{result.passed ? "⭐" : "💪"}</div>
+            <div style={{ fontSize: minimal ? "24px" : "18px" }}>
+              {result.passed ? "¡Muy bien!" : "¡Casi! Inténtalo otra vez"}
+            </div>
+            <div style={{ fontSize: minimal ? "15px" : "12px", fontWeight: "normal", opacity: 0.9 }}>
               Forma: {pct(result.shapeScore)} · Orden: {pct(result.orderScore)}
             </div>
           </div>
         )}
+
+        {/* ── Tracing phase: floating reset button ─────────────────────────── */}
+        {phase === "tracing" && !disabled && (
+          <button
+            onClick={reset}
+            style={{
+              position: "absolute",
+              top: "12px",
+              right: "12px",
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              border: "none",
+              background: "rgba(255,255,255,0.82)",
+              color: "#374151",
+              fontSize: "20px",
+              cursor: "pointer",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 6,
+            }}
+            title="Ver demo otra vez"
+          >
+            🔄
+          </button>
+        )}
       </div>
 
-      {/* Instrucción dinámica */}
-      {phase === "tracing" && (
-        <p
-          style={{
-            margin: 0,
-            fontSize: "13px",
-            color: "#4a5568",
-            textAlign: "center",
-          }}
-        >
-          {currentStrokeIdx === 0
-            ? "Empieza por el punto azul 🔵"
-            : `Trazo ${currentStrokeIdx + 1}: ¡sigue los puntos!`}
+      {/* Instruction text — non-minimal tracing phase */}
+      {!minimal && phase === "tracing" && (
+        <p style={{ margin: 0, fontSize: "13px", color: "#4a5568", textAlign: "center" }}>
+          {currentStrokeIdx === 0 ? "Empieza por el punto azul 🔵" : `Trazo ${currentStrokeIdx + 1}: ¡sigue los puntos!`}
         </p>
       )}
 
-      {/* Botones */}
-      <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
-        {/* Borrar / repetir */}
-        <button
-          onClick={reset}
-          style={{
-            padding: "8px 16px",
-            borderRadius: "20px",
-            border: "2px solid #d1d5db",
-            background: "white",
-            color: "#374151",
-            fontSize: "13px",
-            cursor: "pointer",
-          }}
-        >
-          🔄 Repetir
-        </button>
-
-        {/* Botón "¡Listo!" — disponible aunque no hayan completado todos los trazos */}
-        {phase === "tracing" && currentStrokeIdx > 0 && (
+      {/* Buttons — non-minimal only */}
+      {!minimal && (
+        <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
           <button
-            onClick={() => {
-              // Forzar evaluación con los trazos que haya hecho
-              // Emitimos resultado parcial con los datos ya recogidos
-              onComplete?.({ shapeScore: 0, orderScore: 0, passed: false, partial: true });
-            }}
+            onClick={reset}
             style={{
               padding: "8px 16px",
               borderRadius: "20px",
-              border: "none",
-              background: "#4a90d9",
-              color: "white",
+              border: "2px solid #d1d5db",
+              background: "white",
+              color: "#374151",
               fontSize: "13px",
               cursor: "pointer",
             }}
           >
-            ✅ ¡Listo!
+            🔄 Repetir
           </button>
-        )}
-      </div>
+          {phase === "tracing" && currentStrokeIdx > 0 && (
+            <button
+              onClick={() => onComplete?.({ shapeScore: 0, orderScore: 0, passed: false, partial: true })}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "20px",
+                border: "none",
+                background: "#4a90d9",
+                color: "white",
+                fontSize: "13px",
+                cursor: "pointer",
+              }}
+            >
+              ✅ ¡Listo!
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

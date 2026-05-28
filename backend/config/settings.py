@@ -17,7 +17,9 @@ class Settings(BaseSettings):
 
     # Ollama (Local LLM)
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3.1:8b"
+    ollama_model: str = "llama3.1:8b"           # NLG model (response generation)
+    ollama_nlu_model: str = "llama3.2:1b"       # NLU model (intent classification) — pull: ollama pull llama3.2:1b
+    ollama_embed_model: str = "nomic-embed-text" # Embedding model for semantic NLU — pull: ollama pull nomic-embed-text
     ollama_timeout: int = 60
 
     # JaCaMo BDI Agent (REST bridge)

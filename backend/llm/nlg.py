@@ -1,10 +1,59 @@
 """
 Natural Language Generation (NLG) module.
 Generates child-friendly, age-appropriate responses using the LLM.
+
+Response cache (#11): Common (intent, category, age) combinations are served
+from a pre-written JSON cache to reduce Ollama latency for frequent turns.
 The Safety Shield layer reviews all output before it reaches the student.
 """
+import json
+import random
+from pathlib import Path
 from backend.llm.ollama_client import OllamaClient
 from backend.db.models import StudentModel
+
+# ── Response cache ─────────────────────────────────────────────────────────
+_CACHE_PATH = Path(__file__).parent.parent / "data" / "response_cache.json"
+_RESPONSE_CACHE: dict[str, list[str]] = {}
+
+try:
+    with _CACHE_PATH.open(encoding="utf-8") as _f:
+        _raw = json.load(_f)
+    _RESPONSE_CACHE = {k: v for k, v in _raw.items() if not k.startswith("_") and isinstance(v, list)}
+except Exception:
+    pass  # cache unavailable — fall through to LLM always
+
+# Map CurriculumCategory.value → cache key used in response_cache.json
+# Values must match exactly the category segment in cache JSON keys.
+_CATEGORY_MAP = {
+    "pregrafomotricidad": "pregrafomotricidad",
+    "lectoescritura":     "lectoescritura",
+    "numeracion":         "numeracion",
+    "fonologia":          "any",
+    "silabas":            "silabas",
+    "palabras":           "silabas",
+    "any":                "any",
+}
+
+def _get_cached_response(
+    intent: str,
+    topic_category: str,
+    age: int,
+    is_correct: bool | None,
+) -> str | None:
+    """Returns a random pre-written response if a cache entry exists, else None."""
+    cat = _CATEGORY_MAP.get(topic_category, "any")
+    age_g = str(min(max(age, 3), 5))
+    # Try specific key first, then category=any fallback
+    for category in (cat, "any"):
+        if is_correct is not None:
+            key = f"{intent}:{category}:{age_g}:{str(is_correct).lower()}"
+            if key in _RESPONSE_CACHE:
+                return random.choice(_RESPONSE_CACHE[key])
+        key = f"{intent}:{category}:{age_g}"
+        if key in _RESPONSE_CACHE:
+            return random.choice(_RESPONSE_CACHE[key])
+    return None
 
 AGE_COMMUNICATION_RULES: dict[int, str] = {
     3: (
@@ -68,6 +117,7 @@ class NLGProcessor:
         topic: str,
         conversation_history: list[dict],
         agent_instruction: str,
+        cache_hint: tuple[str, str, bool | None] | None = None,
     ) -> str:
         """
         Generates a response following the instruction from the BDI agent.
@@ -77,7 +127,16 @@ class NLGProcessor:
             topic: Current learning topic (e.g. "letra_A").
             conversation_history: Prior messages as [{"role": ..., "content": ...}].
             agent_instruction: The BDI plan's directive (e.g. "give a hint", "praise the student").
+            cache_hint: Optional (intent, topic_category, is_correct) tuple for cache lookup.
         """
+        # ── Cache lookup ───────────────────────────────────────────────────
+        if cache_hint:
+            intent, category, is_correct = cache_hint
+            age = min(max(int(student.age or 4), 3), 5)
+            cached = _get_cached_response(intent, category, age, is_correct)
+            if cached:
+                return cached
+
         beliefs_summary = self._format_beliefs(student.beliefs)
         age_key = min(max(int(student.age or 4), 3), 5)
         age_rules = AGE_COMMUNICATION_RULES.get(age_key, AGE_COMMUNICATION_RULES[5])
@@ -98,6 +157,47 @@ class NLGProcessor:
             messages=conversation_history,
             system_prompt=augmented_system,
         )
+
+    async def generate_response_stream(
+        self,
+        student: StudentModel,
+        topic: str,
+        conversation_history: list[dict],
+        agent_instruction: str,
+        cache_hint: tuple[str, str, bool | None] | None = None,
+    ):
+        """
+        Same as generate_response but yields tokens as they arrive from Ollama.
+        Cache hits are yielded as a single token so the streaming protocol still works.
+        """
+        # ── Cache lookup ───────────────────────────────────────────────────
+        if cache_hint:
+            intent, category, is_correct = cache_hint
+            age = min(max(int(student.age or 4), 3), 5)
+            cached = _get_cached_response(intent, category, age, is_correct)
+            if cached:
+                yield cached
+                return
+
+        beliefs_summary = self._format_beliefs(student.beliefs)
+        age_key = min(max(int(student.age or 4), 3), 5)
+        age_rules = AGE_COMMUNICATION_RULES.get(age_key, AGE_COMMUNICATION_RULES[5])
+        system_prompt = OLIBOT_PERSONA_PROMPT.format(
+            student_name=student.name,
+            student_age=student.age,
+            student_level=student.level,
+            topic=topic,
+            age_rules=age_rules,
+            beliefs_summary=beliefs_summary,
+        )
+        instruction_cue = f"\n[INSTRUCTION FROM BDI AGENT]: {agent_instruction}"
+        augmented_system = system_prompt + instruction_cue
+
+        async for token in self.llm.chat_stream(
+            messages=conversation_history,
+            system_prompt=augmented_system,
+        ):
+            yield token
 
     async def generate_hint(self, student: StudentModel, topic: str, hint_level: int = 1) -> str:
         """

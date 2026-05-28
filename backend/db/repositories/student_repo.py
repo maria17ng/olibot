@@ -23,6 +23,7 @@ class StudentRepository:
             name=data.name,
             age=data.age,
             level=data.level,
+            avatar_id=data.avatar_id,
         )
         self.db.add(student)
         self.db.commit()

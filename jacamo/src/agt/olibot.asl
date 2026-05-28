@@ -208,6 +208,39 @@ min_attempts(3).
         "null", "null")[artifact_name("olibot_env"), wsp("olibot_workspace")].
 
 /*
+ * PLAN: tracing_complete
+ *
+ * Child finished a canvas tracing attempt. The is_correct belief is set
+ * by Python (True if passed, False if failed) before the percept fires.
+ *
+ * Python mirror: PythonBDIFallback — tracing_complete branch
+ */
++!respond("tracing_complete", SR, T)
+    :  current_is_correct("true")
+    <-
+    .print("[OLIBOT] tracing_complete PASSED → celebrate_tracing");
+    postDecision("celebrate_tracing", 1, T,
+        "The child completed the tracing exercise successfully! Celebrate enthusiastically and encourage them to keep practicing!",
+        "true", "null")[artifact_name("olibot_env"), wsp("olibot_workspace")].
+
++!respond("tracing_complete", SR, T)
+    :  current_is_correct("false")
+    <-
+    !calculate_hint_level(SR, HL);
+    .print("[OLIBOT] tracing_complete FAILED → encourage_retry_tracing, level ", HL);
+    postDecision("encourage_retry_tracing", HL, T,
+        "The child tried the tracing but needs more practice. Encourage kindly to try again.",
+        "false", "null")[artifact_name("olibot_env"), wsp("olibot_workspace")].
+
+/* Fallback: result not evaluated (e.g. partial submission) */
++!respond("tracing_complete", SR, T) <-
+    !calculate_hint_level(SR, HL);
+    .print("[OLIBOT] tracing_complete (result unknown) → encourage_retry_tracing");
+    postDecision("encourage_retry_tracing", HL, T,
+        "The child attempted the tracing exercise. Encourage them to keep practicing!",
+        "null", "null")[artifact_name("olibot_env"), wsp("olibot_workspace")].
+
+/*
  * PLAN: off-topic / unknown → redirect (catch-all)
  *
  * Python mirror: PythonBDIFallback — redirect catch-all

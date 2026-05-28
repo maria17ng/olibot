@@ -1,44 +1,35 @@
 /**
- * useLetterTracing — hook para trazado libre de letras en canvas.
+ * useLetterTracing — hook para trazado de letras con fase de demostración.
  *
- * Flujo:
- *   1. El niño dibuja trazos en el canvas con el dedo o el ratón.
- *   2. Cada trazo se evalúa al levantarlo (pointerup):
- *      - shapeScore: % de waypoints del trazo cubiertos por el camino dibujado
- *      - orderScore: 1 si el trazo se hizo en la dirección correcta (punto de inicio
- *        próximo al primer waypoint y vector inicial coherente), 0 si no.
- *   3. Cuando todos los trazos de la letra están evaluados (o el usuario pulsa "Listo"),
- *      se emite un resultado final { shapeScore, orderScore, passed }.
+ * Fases:
+ *   "demo"    → animación automática: cursor rojo recorre los trazos de la letra.
+ *               El niño puede tocar el canvas en cualquier momento para saltar la demo.
+ *   "tracing" → el niño traza con el dedo. Se evalúa al levantar cada trazo.
+ *   "done"    → todos los trazos evaluados; se emite onComplete.
  *
  * Niveles de pista (hintLevel):
- *   3 → letra base semitransparente + puntos de paso numerados + flechas de dirección
- *   2 → puntos de paso numerados (sin letra base)
- *   1 → solo punto de inicio y de fin de cada trazo
- *
- * Evaluación:
- *   - shapeScore  = media de (waypoints cubiertos / total waypoints) para cada trazo.
- *   - orderScore  = fracción de trazos cuyo inicio está cerca del primer waypoint
- *                   Y cuya dirección inicial apunta al segundo waypoint.
- *   - passed      = shapeScore >= PASS_SHAPE && orderScore >= PASS_ORDER
+ *   3 → letra base semitransparente + puntos numerados + flechas de dirección
+ *   2 → puntos numerados (sin letra base)
+ *   1 → solo punto de inicio y fin de cada trazo
  */
 import { useRef, useState, useCallback, useEffect } from "react";
 
-// ── Constantes de evaluación ────────────────────────────────────────────────
-const HIT_RADIUS_RATIO = 0.10;   // radio de "toque" = 10% del lado corto del canvas
-const PASS_SHAPE       = 0.60;   // 60% de waypoints cubiertos → aprobado en forma
-const PASS_ORDER       = 0.50;   // al menos la mitad de trazos en orden correcto
-const START_PROXIMITY  = 0.18;   // el inicio del trazo debe estar a < 18% del primer waypoint
+// ── Evaluación ───────────────────────────────────────────────────────────────
+const HIT_RADIUS_RATIO = 0.10;
+const PASS_SHAPE       = 0.60;
+const PASS_ORDER       = 0.50;
+const START_PROXIMITY  = 0.18;
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+// ── Demo ─────────────────────────────────────────────────────────────────────
+const DEMO_MS_PER_WP   = 350;   // ms per waypoint in demo
+const DEMO_MIN_MS      = 1400;  // minimum stroke demo duration
+const DEMO_PAUSE_MS    = 500;   // pause between strokes
+const DEMO_REPEATS     = 2;     // total number of times the demo plays before tracing
 
-/** Distancia euclídea en coordenadas normalizadas (0-1). */
 function dist(a, b) {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 }
 
-/**
- * Coordenadas del puntero relativas al canvas, normalizadas a [0, 1].
- */
 function getCanvasPoint(canvas, e) {
   const rect = canvas.getBoundingClientRect();
   const clientX = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
@@ -49,35 +40,35 @@ function getCanvasPoint(canvas, e) {
   };
 }
 
-/**
- * Evalúa un trazo dibujado contra los waypoints esperados.
- *
- * @param {Array<{x,y}>} drawnPath  - Puntos capturados del puntero (normalizados).
- * @param {Array<{x,y}>} waypoints  - Waypoints del trazo de la letra (normalizados).
- * @param {number}       hitRadius  - Radio de toque en coordenadas normalizadas.
- * @returns {{ shapeScore: number, orderOk: boolean }}
- */
 function evaluateStroke(drawnPath, waypoints, hitRadius) {
   if (!drawnPath.length || !waypoints.length) return { shapeScore: 0, orderOk: false };
 
-  // 1. Shape: fracción de waypoints cubiertos por algún punto del camino dibujado.
-  let covered = 0;
-  for (const wp of waypoints) {
-    if (drawnPath.some((p) => dist(p, wp) <= hitRadius)) covered++;
+  // Sequential greedy coverage: each waypoint is only counted if visited IN ORDER.
+  // A circle touching all dots out-of-order (or with wrong direction) scores low.
+  let nextWpIdx = 0;
+  for (const pt of drawnPath) {
+    if (nextWpIdx >= waypoints.length) break;
+    if (dist(pt, waypoints[nextWpIdx]) <= hitRadius) nextWpIdx++;
   }
-  const shapeScore = covered / waypoints.length;
+  const coverageScore = nextWpIdx / waypoints.length;
 
-  // 2. Order: el primer punto dibujado debe estar cerca del primer waypoint.
+  // Path-length penalty: if the drawn path is much longer than the expected path
+  // (e.g., a circle drawn over a straight line), reduce the score.
+  const expectedLen = waypoints.slice(1).reduce((s, wp, i) => s + dist(waypoints[i], wp), 0);
+  const drawnLen    = drawnPath.slice(1).reduce((s, pt, i) => s + dist(drawnPath[i], pt), 0);
+  const lenRatio    = drawnLen / (expectedLen || 0.001);
+  const lenPenalty  = lenRatio <= 2.0 ? 1.0 : Math.max(0, 1 - (lenRatio - 2.0) / 1.5);
+
+  const shapeScore = coverageScore * lenPenalty;
+
   const startOk = dist(drawnPath[0], waypoints[0]) <= START_PROXIMITY;
 
-  // Dirección inicial: vector del primer al segundo waypoint vs vector inicial dibujado.
   let dirOk = true;
   if (waypoints.length >= 2 && drawnPath.length >= 2) {
     const expectedDir = {
       x: waypoints[1].x - waypoints[0].x,
       y: waypoints[1].y - waypoints[0].y,
     };
-    // Buscar el primer punto dibujado suficientemente alejado del inicio
     let drawnDir = null;
     for (const p of drawnPath.slice(1)) {
       const d = dist(drawnPath[0], p);
@@ -87,59 +78,50 @@ function evaluateStroke(drawnPath, waypoints, hitRadius) {
       }
     }
     if (drawnDir) {
-      // Producto escalar normalizado: > 0 → misma dirección general
       const lenE = Math.sqrt(expectedDir.x ** 2 + expectedDir.y ** 2) || 1;
       const lenD = Math.sqrt(drawnDir.x ** 2 + drawnDir.y ** 2) || 1;
       const dot = (expectedDir.x / lenE) * (drawnDir.x / lenD) +
                   (expectedDir.y / lenE) * (drawnDir.y / lenD);
-      dirOk = dot > 0.0; // cualquier componente positiva = dirección compatible
+      dirOk = dot > 0.0;
     }
   }
 
   return { shapeScore, orderOk: startOk && dirOk };
 }
 
-// ── Hook principal ───────────────────────────────────────────────────────────
+// ── Hook ─────────────────────────────────────────────────────────────────────
 
-/**
- * @param {object}   charData   - { key: string, strokes: Array<{points, arrowAngle}> }
- *                                 Del letterData.js. null → hook inactivo.
- * @param {number}   hintLevel  - 1 | 2 | 3 (derivado de successRate en ChatWindow)
- * @param {function} onComplete - callback({ shapeScore, orderScore, passed }) al terminar
- */
-export function useLetterTracing({ charData, hintLevel = 3, onComplete }) {
-  const canvasRef    = useRef(null);
-  const drawingRef   = useRef(false);
-  const currentPath  = useRef([]);      // puntos del trazo en curso (refs, no state)
-  const rafRef       = useRef(null);
-  const strokeResults = useRef([]);     // { shapeScore, orderOk } por trazo evaluado
+export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInitialDemo = false }) {
+  const canvasRef      = useRef(null);
+  const drawingRef     = useRef(false);
+  const currentPath    = useRef([]);
+  const rafRef         = useRef(null);
+  const strokeResults  = useRef([]);
+
+  // Demo refs (all state kept in refs to avoid stale closures in RAF)
+  const demoStrokeIdxRef  = useRef(0);
+  const demoRepeatCountRef = useRef(0);    // how many full demo passes completed so far
+  const demoElapsedRef    = useRef(0);
+  const demoLastTimeRef   = useRef(null);
+  const demoCursorRef     = useRef(null);   // {x,y} normalized or null
+  const demoPathRef       = useRef([]);     // accumulated trail for current stroke
+  const demoPauseUntilRef = useRef(0);
+  const demoRafRef        = useRef(null);
+  const charDataRef       = useRef(charData);
+  const redrawRef         = useRef(null);   // always points at latest redraw()
 
   const [currentStrokeIdx, setCurrentStrokeIdx] = useState(0);
-  // phase: "tracing" | "done"
-  const [phase, setPhase]   = useState("tracing");
+  // phase: "demo" | "tracing" | "done"
+  const [phase, setPhase] = useState(skipInitialDemo ? "tracing" : "demo");
   const [result, setResult] = useState(null);
 
   const totalStrokes = charData?.strokes?.length ?? 0;
 
-  // ── Reset al cambiar la letra ─────────────────────────────────────────────
-  useEffect(() => {
-    setCurrentStrokeIdx(0);
-    setPhase("tracing");
-    setResult(null);
-    strokeResults.current = [];
-    currentPath.current = [];
-    drawingRef.current = false;
-  }, [charData]);
+  // Keep charDataRef current
+  useEffect(() => { charDataRef.current = charData; }, [charData]);
 
-  // ── Dibujo en canvas (RAF loop) ───────────────────────────────────────────
+  // ── Redraw ────────────────────────────────────────────────────────────────
 
-  /**
-   * Redibuja el canvas completo:
-   *  - Guía de letra (si hintLevel >= 3 o queremos siempre mostrar)
-   *  - Waypoints / flechas según hintLevel
-   *  - Trazos ya completados (verde claro)
-   *  - Trazo en curso (azul)
-   */
   const redraw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || !charData) return;
@@ -150,11 +132,11 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete }) {
 
     ctx.clearRect(0, 0, W, H);
 
-    // ── 1. Fondo blanco ───────────────────────────────────────────────────
+    // 1. Background
     ctx.fillStyle = "#fafafa";
     ctx.fillRect(0, 0, W, H);
 
-    // ── 2. Letra guía (hintLevel 3) ───────────────────────────────────────
+    // 2. Ghost letter guide (hintLevel 3)
     if (hintLevel >= 3) {
       ctx.save();
       ctx.globalAlpha = 0.12;
@@ -172,35 +154,27 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete }) {
       ctx.restore();
     }
 
-    // ── 3. Waypoints y flechas ────────────────────────────────────────────
+    // 3. Waypoints and arrows
     charData.strokes.forEach((stroke, sIdx) => {
-      const done = sIdx < currentStrokeIdx;
+      const done   = sIdx < currentStrokeIdx;
       const active = sIdx === currentStrokeIdx;
 
       stroke.points.forEach((wp, wIdx) => {
         const px = wp.x * W;
         const py = wp.y * H;
 
-        // Mostrar solo si el nivel de pista lo requiere
         const showDot =
           hintLevel >= 2 ||
           (hintLevel === 1 && (wIdx === 0 || wIdx === stroke.points.length - 1));
-
         if (!showDot) return;
 
-        // Color según estado
         ctx.beginPath();
         ctx.arc(px, py, hitR * 0.55, 0, Math.PI * 2);
-        if (done) {
-          ctx.fillStyle = "rgba(21,128,61,0.3)";
-        } else if (active) {
-          ctx.fillStyle = wIdx === 0 ? "#4a90d9" : "rgba(74,144,217,0.45)";
-        } else {
-          ctx.fillStyle = "rgba(156,163,175,0.4)";
-        }
+        if (done)        ctx.fillStyle = "rgba(21,128,61,0.3)";
+        else if (active) ctx.fillStyle = wIdx === 0 ? "#4a90d9" : "rgba(74,144,217,0.45)";
+        else             ctx.fillStyle = "rgba(156,163,175,0.4)";
         ctx.fill();
 
-        // Número de waypoint (hintLevel 2-3, solo trazo activo)
         if (hintLevel >= 2 && active && wIdx === 0) {
           ctx.save();
           ctx.fillStyle = "#1e40af";
@@ -212,7 +186,6 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete }) {
         }
       });
 
-      // Flecha de dirección (hintLevel 3, solo trazo activo)
       if (hintLevel >= 3 && active && stroke.points.length >= 1) {
         const p0 = stroke.points[0];
         const arrowAngle = stroke.arrowAngle ?? 0;
@@ -231,7 +204,6 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete }) {
         ctx.moveTo(ax, ay);
         ctx.lineTo(tx, ty);
         ctx.stroke();
-        // Punta de flecha
         ctx.setLineDash([]);
         ctx.fillStyle = "#2563eb";
         const headLen = arrowLen * 0.35;
@@ -247,7 +219,7 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete }) {
       }
     });
 
-    // ── 4. Trazo en curso ─────────────────────────────────────────────────
+    // 4. Current drawn path (blue)
     const path = currentPath.current;
     if (path.length >= 2) {
       ctx.save();
@@ -263,25 +235,59 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete }) {
       ctx.restore();
     }
 
-    // ── 5. Trazos completados ─────────────────────────────────────────────
-    // (Re-dibujados para persistencia visual — guardados en strokeResults)
-    // No tenemos los paths guardados permanentemente (por economía de memoria),
-    // así que solo mostramos "✓" badge sobre el primer waypoint de cada trazo done.
+    // 5. Completed stroke checkmarks
     for (let si = 0; si < currentStrokeIdx && si < charData.strokes.length; si++) {
       const wp0 = charData.strokes[si].points[0];
-      const px = wp0.x * W;
-      const py = wp0.y * H;
       ctx.save();
       ctx.font = `${Math.max(12, Math.min(W, H) * 0.08)}px sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.globalAlpha = 0.7;
-      ctx.fillText("✓", px, py - Math.min(W, H) * 0.06);
+      ctx.fillText("✓", wp0.x * W, wp0.y * H - Math.min(W, H) * 0.06);
+      ctx.restore();
+    }
+
+    // 6. Demo cursor and trail (red)
+    const dc = demoCursorRef.current;
+    const dp = demoPathRef.current;
+    if (dc !== null) {
+      if (dp.length >= 2) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(239,68,68,0.55)";
+        ctx.lineWidth = Math.min(W, H) * 0.045;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        ctx.moveTo(dp[0].x * W, dp[0].y * H);
+        for (const p of dp.slice(1)) ctx.lineTo(p.x * W, p.y * H);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      const cx = dc.x * W;
+      const cy = dc.y * H;
+      const r  = Math.min(W, H) * 0.055;
+      ctx.save();
+      ctx.shadowBlur = 22;
+      ctx.shadowColor = "rgba(239,68,68,0.75)";
+      ctx.fillStyle = "#ef4444";
+      ctx.globalAlpha = 0.93;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "white";
+      ctx.globalAlpha = 0.75;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * 0.38, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
     }
   }, [charData, currentStrokeIdx, hintLevel]);
 
-  // RAF: forzar redibujado mientras se traza
+  // Keep redrawRef current so RAF tick always uses latest version
+  useEffect(() => { redrawRef.current = redraw; }, [redraw]);
+
   const scheduleRedraw = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
@@ -290,32 +296,164 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete }) {
     });
   }, [redraw]);
 
-  // Redibujado completo al cambiar strokeIdx o hintLevel
-  useEffect(() => {
-    redraw();
-  }, [redraw]);
+  useEffect(() => { redraw(); }, [redraw]);
 
-  // ── Completar evaluación ──────────────────────────────────────────────────
+  // ── Reset when charData changes ───────────────────────────────────────────
+  // IMPORTANT: must be declared BEFORE the demo RAF effect so React runs it first.
+  // If declared after, charData reset would cancel the RAF the demo effect just started.
+
+  useEffect(() => {
+    if (demoRafRef.current) {
+      cancelAnimationFrame(demoRafRef.current);
+      demoRafRef.current = null;
+    }
+    demoStrokeIdxRef.current = 0;
+    demoRepeatCountRef.current = 0;
+    demoElapsedRef.current = 0;
+    demoLastTimeRef.current = null;
+    demoCursorRef.current = null;
+    demoPathRef.current = [];
+    demoPauseUntilRef.current = 0;
+
+    setCurrentStrokeIdx(0);
+    setPhase(skipInitialDemo ? "tracing" : "demo"); // eslint-disable-line react-hooks/exhaustive-deps
+    setResult(null);
+    strokeResults.current = [];
+    currentPath.current = [];
+    drawingRef.current = false;
+  }, [charData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Demo animation ────────────────────────────────────────────────────────
+  // Declared AFTER charData reset so React runs it second — it starts the RAF
+  // that charData reset cannot cancel (it already ran its cleanup).
+
+  useEffect(() => {
+    if (phase !== "demo" || !charData) return;
+
+    // Cancel any leftover RAF before starting fresh
+    if (demoRafRef.current) {
+      cancelAnimationFrame(demoRafRef.current);
+      demoRafRef.current = null;
+    }
+
+    const tick = (timestamp) => {
+      const cd = charDataRef.current;
+      if (!cd) return;
+
+      // Wait during inter-stroke pause
+      if (timestamp < demoPauseUntilRef.current) {
+        demoRafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      if (demoLastTimeRef.current === null) demoLastTimeRef.current = timestamp;
+      const dt = Math.min(timestamp - demoLastTimeRef.current, 50);
+      demoLastTimeRef.current = timestamp;
+      demoElapsedRef.current += dt;
+
+      const si = demoStrokeIdxRef.current;
+      const stroke = cd.strokes[si];
+      if (!stroke) {
+        demoCursorRef.current = null;
+        demoPathRef.current = [];
+        redrawRef.current?.();
+        setPhase("tracing");
+        return;
+      }
+
+      const duration = Math.max(DEMO_MIN_MS, stroke.points.length * DEMO_MS_PER_WP);
+      const t = Math.min(demoElapsedRef.current / duration, 1);
+      const pts = stroke.points;
+      const rawIdx = t * (pts.length - 1);
+      const i0 = Math.floor(rawIdx);
+      const i1 = Math.min(i0 + 1, pts.length - 1);
+      const frac = rawIdx - i0;
+      demoCursorRef.current = {
+        x: pts[i0].x + (pts[i1].x - pts[i0].x) * frac,
+        y: pts[i0].y + (pts[i1].y - pts[i0].y) * frac,
+      };
+      demoPathRef.current = [...demoPathRef.current, { ...demoCursorRef.current }];
+
+      redrawRef.current?.();
+
+      if (t >= 1) {
+        const nextSi = si + 1;
+        if (nextSi >= cd.strokes.length) {
+          // One full pass done — check if we should repeat
+          if (demoRepeatCountRef.current < DEMO_REPEATS - 1) {
+            demoRepeatCountRef.current += 1;
+            demoStrokeIdxRef.current = 0;
+            demoElapsedRef.current = 0;
+            demoLastTimeRef.current = null;
+            demoPathRef.current = [];
+            demoCursorRef.current = null;
+            demoPauseUntilRef.current = timestamp + DEMO_PAUSE_MS * 3;
+            demoRafRef.current = requestAnimationFrame(tick);
+          } else {
+            demoCursorRef.current = null;
+            demoPathRef.current = [];
+            redrawRef.current?.();
+            setTimeout(() => setPhase("tracing"), 500);
+          }
+        } else {
+          demoStrokeIdxRef.current = nextSi;
+          demoElapsedRef.current = 0;
+          demoLastTimeRef.current = null;
+          demoPathRef.current = [];
+          demoPauseUntilRef.current = timestamp + DEMO_PAUSE_MS;
+          demoRafRef.current = requestAnimationFrame(tick);
+        }
+      } else {
+        demoRafRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    // Pause before demo starts — lets the robot begin speaking the tutorial first
+    demoPauseUntilRef.current = performance.now() + 900;
+    demoRafRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (demoRafRef.current) {
+        cancelAnimationFrame(demoRafRef.current);
+        demoRafRef.current = null;
+      }
+    };
+  }, [phase, charData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Finalize ──────────────────────────────────────────────────────────────
 
   const finalize = useCallback(() => {
     if (!strokeResults.current.length) return;
-
     const shapeScores = strokeResults.current.map((r) => r.shapeScore);
     const shapeScore  = shapeScores.reduce((a, b) => a + b, 0) / shapeScores.length;
     const orderScore  = strokeResults.current.filter((r) => r.orderOk).length /
                         strokeResults.current.length;
-    const passed      = shapeScore >= PASS_SHAPE && orderScore >= PASS_ORDER;
-
+    const passed = shapeScore >= PASS_SHAPE && orderScore >= PASS_ORDER;
     const res = { shapeScore, orderScore, passed };
     setResult(res);
     setPhase("done");
     onComplete?.(res);
   }, [onComplete]);
 
-  // ── Handlers de puntero ───────────────────────────────────────────────────
+  // ── Skip demo ─────────────────────────────────────────────────────────────
+
+  const skipDemo = useCallback(() => {
+    if (demoRafRef.current) {
+      cancelAnimationFrame(demoRafRef.current);
+      demoRafRef.current = null;
+    }
+    demoCursorRef.current = null;
+    demoPathRef.current = [];
+    setPhase("tracing");
+  }, []);
+
+  // ── Pointer handlers ──────────────────────────────────────────────────────
 
   const handlePointerDown = useCallback((e) => {
-    if (phase !== "tracing" || !charData) return;
+    if (!charData || phase === "done") return;
+    // During demo: skip demo AND start drawing immediately with this same touch
+    if (phase === "demo") skipDemo();
+    // Start recording stroke (works for "demo"→"tracing" transition too)
     e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -323,7 +461,7 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete }) {
     drawingRef.current = true;
     currentPath.current = [getCanvasPoint(canvas, e)];
     scheduleRedraw();
-  }, [phase, charData, scheduleRedraw]);
+  }, [phase, charData, scheduleRedraw, skipDemo]);
 
   const handlePointerMove = useCallback((e) => {
     if (!drawingRef.current) return;
@@ -354,9 +492,8 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete }) {
 
       const nextIdx = currentStrokeIdx + 1;
       if (nextIdx >= totalStrokes) {
-        // Todos los trazos dibujados → finalizar
         setCurrentStrokeIdx(nextIdx);
-        setTimeout(finalize, 150); // pequeño delay para que el canvas se limpie
+        setTimeout(finalize, 150);
       } else {
         setCurrentStrokeIdx(nextIdx);
       }
@@ -365,29 +502,43 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete }) {
     }
   }, [charData, currentStrokeIdx, totalStrokes, finalize, scheduleRedraw]);
 
-  // ── Reset manual ─────────────────────────────────────────────────────────
+  // ── Reset ─────────────────────────────────────────────────────────────────
 
   const reset = useCallback(() => {
+    if (demoRafRef.current) {
+      cancelAnimationFrame(demoRafRef.current);
+      demoRafRef.current = null;
+    }
+    demoStrokeIdxRef.current = 0;
+    demoRepeatCountRef.current = 0;
+    demoElapsedRef.current = 0;
+    demoLastTimeRef.current = null;
+    demoCursorRef.current = null;
+    demoPathRef.current = [];
+    demoPauseUntilRef.current = 0;
+
     setCurrentStrokeIdx(0);
-    setPhase("tracing");
+    setPhase(skipInitialDemo ? "tracing" : "demo"); // eslint-disable-line react-hooks/exhaustive-deps
     setResult(null);
     strokeResults.current = [];
     currentPath.current = [];
     drawingRef.current = false;
-    redraw();
-  }, [redraw]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Cleanup RAF al desmontar ──────────────────────────────────────────────
+  // ── Cleanup ───────────────────────────────────────────────────────────────
+
   useEffect(() => () => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (rafRef.current)     cancelAnimationFrame(rafRef.current);
+    if (demoRafRef.current) cancelAnimationFrame(demoRafRef.current);
   }, []);
 
   return {
     canvasRef,
     currentStrokeIdx,
     totalStrokes,
-    phase,          // "tracing" | "done"
-    result,         // null | { shapeScore, orderScore, passed }
+    phase,      // "demo" | "tracing" | "done"
+    result,
+    skipDemo,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,

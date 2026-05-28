@@ -71,7 +71,7 @@ export default function ProgressReport({ student, onClose }) {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("overview"); // "overview" | "topics" | "sessions"
+  const [activeTab, setActiveTab] = useState("overview"); // "overview" | "topics" | "sessions" | "bdi"
 
   useEffect(() => {
     if (!student) return;
@@ -145,6 +145,7 @@ export default function ProgressReport({ student, onClose }) {
             { key: "overview", label: "📊 Resumen" },
             { key: "topics",   label: "📚 Temas" },
             { key: "sessions", label: "🗓️ Sesiones" },
+            { key: "bdi",      label: "🤖 Agente BDI" },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -333,11 +334,125 @@ export default function ProgressReport({ student, onClose }) {
               )}
             </div>
           )}
+          {/* ── BDI AGENT ────────────────────────────────────────────── */}
+          {activeTab === "bdi" && report.bdi_explanation && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+
+              {/* L1 — Intention */}
+              <div style={bdiCardStyle("#eff6ff", "#bfdbfe", "#1e40af")}>
+                <div style={bdiCardTitleStyle}>
+                  <span>🎯</span>
+                  <span>Nivel 1 — Intención actual</span>
+                  <span style={{ marginLeft: "auto", fontSize: "11px", opacity: 0.7 }}>L1</span>
+                </div>
+                <div style={{ marginTop: "8px", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+                  <span
+                    style={{
+                      background: "#1e40af",
+                      color: "white",
+                      borderRadius: "16px",
+                      padding: "3px 10px",
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {report.bdi_explanation.agent_status}
+                  </span>
+                </div>
+                <p style={{ margin: "8px 0 0", fontSize: "14px", color: "#1e3a8a", lineHeight: 1.5 }}>
+                  {report.bdi_explanation.current_desire}
+                </p>
+              </div>
+
+              {/* L2 — Plan */}
+              <div style={bdiCardStyle("#f0fdf4", "#bbf7d0", "#166534")}>
+                <div style={bdiCardTitleStyle}>
+                  <span>🗺️</span>
+                  <span>Nivel 2 — Plan pedagógico</span>
+                  <span style={{ marginLeft: "auto", fontSize: "11px", opacity: 0.7 }}>L2</span>
+                </div>
+                <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div>
+                    <div style={bdiSubLabelStyle}>Selección de tema</div>
+                    <p style={bdiTextStyle}>{report.bdi_explanation.topic_selection_reason}</p>
+                  </div>
+                  <div>
+                    <div style={bdiSubLabelStyle}>Estrategia de andamiaje</div>
+                    <p style={bdiTextStyle}>{report.bdi_explanation.hint_strategy}</p>
+                  </div>
+                  <div>
+                    <div style={bdiSubLabelStyle}>Siguiente paso previsto</div>
+                    <p style={bdiTextStyle}>{report.bdi_explanation.next_topic_preview}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* L3 — Beliefs */}
+              <div style={bdiCardStyle("#fdf4ff", "#e9d5ff", "#6b21a8")}>
+                <div style={bdiCardTitleStyle}>
+                  <span>🧠</span>
+                  <span>Nivel 3 — Base de creencias</span>
+                  <span style={{ marginLeft: "auto", fontSize: "11px", opacity: 0.7 }}>L3</span>
+                </div>
+                <p style={{ ...bdiTextStyle, marginTop: "8px", fontStyle: "italic" }}>
+                  {report.bdi_explanation.belief_summary}
+                </p>
+                <ul style={{ margin: "10px 0 0", paddingLeft: "18px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  {report.bdi_explanation.mastery_evidence.map((line, i) => (
+                    <li key={i} style={{ fontSize: "13px", color: "#4c1d95", lineHeight: 1.5 }}>
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Citation footer */}
+              <p style={{ fontSize: "11px", color: "#9ca3af", textAlign: "center", margin: 0 }}>
+                Explicabilidad BDI basada en Dennis &amp; Oren (2022) y Yan, Burattini et al. (2023)
+              </p>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
   );
 }
+
+// ── BDI card styles ────────────────────────────────────────────────────────
+function bdiCardStyle(bg, border, titleColor) {
+  return {
+    background: bg,
+    border: `1px solid ${border}`,
+    borderRadius: "12px",
+    padding: "14px 16px",
+  };
+}
+
+const bdiCardTitleStyle = {
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  fontWeight: "bold",
+  fontSize: "14px",
+  color: "#1a1a2e",
+};
+
+const bdiSubLabelStyle = {
+  fontSize: "11px",
+  fontWeight: "bold",
+  color: "#6b7280",
+  textTransform: "uppercase",
+  letterSpacing: "0.05em",
+  marginBottom: "3px",
+};
+
+const bdiTextStyle = {
+  margin: 0,
+  fontSize: "13px",
+  color: "#374151",
+  lineHeight: 1.6,
+};
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 const overlayStyle = {

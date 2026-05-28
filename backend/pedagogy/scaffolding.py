@@ -96,7 +96,7 @@ class ScaffoldingEngine:
         MIN_ATTEMPTS        → minimum attempts before evaluating mastery
     """
 
-    MASTERY_THRESHOLD = 0.75    # 75%+ correct = mastered
+    MASTERY_THRESHOLD = 0.65    # 65%+ correct = mastered (lowered from 0.75 for young learners)
     ZDP_LOWER_BOUND = 0.20      # Below 20% = outside ZDP (too hard)
     MIN_ATTEMPTS = 3            # Need ≥ 3 attempts to evaluate mastery
     ESCALATE_THRESHOLD = 2      # Wrong answers in a row before escalating hint level

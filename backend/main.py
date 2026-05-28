@@ -2,10 +2,14 @@
 OLIBOT FastAPI Application Entry Point.
 
 Startup sequence:
-  1. Initialize SQLite database (create tables if needed)
-  2. Register API routers
-  3. Configure CORS for the React frontend
+  1. Configure logging (file + console)
+  2. Initialize SQLite database (create tables if needed)
+  3. Register API routers
+  4. Configure CORS for the React frontend
 """
+import logging
+import logging.handlers
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.config.settings import get_settings
@@ -13,6 +17,29 @@ from backend.db.database import init_db
 from backend.api.routes import chat, students, reports
 
 settings = get_settings()
+
+# ── Logging setup ─────────────────────────────────────────────────────────────
+_LOGS_DIR = Path(__file__).parent.parent / "logs"
+_LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
+_log_format = "%(asctime)s [%(name)s] %(levelname)s: %(message)s"
+_date_fmt   = "%Y-%m-%d %H:%M:%S"
+
+_file_handler = logging.handlers.RotatingFileHandler(
+    _LOGS_DIR / "olibot.log",
+    maxBytes=5 * 1024 * 1024,   # 5 MB
+    backupCount=3,
+    encoding="utf-8",
+)
+_file_handler.setFormatter(logging.Formatter(_log_format, datefmt=_date_fmt))
+
+_console_handler = logging.StreamHandler()
+_console_handler.setFormatter(logging.Formatter(_log_format, datefmt=_date_fmt))
+
+logging.basicConfig(level=logging.INFO, handlers=[_file_handler, _console_handler])
+# Suppress noisy third-party loggers
+for _noisy in ("httpx", "httpcore", "uvicorn.access"):
+    logging.getLogger(_noisy).setLevel(logging.WARNING)
 
 app = FastAPI(
     title=settings.app_name,

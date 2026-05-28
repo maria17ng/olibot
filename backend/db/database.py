@@ -31,3 +31,11 @@ def init_db():
     """Creates all tables on startup if they don't exist."""
     from backend.db import models  # noqa: F401 - import triggers table registration
     Base.metadata.create_all(bind=engine)
+    # Migrate existing DBs: add avatar_id column if missing (SQLite-safe)
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE students ADD COLUMN avatar_id VARCHAR(20) DEFAULT 'robot'"))
+            conn.commit()
+        except Exception:
+            pass  # Column already exists

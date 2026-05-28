@@ -9,12 +9,14 @@ class StudentCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     age: int = Field(..., ge=3, le=6)
     level: str = Field(default="beginner", pattern="^(beginner|intermediate|advanced)$")
+    avatar_id: str = Field(default="robot", max_length=20)
 
 
 class StudentUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     age: int | None = Field(default=None, ge=3, le=6)
     level: str | None = Field(default=None, pattern="^(beginner|intermediate|advanced)$")
+    avatar_id: str | None = Field(default=None, max_length=20)
 
 
 class StudentResponse(BaseModel):
@@ -22,6 +24,7 @@ class StudentResponse(BaseModel):
     name: str
     age: int
     level: str
+    avatar_id: str | None = "robot"
     beliefs: dict
     total_sessions: int
     overall_success_rate: float

@@ -24,9 +24,13 @@ Fase 2 additions:
       is closed and a new session is opened for the next topic automatically.
     - ChatResponse extended: is_correct, next_topic_id, current_topic_id.
 """
+import logging
+import time
 from sqlalchemy.orm import Session
 
 from backend.core.bdi_bridge import BDIBridge
+
+logger = logging.getLogger("olibot.pipeline")
 from backend.core.safety_shield import SafetyShield
 from backend.llm.nlu import NLUProcessor
 from backend.llm.nlg import NLGProcessor
@@ -38,6 +42,24 @@ from backend.api.schemas.chat import ChatResponse
 from backend.pedagogy.curriculum import CurriculumEngine, CURRICULUM, CurriculumTopic
 
 _curriculum = CurriculumEngine()
+
+
+def _build_cache_hint(
+    intent_name: str,
+    current_topic: CurriculumTopic | None,
+    is_correct: bool | None,
+) -> tuple[str, str, bool | None] | None:
+    """Builds a cache lookup key tuple for the NLG response cache."""
+    category = current_topic.category.value if current_topic else "any"
+    if intent_name in ("attempt_answer", "tracing_complete"):
+        return (intent_name, category, is_correct)
+    if intent_name in ("ask_for_hint", "ask_for_answer"):
+        return ("ask_for_hint", category, None)
+    if intent_name == "greet":
+        return ("greet", "any", None)
+    if intent_name == "express_emotion":
+        return ("express_emotion", "any", None)
+    return None
 
 
 class SessionManager:
@@ -102,6 +124,10 @@ class SessionManager:
 
         # ── 4. NLU: classify the student's message ─────────────────────────
         intent = await self.nlu.extract_intent(user_message)
+        logger.info(
+            "← msg=%r  student=%s  NLU: intent=%s  conf=%.2f",
+            user_message, student_id, intent.name, intent.confidence,
+        )
 
         # ── 5. BDI: decide the pedagogical action ──────────────────────────
         # Jason equivalent:
@@ -113,7 +139,9 @@ class SessionManager:
             session_success_rate=session.success_rate,
             current_topic=current_topic,
             student_age=int(student.age or 4),
+            user_message=user_message,
         )
+        logger.info("→ BDI: action=%s", bdi_decision.action)
 
         # ── 6. NLG: generate LLM response following BDI instruction ────────
         conversation_history = self._build_history(session.id)
@@ -124,6 +152,7 @@ class SessionManager:
             topic=session.topic,
             conversation_history=conversation_history,
             agent_instruction=bdi_decision.instruction,
+            cache_hint=_build_cache_hint(intent.name, current_topic, bdi_decision.is_correct),
         )
 
         # ── 7. Safety Shield: validate/modify the LLM response ─────────────
@@ -152,7 +181,7 @@ class SessionManager:
         updated_beliefs = bdi_decision.updated_beliefs
         self.student_repo.update_beliefs(student_id, updated_beliefs)
 
-        # ── 11. Log activity (attempt_answer turns only) ───────────────────
+        # ── 11. Log activity (attempt_answer and tracing_complete) ───────────
         # Creates an ActivityModel record that feeds into progress reports.
         if intent.name == "attempt_answer" and current_topic:
             answer = intent.entities.get("answer", "")
@@ -160,6 +189,16 @@ class SessionManager:
                 session_id=session.id,
                 topic_id=current_topic.id,
                 student_response=answer or None,
+                is_correct=bdi_decision.is_correct,
+                hint_level_used=bdi_decision.hint_level,
+            )
+        elif intent.name == "tracing_complete" and current_topic:
+            letter = intent.entities.get("letter", "")
+            score  = intent.entities.get("score", 0)
+            self.session_repo.log_activity(
+                session_id=session.id,
+                topic_id=current_topic.id,
+                student_response=f"tracing:{letter}:{score}%",
                 is_correct=bdi_decision.is_correct,
                 hint_level_used=bdi_decision.hint_level,
             )
@@ -179,22 +218,33 @@ class SessionManager:
         # Jason equivalent:
         #   +!select_next_topic(StudentId) : topic_mastered(T) <-
         #       .send(session_manager, tell, next_topic(NextT)).
+        # For mastery_achieved, don't advance the session — let the child choose first.
+        # The next_topic_id is still sent to the frontend so it knows what comes next.
         next_topic_id = bdi_decision.next_topic_id
-        if next_topic_id and next_topic_id != session.topic:
+        # For mastery_achieved: don't auto-advance — let the child choose in the dialog.
+        # For all other actions with a next_topic_id: advance the session automatically.
+        advance_session = (
+            next_topic_id
+            and next_topic_id != session.topic
+            and bdi_decision.action not in ("mastery_achieved", "praise_and_advance")
+        )
+        if advance_session:
             self.session_repo.close_session(session.id)
-            # New session is created with the advanced topic; the frontend
-            # receives next_topic_id and should send subsequent messages with
-            # the new session_id obtained from the next ChatResponse.
             new_session = self.session_repo.create_session(
                 student_id=student_id,
                 topic=next_topic_id,
             )
-            # Update total_sessions counter on the student record
             self.student_repo.increment_sessions(student_id)
-            # Return the new session_id so the client tracks the new session
             response_session_id = new_session.id
         else:
             response_session_id = session.id
+
+        # For mastery actions, still pass next_topic_id so the frontend can offer
+        # the choice (keep practising / next topic / free drawing).
+        final_next_topic = (
+            next_topic_id if advance_session
+            else (next_topic_id if bdi_decision.action in ("mastery_achieved", "praise_and_advance") else None)
+        )
 
         return ChatResponse(
             session_id=response_session_id,
@@ -203,9 +253,179 @@ class SessionManager:
             detected_intent=intent.name,
             current_beliefs=updated_beliefs,
             is_correct=bdi_decision.is_correct,
-            next_topic_id=next_topic_id,
+            next_topic_id=final_next_topic,
             current_topic_id=current_topic.id if current_topic else None,
+            bdi_action=bdi_decision.action,
+            free_drawing_subject=bdi_decision.free_drawing_subject,
         )
+
+    async def process_message_stream(
+        self,
+        student_id: int,
+        user_message: str,
+        session_id: int | None = None,
+    ):
+        """
+        Streaming variant of process_message.
+
+        Yields three event types:
+          {"type": "meta",  "session_id": ..., "current_topic_id": ..., "detected_intent": ..., "is_correct": ...}
+          {"type": "token", "text": "<token>"}   — one per NLG token
+          {"type": "final", <same fields as ChatResponse>}
+
+        The Safety Shield is applied to the full accumulated response before "final" is
+        emitted, so the streamed tokens may differ from agent_response if the shield
+        triggers.  The frontend should replace the displayed text on "final".
+        """
+        t0 = time.monotonic()
+
+        # ── 1-2. Load student + session ───────────────────────────────────────
+        student = self.student_repo.get_by_id(student_id)
+        if not student:
+            raise ValueError(f"Student {student_id} not found")
+
+        session = self._get_or_create_session(
+            student_id, session_id, student.beliefs, int(student.age or 4)
+        )
+        current_topic: CurriculumTopic | None = CURRICULUM.get(session.topic)
+
+        logger.info(
+            "← msg=%r  student=%s  session=%s  topic=%s",
+            user_message, student_id, session.id, session.topic,
+        )
+
+        # ── 3-4. NLU + BDI ───────────────────────────────────────────────────
+        intent = await self.nlu.extract_intent(user_message)
+        logger.info(
+            "→ NLU: intent=%s  conf=%.2f  entities=%s",
+            intent.name, intent.confidence, intent.entities or "{}",
+        )
+
+        bdi_decision = await self.bdi.process_turn(
+            intent=intent,
+            student=student,
+            session_success_rate=session.success_rate,
+            current_topic=current_topic,
+            student_age=int(student.age or 4),
+            user_message=user_message,
+        )
+        logger.info(
+            "→ BDI: action=%s  is_correct=%s  next_topic=%s",
+            bdi_decision.action, bdi_decision.is_correct, bdi_decision.next_topic_id,
+        )
+
+        # Emit meta: NLU+BDI done, NLG is about to start
+        yield {
+            "type": "meta",
+            "session_id": session.id,
+            "current_topic_id": current_topic.id if current_topic else None,
+            "detected_intent": intent.name,
+            "is_correct": bdi_decision.is_correct,
+            "next_topic_id": bdi_decision.next_topic_id,
+            "bdi_action": bdi_decision.action,
+            "free_drawing_subject": bdi_decision.free_drawing_subject,
+        }
+
+        # ── 5. NLG — stream tokens ────────────────────────────────────────────
+        conversation_history = self._build_history(session.id)
+        conversation_history.append({"role": "user", "content": user_message})
+
+        full_response = ""
+        async for token in self.nlg.generate_response_stream(
+            student=student,
+            topic=session.topic,
+            conversation_history=conversation_history,
+            agent_instruction=bdi_decision.instruction,
+            cache_hint=_build_cache_hint(intent.name, current_topic, bdi_decision.is_correct),
+        ):
+            full_response += token
+            yield {"type": "token", "text": token}
+
+        # ── 6. Safety Shield on full response ─────────────────────────────────
+        shield_result = self.shield.evaluate(full_response, intent, student)
+        final_response = self.shield.get_final_response(shield_result, full_response)
+
+        elapsed = time.monotonic() - t0
+        logger.info(
+            "→ RESP (%.1fs) shield=%s  %r",
+            elapsed, shield_result.triggered, final_response[:80],
+        )
+
+        # ── 7-12. Persist (same logic as process_message) ─────────────────────
+        self.session_repo.add_message(
+            session_id=session.id, role="user", content=user_message,
+            detected_intent=intent.name,
+        )
+        self.session_repo.add_message(
+            session_id=session.id, role="agent", content=final_response,
+            shield_triggered=shield_result.triggered,
+            original_llm_response=full_response if shield_result.triggered else None,
+            detected_intent=intent.name,
+        )
+
+        updated_beliefs = bdi_decision.updated_beliefs
+        self.student_repo.update_beliefs(student_id, updated_beliefs)
+
+        if intent.name == "attempt_answer" and current_topic:
+            answer = intent.entities.get("answer", "")
+            self.session_repo.log_activity(
+                session_id=session.id, topic_id=current_topic.id,
+                student_response=answer or None,
+                is_correct=bdi_decision.is_correct,
+                hint_level_used=bdi_decision.hint_level,
+            )
+        elif intent.name == "tracing_complete" and current_topic:
+            letter = intent.entities.get("letter", "")
+            score  = intent.entities.get("score", 0)
+            self.session_repo.log_activity(
+                session_id=session.id, topic_id=current_topic.id,
+                student_response=f"tracing:{letter}:{score}%",
+                is_correct=bdi_decision.is_correct,
+                hint_level_used=bdi_decision.hint_level,
+            )
+
+        if bdi_decision.action in ("give_hint",) or intent.name in (
+            "ask_for_hint", "ask_for_answer"
+        ):
+            self.session_repo.increment_hints(session.id)
+
+        # ── 13. Topic advancement — skip for mastery_achieved/praise_and_advance ─
+        # Child chooses via the mastery dialog; session_id stays so the dialog
+        # can call /advance when the child picks the next topic.
+        next_topic_id = bdi_decision.next_topic_id
+        advance_session = (
+            next_topic_id
+            and next_topic_id != session.topic
+            and bdi_decision.action not in ("mastery_achieved", "praise_and_advance")
+        )
+        if advance_session:
+            self.session_repo.close_session(session.id)
+            new_session = self.session_repo.create_session(
+                student_id=student_id, topic=next_topic_id
+            )
+            self.student_repo.increment_sessions(student_id)
+            response_session_id = new_session.id
+        else:
+            response_session_id = session.id
+
+        final_next_topic = (
+            next_topic_id if advance_session
+            else (next_topic_id if bdi_decision.action in ("mastery_achieved", "praise_and_advance") else None)
+        )
+
+        yield {
+            "type": "final",
+            "session_id": response_session_id,
+            "agent_response": final_response,
+            "shield_triggered": shield_result.triggered,
+            "detected_intent": intent.name,
+            "current_beliefs": updated_beliefs,
+            "is_correct": bdi_decision.is_correct,
+            "next_topic_id": final_next_topic,
+            "current_topic_id": current_topic.id if current_topic else None,
+            "bdi_action": bdi_decision.action,
+            "free_drawing_subject": bdi_decision.free_drawing_subject,
+        }
 
     def _get_or_create_session(
         self,

@@ -11,17 +11,48 @@ export const api = {
     return res.json();
   },
 
-  async createStudent(name, age, level = "beginner") {
+  async deleteStudent(studentId) {
+    const res = await fetch(`${BASE_URL}/students/${studentId}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Failed to delete student");
+  },
+
+  async createStudent(name, age, avatarId = "robot", level = "beginner") {
     const res = await fetch(`${BASE_URL}/students/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, age, level }),
+      body: JSON.stringify({ name, age, level, avatar_id: avatarId }),
     });
     if (!res.ok) throw new Error("Failed to create student");
     return res.json();
   },
 
   // ---- Chat ----
+  async * sendMessageStream(studentId, message, sessionId = null) {
+    const res = await fetch(`${BASE_URL}/chat/stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ student_id: studentId, message, session_id: sessionId }),
+    });
+    if (!res.ok) throw new Error("Stream request failed");
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop(); // keep last incomplete line
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          try { yield JSON.parse(line.slice(6)); } catch { /* skip malformed */ }
+        }
+      }
+    }
+  },
+
   async sendMessage(studentId, message, sessionId = null) {
     const res = await fetch(`${BASE_URL}/chat/message`, {
       method: "POST",
@@ -48,6 +79,22 @@ export const api = {
     });
     if (!res.ok) throw new Error("Failed to end session");
     return res.json();
+  },
+
+  async advanceSession(sessionId, topicId) {
+    const res = await fetch(`${BASE_URL}/chat/session/${sessionId}/advance`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic_id: topicId }),
+    });
+    if (!res.ok) throw new Error("Failed to advance session");
+    return res.json(); // { session_id, topic_id }
+  },
+
+  async getAccessibleTopics(studentId) {
+    const res = await fetch(`${BASE_URL}/chat/student/${studentId}/topics`);
+    if (!res.ok) throw new Error("Failed to fetch topics");
+    return res.json(); // [{ id, display_name, emoji, category, attempts, mastered }]
   },
 
   // ---- Reports ----

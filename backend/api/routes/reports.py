@@ -25,6 +25,7 @@ from backend.api.schemas.report import (
     StudentProgressReport,
     TopicMasteryReport,
     SessionSummary,
+    BDIExplanation,
 )
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -121,6 +122,16 @@ def get_student_report(student_id: int, db: Session = Depends(get_db)):
             shield_triggered_count=shield_count,
         ))
 
+    # ── BDI Explainability (L1 Intention, L2 Plan, L3 Beliefs) ───────────────
+    # Implements multi-level explainability as described in:
+    # [2] Dennis & Oren (2022), [27] Yan, Burattini et al. (2023)
+    bdi_explanation = _build_bdi_explanation(
+        beliefs=beliefs,
+        mastery_reports=mastery_reports,
+        student_age=int(student.age or 4),
+        recommended=[r for r in mastery_reports if r.topic_id in recommended_focus],
+    )
+
     return StudentProgressReport(
         student_id=student.id,
         student_name=student.name,
@@ -136,4 +147,138 @@ def get_student_report(student_id: int, db: Session = Depends(get_db)):
         recommended_focus=recommended_focus,
         recommended_display_names=recommended_display_names,
         recent_sessions=session_summaries,
+        bdi_explanation=bdi_explanation,
+    )
+
+
+# ── BDI explanation builder ────────────────────────────────────────────────────
+
+def _build_bdi_explanation(
+    beliefs: dict,
+    mastery_reports: list[TopicMasteryReport],
+    student_age: int,
+    recommended: list[TopicMasteryReport],
+) -> BDIExplanation:
+    """
+    Generates a template-based multi-level BDI explanation from the belief base.
+
+    Cited framework:
+        [2]  Dennis & Oren (2022) — three-level explanation (intention, plan, beliefs)
+        [27] Yan, Burattini et al. (2023) — multi-level explainability for BDI agents
+    """
+    worked = [r for r in mastery_reports if r.attempts > 0]
+    mastered = [r for r in worked if r.mastered]
+    in_progress = [r for r in worked if not r.mastered]
+
+    # ── L1: Intention (current desire / goal) ─────────────────────────────────
+    if beliefs.get("placement_in_progress"):
+        q_num = beliefs.get("placement_question", 1)
+        current_desire = f"Evaluar el nivel inicial del alumno (pregunta {q_num} del test de nivel)"
+        agent_status   = "Test de nivel en curso"
+    elif beliefs.get("placement_done") is False and student_age >= 4:
+        current_desire = "Determinar los conocimientos previos del alumno antes de comenzar"
+        agent_status   = "Evaluación diagnóstica inicial"
+    elif not worked:
+        current_desire = "Iniciar el aprendizaje desde los contenidos básicos del currículo"
+        agent_status   = "Primera sesión — sin actividad previa"
+    elif in_progress:
+        best = min(in_progress, key=lambda r: r.success_rate)
+        current_desire = f"Consolidar: {best.display_name} ({round(best.success_rate * 100)}% de aciertos)"
+        agent_status   = "Práctica activa"
+    else:
+        current_desire = "Introducir nuevos contenidos tras superar todos los temas trabajados"
+        agent_status   = "Avance a nuevo contenido"
+
+    # ── L2: Plan (topic selection reason + hint strategy) ─────────────────────
+    if not worked:
+        topic_reason = (
+            "El alumno no tiene historial previo. El agente BDI aplica el plan "
+            "'!select_first_topic': elige el primer tema del currículo que corresponde "
+            "a su edad según los prerequisitos definidos en el currículo."
+        )
+    elif in_progress:
+        focus = in_progress[0]
+        sr_pct = round(focus.success_rate * 100)
+        if sr_pct < 40:
+            topic_reason = (
+                f"'{focus.display_name}' tiene una tasa de aciertos baja ({sr_pct}%). "
+                "El plan BDI '!respond(attempt_answer)' activa scaffolding máximo (nivel 3): "
+                "respuesta guiada paso a paso, pistas explícitas."
+            )
+        elif sr_pct < 70:
+            topic_reason = (
+                f"'{focus.display_name}' está en la Zona de Desarrollo Próximo con {sr_pct}% de aciertos. "
+                "El plan BDI '!respond(attempt_answer)' aplica scaffolding medio (nivel 2): "
+                "pistas indirectas que fomentan el pensamiento autónomo."
+            )
+        else:
+            topic_reason = (
+                f"'{focus.display_name}' muestra buen rendimiento ({sr_pct}%). "
+                "El plan BDI considera avance de topic o reducción de andamiaje (nivel 1). "
+                "Si supera el umbral de mastery, '!select_next_topic' introduce el siguiente contenido."
+            )
+    else:
+        topic_reason = (
+            "Todos los temas trabajados han sido superados. "
+            "El plan BDI '!select_next_topic' eligirá el siguiente tema del currículo "
+            "basándose en la secuencia de prerequisitos."
+        )
+
+    # Hint strategy
+    if in_progress:
+        f = in_progress[0]
+        sr = round(f.success_rate * 100)
+        hl = f.hint_level_needed
+        hint_strategy = (
+            f"Nivel de andamiaje actual para '{f.display_name}': {hl}/3. "
+            + ("Máximo soporte (respuesta guiada)." if hl == 3 else
+               "Soporte medio (pistas socráticas)." if hl == 2 else
+               "Mínimo soporte (autonomía del alumno).")
+        )
+    else:
+        hint_strategy = "Sin temas en progreso — el agente determinará el andamiaje al iniciar."
+
+    # Next topic preview
+    next_topic = _curriculum.get_next_topic(beliefs, student_age)
+    if next_topic:
+        next_preview = (
+            f"Siguiente tema previsto: {next_topic.emoji} {next_topic.display_name} "
+            f"(categoría: {next_topic.category.value}). "
+            f"Prerequisito: {', '.join(next_topic.prerequisites) or 'ninguno'}."
+        )
+    else:
+        next_preview = "El alumno ha completado el currículo completo para su franja de edad."
+
+    # ── L3: Beliefs (mastery evidence) ────────────────────────────────────────
+    evidence = []
+    for r in sorted(worked, key=lambda r: (-int(r.mastered), -r.success_rate))[:6]:
+        status = "✅ Superado" if r.mastered else f"{round(r.success_rate * 100)}% aciertos"
+        evidence.append(
+            f"{r.emoji} {r.display_name}: {r.attempts} intentos — {status} "
+            f"(andamiaje nivel {r.hint_level_needed})"
+        )
+
+    if not evidence:
+        evidence = ["Sin actividad registrada en la base de creencias del agente."]
+
+    # Belief summary
+    total_worked = len(worked)
+    mastered_count = len(mastered)
+    if total_worked == 0:
+        belief_summary = "Base de creencias vacía — primera sesión."
+    else:
+        belief_summary = (
+            f"El agente BDI mantiene registros de mastery para {total_worked} tema(s): "
+            f"{mastered_count} superado(s), {len(in_progress)} en progreso. "
+            f"{'Test de nivel completado.' if beliefs.get('placement_done') else ''}"
+        ).strip()
+
+    return BDIExplanation(
+        current_desire=current_desire,
+        agent_status=agent_status,
+        topic_selection_reason=topic_reason,
+        hint_strategy=hint_strategy,
+        next_topic_preview=next_preview,
+        mastery_evidence=evidence,
+        belief_summary=belief_summary,
     )

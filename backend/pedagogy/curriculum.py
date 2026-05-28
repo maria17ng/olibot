@@ -714,8 +714,8 @@ class CurriculumEngine:
     """
 
     ZDP_MIN_RATE       = 0.20
-    ZDP_MAX_RATE       = 0.75
-    MASTERY_THRESHOLD  = 0.75
+    ZDP_MAX_RATE       = 0.65
+    MASTERY_THRESHOLD  = 0.65
     MIN_ATTEMPTS       = 3
 
     def get_topic(self, topic_id: str) -> CurriculumTopic | None:

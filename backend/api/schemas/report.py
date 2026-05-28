@@ -6,6 +6,11 @@ progress, mastery per topic, and pedagogical recommendations.
 
 This maps to the BDI belief base query:
     .findall(mastery(T, Att, Cor, Mas), MasteryList)
+
+Multi-level BDI Explainability (ref. Dennis & Oren 2022 [2], Yan et al. 2023 [27]):
+    Level 1 — Intention:  current goal the agent is pursuing
+    Level 2 — Plan:       which plan was selected and why
+    Level 3 — Beliefs:    mastery evidence that drove the decision
 """
 from datetime import datetime
 from pydantic import BaseModel
@@ -38,6 +43,33 @@ class SessionSummary(BaseModel):
     shield_triggered_count: int
 
 
+class BDIExplanation(BaseModel):
+    """
+    Multi-level explainability for BDI agent decisions.
+
+    Implements the framework proposed in:
+    - [2] Dennis & Oren (2022): Explaining BDI Behaviour through Dialogue
+    - [27] Yan, Burattini et al. (2023): Multi-Level Explainability for BDI Agents
+
+    Three levels:
+        L1 – Intention: what goal the agent is currently pursuing
+        L2 – Plan: which plan was selected and why (pedagogical rationale)
+        L3 – Beliefs: the mastery evidence in the belief base that drove L1+L2
+    """
+    # L1 — Intention
+    current_desire: str           # "Enseñar vocal A" / "Evaluar nivel inicial"
+    agent_status: str             # "Práctica activa" / "Test de nivel" / etc.
+
+    # L2 — Plan
+    topic_selection_reason: str   # Why this topic was chosen (ZDP, prerequisites, SR)
+    hint_strategy: str            # Current scaffolding level and justification
+    next_topic_preview: str       # What comes next and why
+
+    # L3 — Beliefs
+    mastery_evidence: list[str]   # Bullet list: "emoji topic: N intentos, X% aciertos"
+    belief_summary: str           # Human-readable summary of belief base state
+
+
 class StudentProgressReport(BaseModel):
     """
     Full progress report for a student.
@@ -48,6 +80,7 @@ class StudentProgressReport(BaseModel):
         - Progreso por tema (topic mastery)
         - Tasa de éxito global (overall_success_rate)
         - Recomendaciones para casa (recommended_focus)
+        - Explicabilidad BDI (bdi_explanation) — Fase 8, medium priority
     """
     student_id: int
     student_name: str
@@ -66,8 +99,11 @@ class StudentProgressReport(BaseModel):
     mastery_by_topic: list[TopicMasteryReport]
 
     # Pedagogical recommendations
-    recommended_focus: list[str]       # topic_ids to reinforce at home
-    recommended_display_names: list[str]  # human-readable names for the same
+    recommended_focus: list[str]             # topic_ids to reinforce at home
+    recommended_display_names: list[str]     # human-readable names for the same
 
     # Session history (most recent first)
     recent_sessions: list[SessionSummary]
+
+    # BDI explainability (Fase 8 — medium priority)
+    bdi_explanation: BDIExplanation

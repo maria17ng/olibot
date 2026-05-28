@@ -25,6 +25,8 @@ class StudentModel(Base):
     total_sessions = Column(Integer, default=0)
     overall_success_rate = Column(Float, default=0.0)
 
+    avatar_id = Column(String(20), nullable=True, default="robot")
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

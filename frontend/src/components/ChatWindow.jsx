@@ -174,6 +174,10 @@ export default function ChatWindow({ student, isNewStudent = false }) {
       return;
     }
 
+    // Signal 'thinking' immediately — before the async API call starts.
+    // This gives visual feedback the instant STT finishes, instead of waiting
+    // for sendMessage to set loading=true after stopListening() resolves.
+    setLoading(true);
     if (sendRef.current) sendRef.current(text);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps — intentionally stable via refs
 

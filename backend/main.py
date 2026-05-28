@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.config.settings import get_settings
 from backend.db.database import init_db
 from backend.api.routes import chat, students, reports
+from backend.api.routes import voice
 
 settings = get_settings()
 
@@ -57,9 +58,10 @@ app.add_middleware(
 )
 
 # Register routers
-app.include_router(chat.router, prefix="/api/v1")
+app.include_router(chat.router,     prefix="/api/v1")
 app.include_router(students.router, prefix="/api/v1")
-app.include_router(reports.router, prefix="/api/v1")
+app.include_router(reports.router,  prefix="/api/v1")
+app.include_router(voice.router,    prefix="/api/v1")
 
 
 @app.on_event("startup")

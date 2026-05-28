@@ -34,6 +34,14 @@
  *   +!respond(express_emotion, _, T) → acknowledge_emotion   (Fase 2)
  *   +!respond(_,              _,  T) → redirect              (catch-all)
  *   +!calculate_hint_level(SR, HL)   → maps success rate to hint level 1/2/3
+ *
+ * ── Robustness: failure plans ────────────────────────────────────────
+ *
+ *   Every +!goal has a matching -!goal failure plan that:
+ *     (a) Logs the failure with .print
+ *     (b) Posts a safe "redirect" decision via !recover_with_redirect(T)
+ *         so Python is never left waiting the full DECISION_TIMEOUT_MS.
+ *   Without these, a CArtAgO artifact error would freeze the agent.
  */
 
 // ============================================================
@@ -60,6 +68,10 @@ min_attempts(3).
     focus(ArtId);
     .print("[OLIBOT] BDI agent started. Waiting for percepts from Python backend on port 8080...").
 
+-!start <-
+    .print("[OLIBOT][ERROR] Startup FAILED — could not join workspace or focus OlibotEnv artifact.").
+    .print("[OLIBOT][ERROR] Verify that 'olibot_workspace' and 'olibot_env' are configured in olibot.jcm.").
+
 /*
  * TRIGGER: Python sent a new percept.
  *
@@ -82,6 +94,14 @@ min_attempts(3).
     -+current_student(SId);
     -+current_topic(T);
     !respond(Intent, SR, T).
+
+/*
+ * Safety net: percept received but one or more required beliefs are absent.
+ * This fires only if the context guard above fails (e.g. after a JaCaMo
+ * restart that left the belief base in a partial state).
+ */
++percept_count(N) <-
+    .print("[OLIBOT][WARN] percept #", N, " received but required beliefs are incomplete — skipping turn.").
 
 /*
  * PLAN: ask_for_answer
@@ -251,6 +271,55 @@ min_attempts(3).
         "Student went off-topic. Gently redirect them back to the lesson.",
         "null", "null")[artifact_name("olibot_env"), wsp("olibot_workspace")].
 
+
+// ============================================================
+// FAILURE PLANS — prevent agent freeze on any plan failure
+// ============================================================
+
+/*
+ * Generic failure plan for ALL !respond variants.
+ *
+ * Fires whenever any specific respond plan or its postDecision call throws
+ * an exception (e.g. artifact not found, workspace disconnected).
+ *
+ * Without this, a single CArtAgO error would leave Python waiting the full
+ * DECISION_TIMEOUT_MS before falling back to PythonBDIFallback.
+ *
+ * Recovery: attempt to post a safe "redirect" decision; if that also fails
+ * (artifact completely unavailable), just log — Python will timeout and
+ * use its own fallback automatically.
+ */
+-!respond(Intent, SR, T) <-
+    .print("[OLIBOT][ERROR] !respond FAILED — intent=", Intent, " SR=", SR, " topic=", T);
+    .print("[OLIBOT][ERROR] Attempting recovery redirect to unblock Python pipeline...");
+    !recover_with_redirect(T).
+
+/*
+ * Recovery helper: post a minimal redirect so Python is unblocked.
+ * Separated into its own goal so it can also have its own failure plan.
+ */
++!recover_with_redirect(T) <-
+    postDecision("redirect", 1, T,
+        "Internal agent error. Gently redirect the student to the lesson.",
+        "null", "null")[artifact_name("olibot_env"), wsp("olibot_workspace")];
+    .print("[OLIBOT] Recovery redirect posted — agent state restored.").
+
+-!recover_with_redirect(T) <-
+    .print("[OLIBOT][CRITICAL] Recovery redirect ALSO failed for topic=", T, ".");
+    .print("[OLIBOT][CRITICAL] CArtAgO artifact appears unavailable. Python will use its own fallback.").
+
+/*
+ * Startup failure: log and stop — nothing else can be done.
+ */
+-!start <-
+    .print("[OLIBOT][ERROR] Startup FAILED.").
+    .print("[OLIBOT][ERROR] Check that workspace 'olibot_workspace' and artifact 'olibot_env' are configured.").
+
+
+// ============================================================
+// HELPER PLANS
+// ============================================================
+
 /*
  * PLAN: Calculate scaffolding hint level from session success rate.
  *
@@ -260,7 +329,7 @@ min_attempts(3).
  *   SR <  0.30  → Level 3 (near-direct — student is struggling)
  *
  * Mirrors ScaffoldingEngine.get_hint_level() in Python.
- * Mirrors the Jason plan:  +!calculate_hint_level(SR, HL) in Fase 1.
+ * The third plan is a guaranteed catch-all — this goal can never fail.
  */
 +!calculate_hint_level(SR, 3) <- SR < 0.30.
 +!calculate_hint_level(SR, 2) <- SR < 0.60.

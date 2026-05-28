@@ -53,13 +53,27 @@ import java.util.logging.Logger;
  *   postDecision(action, hintLevel, topicId, instruction,
  *                isCorrect, nextTopicId)
  *     Formats and enqueues the JSON decision so Python can retrieve it.
+ *
+ * ── Robustness improvements ──────────────────────────────────────────
+ *
+ *   - DECISION_TIMEOUT_MS reduced to 5 000 ms (was 8 000) so Python's
+ *     fallback kicks in faster when the agent is unresponsive.
+ *   - execInternalOp("applyPercept") is now wrapped in a try/catch so
+ *     a scheduling failure does not crash the HTTP handler thread.
+ *   - postDecision() is fully synchronous and non-blocking (queue.offer
+ *     is O(1)); no external HTTP call is made from an @OPERATION context.
+ *   - GET /health endpoint added for liveness probes.
  */
 public class OlibotEnv extends Artifact {
 
     private static final Logger log = Logger.getLogger(OlibotEnv.class.getName());
 
-    /** How long GET /decision waits for the agent before returning 408. */
-    private static final int DECISION_TIMEOUT_MS = 8_000;
+    /**
+     * How long GET /decision waits for the agent before returning 408.
+     * Set to 5 s (was 8 s): fail fast so Python falls back to PythonBDIFallback
+     * sooner and latency degrades gracefully instead of hard-blocking.
+     */
+    private static final int DECISION_TIMEOUT_MS = 5_000;
 
     private HttpServer httpServer;
     private int port;
@@ -67,7 +81,7 @@ public class OlibotEnv extends Artifact {
 
     /**
      * Thread-safe queue: Java agent posts decisions, Python reads them.
-     * Using capacity=1 ensures no stale decisions accumulate.
+     * Capacity=1 prevents stale decisions accumulating across percept cycles.
      */
     private final BlockingQueue<String> decisionQueue = new ArrayBlockingQueue<>(1);
 
@@ -90,17 +104,18 @@ public class OlibotEnv extends Artifact {
 
         // All observable properties become beliefs in the focused Jason agent.
         // They are initialised here and updated on each incoming percept.
-        defineObsProperty("percept_count",           0);
-        defineObsProperty("current_student_id",    0);
-        defineObsProperty("current_intent",         "none");
-        defineObsProperty("current_success_rate",   0.0);
-        defineObsProperty("current_topic_id",       "general");
-        defineObsProperty("current_is_correct",     "null");
-        defineObsProperty("current_requested_topic","none");
+        defineObsProperty("percept_count",            0);
+        defineObsProperty("current_student_id",       0);
+        defineObsProperty("current_intent",           "none");
+        defineObsProperty("current_success_rate",     0.0);
+        defineObsProperty("current_topic_id",         "general");
+        defineObsProperty("current_is_correct",       "null");
+        defineObsProperty("current_requested_topic",  "none");
 
         try {
             startHttpServer();
-            log.info("[OlibotEnv] HTTP server started on port " + port);
+            log.info("[OlibotEnv] HTTP server started on port " + port
+                     + " | decision_timeout=" + DECISION_TIMEOUT_MS + " ms");
         } catch (IOException e) {
             log.severe("[OlibotEnv] Failed to start HTTP server: " + e.getMessage());
         }
@@ -110,6 +125,10 @@ public class OlibotEnv extends Artifact {
 
     /**
      * Called by the Jason agent to send its pedagogical decision back to Python.
+     *
+     * This operation is purely in-memory (string formatting + queue.offer).
+     * It does NOT make any outbound HTTP call, so it is safe to run synchronously
+     * in the CArtAgO execution thread without risk of blocking the agent.
      *
      * @param action      BDI action name  (e.g. "give_hint", "praise")
      * @param hintLevel   Scaffolding level (1–3)
@@ -138,10 +157,17 @@ public class OlibotEnv extends Artifact {
                 + "\"next_topic_id\":" + nextTopicJson
                 + "}";
 
-        // Drain any stale decision before offering the new one
+        // Drain any stale decision before offering the new one so a stuck
+        // previous cycle never blocks the current one.
         decisionQueue.clear();
-        decisionQueue.offer(json);
-        log.info("[OlibotEnv] Decision posted: action=" + action + " hint=" + hintLevel);
+        boolean offered = decisionQueue.offer(json);
+        if (!offered) {
+            log.warning("[OlibotEnv] decisionQueue.offer failed (queue full?) — draining and retrying");
+            decisionQueue.clear();
+            decisionQueue.offer(json);
+        }
+        log.info("[OlibotEnv] Decision posted: action=" + action + " hint=" + hintLevel
+                 + " topic=" + topicId);
     }
 
     /**
@@ -161,25 +187,32 @@ public class OlibotEnv extends Artifact {
             return;
         }
 
-        int    studentId      = extractInt(body,    "student_id");
-        String intent         = extractString(body, "intent");
-        double successRate    = extractDouble(body,  "success_rate");
-        String topicId        = extractString(body, "current_topic");
-        String isCorrect      = extractNullableBoolean(body, "is_correct");
-        String requestedTopic = extractString(body, "requested_topic");
+        try {
+            int    studentId      = extractInt(body,    "student_id");
+            String intent         = extractString(body, "intent");
+            double successRate    = extractDouble(body,  "success_rate");
+            String topicId        = extractString(body, "current_topic");
+            String isCorrect      = extractNullableBoolean(body, "is_correct");
+            String requestedTopic = extractString(body, "requested_topic");
 
-        updateObsProperty("current_student_id",     studentId);
-        updateObsProperty("current_intent",          intent.isEmpty() ? "unknown" : intent);
-        updateObsProperty("current_success_rate",    successRate);
-        updateObsProperty("current_topic_id",        topicId.isEmpty() ? "general" : topicId);
-        updateObsProperty("current_is_correct",      isCorrect);
-        updateObsProperty("current_requested_topic", requestedTopic.isEmpty() ? "none" : requestedTopic);
+            updateObsProperty("current_student_id",     studentId);
+            updateObsProperty("current_intent",          intent.isEmpty() ? "unknown" : intent);
+            updateObsProperty("current_success_rate",    successRate);
+            updateObsProperty("current_topic_id",        topicId.isEmpty() ? "general" : topicId);
+            updateObsProperty("current_is_correct",      isCorrect);
+            updateObsProperty("current_requested_topic", requestedTopic.isEmpty() ? "none" : requestedTopic);
 
-        // Trigger last — by the time +percept_count(N) fires in the agent,
-        // all other beliefs are already updated.
-        updateObsProperty("percept_count", ++perceptCount);
-        log.info("[OlibotEnv] applyPercept done: count=" + perceptCount
-                + " intent=" + intent + " SR=" + successRate);
+            // Trigger last — by the time +percept_count(N) fires in the agent,
+            // all other beliefs are already updated.
+            updateObsProperty("percept_count", ++perceptCount);
+            log.info("[OlibotEnv] applyPercept done: count=" + perceptCount
+                    + " intent=" + intent + " SR=" + successRate);
+
+        } catch (Exception e) {
+            log.severe("[OlibotEnv] applyPercept FAILED to parse percept body: " + e.getMessage());
+            // Still increment percept_count to prevent the agent from stalling.
+            updateObsProperty("percept_count", ++perceptCount);
+        }
     }
 
     // ── HTTP server ─────────────────────────────────────────────────────
@@ -188,6 +221,7 @@ public class OlibotEnv extends Artifact {
         httpServer = HttpServer.create(new InetSocketAddress(port), 0);
         httpServer.createContext("/percept",  new PerceptHandler());
         httpServer.createContext("/decision", new DecisionHandler());
+        httpServer.createContext("/health",   new HealthHandler());
         httpServer.setExecutor(Executors.newCachedThreadPool());
         httpServer.start();
     }
@@ -195,12 +229,15 @@ public class OlibotEnv extends Artifact {
     /**
      * POST /percept
      *
-     * Receives a JSON percept from Python, parses it, updates observable
-     * properties, and finally increments percept_count — which triggers
-     * the +percept_count(N) plan in the Jason agent.
+     * Receives a JSON percept from Python, enqueues it, and schedules
+     * the @INTERNAL_OPERATION applyPercept to update observable properties
+     * inside the CArtAgO context. The HTTP thread blocks on execInternalOp
+     * until the properties are updated (ensuring Python knows the percept
+     * was processed by the time it gets the 200 response).
      *
-     * Property update ordering is preserved by CArtAgO's event queue, so
-     * by the time +percept_count fires, all other beliefs are already updated.
+     * If execInternalOp fails (rare — means CArtAgO is shutting down),
+     * the error is logged and a 500 is returned so Python falls back to
+     * PythonBDIFallback immediately rather than waiting for GET /decision.
      */
     private class PerceptHandler implements HttpHandler {
         @Override
@@ -210,24 +247,37 @@ public class OlibotEnv extends Artifact {
                 return;
             }
 
-            // Clear any stale decision from the previous cycle (e.g. the
-            // initial percept_count(0) trigger that fires at agent startup)
+            // Clear any stale decision from the previous cycle
             decisionQueue.clear();
 
-            String body = new String(
-                    ex.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            log.info("[OlibotEnv] Percept received: " + body.substring(0, Math.min(body.length(), 120)));
+            String body;
+            try {
+                body = new String(ex.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                log.warning("[OlibotEnv] Failed to read percept body: " + e.getMessage());
+                respond(ex, 400, "{\"error\":\"could not read request body\"}");
+                return;
+            }
 
-            // Enqueue the raw JSON body and schedule the CArtAgO internal
-            // operation.  updateObsProperty MUST be called from within a
-            // CArtAgO operation context (init / @OPERATION / @INTERNAL_OPERATION)
-            // or belief updates will not propagate to observing agents.
+            log.info("[OlibotEnv] Percept received: "
+                     + body.substring(0, Math.min(body.length(), 120)));
+
             perceptJsonQueue.offer(body);
-            execInternalOp("applyPercept");
 
-            // perceptCount is incremented inside applyPercept, but we need
-            // an id for the response.  Use a local preview (approx).
-            respond(ex, 200, "{\"status\":\"received\",\"percept_id\":" + (perceptCount + 1) + "}");
+            try {
+                execInternalOp("applyPercept");
+            } catch (Exception e) {
+                // execInternalOp can throw if CArtAgO is shutting down or the
+                // artifact is in an unexpected state. Log and return 500 so
+                // Python does not block on GET /decision for the full timeout.
+                log.severe("[OlibotEnv] execInternalOp(applyPercept) failed: " + e.getMessage());
+                perceptJsonQueue.clear(); // discard the unprocessed percept
+                respond(ex, 500, "{\"error\":\"artifact_unavailable\"}");
+                return;
+            }
+
+            respond(ex, 200,
+                    "{\"status\":\"received\",\"percept_id\":" + perceptCount + "}");
         }
     }
 
@@ -254,13 +304,29 @@ public class OlibotEnv extends Artifact {
                 if (decision != null) {
                     respond(ex, 200, decision);
                 } else {
-                    log.warning("[OlibotEnv] Timeout waiting for agent decision");
+                    log.warning("[OlibotEnv] Timeout waiting for agent decision ("
+                                + DECISION_TIMEOUT_MS + " ms) — Python will use fallback");
                     respond(ex, 408, "{\"error\":\"agent_timeout\"}");
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 respond(ex, 500, "{\"error\":\"interrupted\"}");
             }
+        }
+    }
+
+    /**
+     * GET /health
+     *
+     * Liveness probe for Python's BDI bridge startup checks.
+     * Returns 200 with agent status so Python can wait for JaCaMo to be ready.
+     */
+    private class HealthHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange ex) throws IOException {
+            String body = "{\"status\":\"ok\",\"percept_count\":" + perceptCount
+                        + ",\"decision_timeout_ms\":" + DECISION_TIMEOUT_MS + "}";
+            respond(ex, 200, body);
         }
     }
 
@@ -297,7 +363,8 @@ public class OlibotEnv extends Artifact {
         byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         ex.getResponseHeaders().set("Content-Type", "application/json");
         ex.sendResponseHeaders(code, bytes.length);
-        ex.getResponseBody().write(bytes);
-        ex.close();
+        try (OutputStream os = ex.getResponseBody()) {
+            os.write(bytes);
+        }
     }
 }

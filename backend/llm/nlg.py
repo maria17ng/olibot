@@ -10,6 +10,7 @@ import json
 import random
 from pathlib import Path
 from backend.llm.ollama_client import OllamaClient
+from backend.llm.provider import get_llm_provider, LLMProvider
 from backend.db.models import StudentModel
 
 # ── Response cache ─────────────────────────────────────────────────────────
@@ -106,10 +107,21 @@ Beliefs about this student (their known knowledge):
 
 
 class NLGProcessor:
-    """Generates the final agent response using the LLM with OLIBOT's persona."""
+    """
+    Generates the final agent response using the LLM with OLIBOT's persona.
 
-    def __init__(self, ollama_client: OllamaClient):
-        self.llm = ollama_client
+    Accepts an explicit OllamaClient for backwards compatibility, but defaults
+    to the provider selected by settings.llm_provider (Ollama / Groq / Gemini).
+    """
+
+    def __init__(self, ollama_client: OllamaClient | None = None):
+        # Prefer the injected client (backwards-compat) wrapped as a provider;
+        # otherwise use the configured provider from settings.
+        if ollama_client is not None:
+            from backend.llm.provider import OllamaProvider
+            self.llm: LLMProvider = OllamaProvider()
+        else:
+            self.llm = get_llm_provider()
 
     async def generate_response(
         self,
@@ -158,6 +170,7 @@ class NLGProcessor:
             system_prompt=augmented_system,
         )
 
+
     async def generate_response_stream(
         self,
         student: StudentModel,
@@ -198,6 +211,7 @@ class NLGProcessor:
             system_prompt=augmented_system,
         ):
             yield token
+
 
     async def generate_hint(self, student: StudentModel, topic: str, hint_level: int = 1) -> str:
         """

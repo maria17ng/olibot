@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="280" viewBox="0 0 280 280">
+  <rect width="280" height="280" fill="#f9fafb" rx="10"/>
+  <rect width="280" height="280" fill="none" rx="10" stroke="#f97316" stroke-width="2.5" opacity="0.4"/>
+  <path d="M218.4 22.4 L140.0 22.4 L70.0 22.4 L70.0 84.0 L70.0 140.0 L117.6 145.6 L182.0 145.6 L229.6 173.6 L229.6 212.8 L201.6 252.0 L140.0 266.0 L78.4 257.6 L50.4 218.4" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M218.4 22.4 L140.0 22.4 L70.0 22.4 L70.0 84.0 L70.0 140.0 L117.6 145.6 L182.0 145.6 L229.6 173.6 L229.6 212.8 L201.6 252.0 L140.0 266.0 L78.4 257.6 L50.4 218.4" stroke="#f97316" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <circle cx="218.4" cy="22.4" r="10.0" fill="#4a90d9"/>
+  <circle cx="140.0" cy="22.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="70.0" cy="22.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="70.0" cy="84.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="70.0" cy="140.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="117.6" cy="145.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="182.0" cy="145.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="229.6" cy="173.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="229.6" cy="212.8" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="201.6" cy="252.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="140.0" cy="266.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="78.4" cy="257.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="50.4" cy="218.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <line x1="218.4" y1="22.4" x2="182.0" y2="22.4" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="182.0,22.4 191.0,13.4 191.0,31.4" fill="#2563eb"/>
+  <text x="140" y="275" text-anchor="middle" font-size="12" fill="#f97316" font-weight="bold" font-family="sans-serif">Medio</text>
+</svg>

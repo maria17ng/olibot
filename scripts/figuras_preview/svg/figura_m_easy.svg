@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="280" viewBox="0 0 280 280">
+  <rect width="280" height="280" fill="#f9fafb" rx="10"/>
+  <rect width="280" height="280" fill="none" rx="10" stroke="#22c55e" stroke-width="2.5" opacity="0.4"/>
+  <path d="M50.4 61.6 L50.4 106.4 L50.4 151.2 L50.4 196.0 L50.4 218.4" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M50.4 61.6 L78.4 53.2 L112.0 50.4 L134.4 67.2 L145.6 95.2 L145.6 128.8 L145.6 162.4 L145.6 196.0 L145.6 218.4" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M145.6 61.6 L168.0 53.2 L201.6 50.4 L224.0 67.2 L235.2 95.2 L235.2 128.8 L235.2 162.4 L235.2 196.0 L235.2 218.4" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M50.4 61.6 L50.4 106.4 L50.4 151.2 L50.4 196.0 L50.4 218.4" stroke="#22c55e" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <path d="M50.4 61.6 L78.4 53.2 L112.0 50.4 L134.4 67.2 L145.6 95.2 L145.6 128.8 L145.6 162.4 L145.6 196.0 L145.6 218.4" stroke="#22c55e" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <path d="M145.6 61.6 L168.0 53.2 L201.6 50.4 L224.0 67.2 L235.2 95.2 L235.2 128.8 L235.2 162.4 L235.2 196.0 L235.2 218.4" stroke="#22c55e" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <circle cx="50.4" cy="61.6" r="10.0" fill="#4a90d9"/>
+  <circle cx="50.4" cy="106.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="50.4" cy="151.2" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="50.4" cy="196.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="50.4" cy="218.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <text x="50.4" y="61.6" text-anchor="middle" dominant-baseline="middle" font-size="15.5" font-weight="bold" fill="#1e40af" font-family="sans-serif">1</text>
+  <line x1="50.4" y1="61.6" x2="50.4" y2="98.0" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="50.4,98.0 41.4,89.0 59.4,89.0" fill="#2563eb"/>
+  <circle cx="50.4" cy="61.6" r="10.0" fill="#4a90d9"/>
+  <circle cx="78.4" cy="53.2" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="112.0" cy="50.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="134.4" cy="67.2" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="145.6" cy="95.2" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="145.6" cy="128.8" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="145.6" cy="162.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="145.6" cy="196.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="145.6" cy="218.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <text x="50.4" y="61.6" text-anchor="middle" dominant-baseline="middle" font-size="15.5" font-weight="bold" fill="#1e40af" font-family="sans-serif">2</text>
+  <line x1="50.4" y1="61.6" x2="85.3" y2="51.1" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="85.3,51.1 79.2,62.4 74.0,45.1" fill="#2563eb"/>
+  <circle cx="145.6" cy="61.6" r="10.0" fill="#4a90d9"/>
+  <circle cx="168.0" cy="53.2" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="201.6" cy="50.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="224.0" cy="67.2" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="235.2" cy="95.2" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="235.2" cy="128.8" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="235.2" cy="162.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="235.2" cy="196.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="235.2" cy="218.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <text x="145.6" y="61.6" text-anchor="middle" dominant-baseline="middle" font-size="15.5" font-weight="bold" fill="#1e40af" font-family="sans-serif">3</text>
+  <line x1="145.6" y1="61.6" x2="179.7" y2="48.8" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="179.7,48.8 174.4,60.4 168.1,43.5" fill="#2563eb"/>
+  <text x="140" y="275" text-anchor="middle" font-size="12" fill="#22c55e" font-weight="bold" font-family="sans-serif">Fácil</text>
+</svg>

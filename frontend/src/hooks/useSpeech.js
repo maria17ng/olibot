@@ -136,8 +136,9 @@ export function useSpeech({ onTranscript, onSilence }) {
         setInterimTranscript("");
         const cleaned = fixTranscript(final.trim());
         console.log("[STT] final:", JSON.stringify(cleaned), "len:", cleaned.length, "maxConf:", maxConf.toFixed(3));
-        // Filter noise: single phoneme, or low-confidence short burst
-        if (cleaned.length < 2 || (maxConf > 0 && maxConf < 0.25 && cleaned.length < 5)) {
+        // Filter noise: single phoneme, or low-confidence short burst.
+        // Threshold raised (0.25→0.45, length 5→8) to discard background TV/voices.
+        if (cleaned.length < 2 || (maxConf > 0 && maxConf < 0.45 && cleaned.length < 8)) {
           console.log("[STT] filtered as noise");
           if (onSilence) onSilence();
           return;

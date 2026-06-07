@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="280" viewBox="0 0 280 280">
+  <rect width="280" height="280" fill="#f9fafb" rx="10"/>
+  <rect width="280" height="280" fill="none" rx="10" stroke="#22c55e" stroke-width="2.5" opacity="0.4"/>
+  <path d="M190.4 44.8 L173.6 33.6 L154.0 28.0 L128.8 28.0 L112.0 33.6 L98.0 44.8 L95.2 61.6 L95.2 84.0 L95.2 112.0 L95.2 145.6 L95.2 179.2 L95.2 212.8 L95.2 257.6" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M50.4 117.6 L78.4 117.6 L106.4 117.6 L140.0 117.6 L168.0 117.6" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M190.4 44.8 L173.6 33.6 L154.0 28.0 L128.8 28.0 L112.0 33.6 L98.0 44.8 L95.2 61.6 L95.2 84.0 L95.2 112.0 L95.2 145.6 L95.2 179.2 L95.2 212.8 L95.2 257.6" stroke="#22c55e" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <path d="M50.4 117.6 L78.4 117.6 L106.4 117.6 L140.0 117.6 L168.0 117.6" stroke="#22c55e" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <circle cx="190.4" cy="44.8" r="10.0" fill="#4a90d9"/>
+  <circle cx="173.6" cy="33.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="154.0" cy="28.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="128.8" cy="28.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="112.0" cy="33.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="98.0" cy="44.8" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="95.2" cy="61.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="95.2" cy="84.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="95.2" cy="112.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="95.2" cy="145.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="95.2" cy="179.2" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="95.2" cy="212.8" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="95.2" cy="257.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <text x="190.4" y="44.8" text-anchor="middle" dominant-baseline="middle" font-size="15.5" font-weight="bold" fill="#1e40af" font-family="sans-serif">1</text>
+  <line x1="190.4" y1="44.8" x2="160.1" y2="24.6" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="160.1,24.6 172.6,22.1 162.6,37.1" fill="#2563eb"/>
+  <circle cx="50.4" cy="117.6" r="10.0" fill="#4a90d9"/>
+  <circle cx="78.4" cy="117.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="106.4" cy="117.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="140.0" cy="117.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="168.0" cy="117.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <text x="50.4" y="117.6" text-anchor="middle" dominant-baseline="middle" font-size="15.5" font-weight="bold" fill="#1e40af" font-family="sans-serif">2</text>
+  <line x1="50.4" y1="117.6" x2="86.8" y2="117.6" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="86.8,117.6 77.8,126.6 77.8,108.6" fill="#2563eb"/>
+  <text x="140" y="275" text-anchor="middle" font-size="12" fill="#22c55e" font-weight="bold" font-family="sans-serif">Fácil</text>
+</svg>

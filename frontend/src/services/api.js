@@ -103,4 +103,15 @@ export const api = {
     if (!res.ok) throw new Error("Failed to fetch report");
     return res.json();
   },
+
+  // ---- Student update ----
+  async updateStudentAge(studentId, newAge) {
+    const res = await fetch(`${BASE_URL}/students/${studentId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ age: newAge }),
+    });
+    if (!res.ok) throw new Error("Failed to update student age");
+    return res.json();
+  },
 };

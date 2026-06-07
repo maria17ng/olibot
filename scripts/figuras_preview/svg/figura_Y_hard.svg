@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="280" viewBox="0 0 280 280">
+  <rect width="280" height="280" fill="#f9fafb" rx="10"/>
+  <rect width="280" height="280" fill="none" rx="10" stroke="#ef4444" stroke-width="2.5" opacity="0.4"/>
+  <path d="M50.4 22.4 L140.0 145.6" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M229.6 22.4 L140.0 145.6" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M140.0 145.6 L140.0 257.6" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M50.4 22.4 L140.0 145.6" stroke="#ef4444" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <path d="M229.6 22.4 L140.0 145.6" stroke="#ef4444" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <path d="M140.0 145.6 L140.0 257.6" stroke="#ef4444" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <circle cx="50.4" cy="22.4" r="10.0" fill="#4a90d9"/>
+  <circle cx="140.0" cy="145.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <text x="50.4" y="22.4" text-anchor="middle" dominant-baseline="middle" font-size="15.5" font-weight="bold" fill="#1e40af" font-family="sans-serif">1</text>
+  <line x1="50.4" y1="22.4" x2="71.8" y2="51.8" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="71.8,51.8 59.2,49.9 73.8,39.3" fill="#2563eb"/>
+  <circle cx="229.6" cy="22.4" r="10.0" fill="#4a90d9"/>
+  <circle cx="140.0" cy="145.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <text x="229.6" y="22.4" text-anchor="middle" dominant-baseline="middle" font-size="15.5" font-weight="bold" fill="#1e40af" font-family="sans-serif">2</text>
+  <line x1="229.6" y1="22.4" x2="208.2" y2="51.8" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="208.2,51.8 206.2,39.3 220.8,49.9" fill="#2563eb"/>
+  <circle cx="140.0" cy="145.6" r="10.0" fill="#4a90d9"/>
+  <circle cx="140.0" cy="257.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <text x="140.0" y="145.6" text-anchor="middle" dominant-baseline="middle" font-size="15.5" font-weight="bold" fill="#1e40af" font-family="sans-serif">3</text>
+  <line x1="140.0" y1="145.6" x2="140.0" y2="182.0" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="140.0,182.0 131.0,173.0 149.0,173.0" fill="#2563eb"/>
+  <text x="140" y="275" text-anchor="middle" font-size="12" fill="#ef4444" font-weight="bold" font-family="sans-serif">Difícil</text>
+</svg>

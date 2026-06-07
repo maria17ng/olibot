@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="280" viewBox="0 0 280 280">
+  <rect width="280" height="280" fill="#f9fafb" rx="10"/>
+  <rect width="280" height="280" fill="none" rx="10" stroke="#f97316" stroke-width="2.5" opacity="0.4"/>
+  <path d="M61.6 61.6 L61.6 140.0 L61.6 218.4" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M61.6 61.6 L140.0 56.0 L184.8 89.6 L196.0 140.0 L196.0 218.4" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M61.6 61.6 L61.6 140.0 L61.6 218.4" stroke="#f97316" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <path d="M61.6 61.6 L140.0 56.0 L184.8 89.6 L196.0 140.0 L196.0 218.4" stroke="#f97316" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <circle cx="61.6" cy="61.6" r="10.0" fill="#4a90d9"/>
+  <circle cx="61.6" cy="140.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="61.6" cy="218.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <text x="61.6" y="61.6" text-anchor="middle" dominant-baseline="middle" font-size="15.5" font-weight="bold" fill="#1e40af" font-family="sans-serif">1</text>
+  <line x1="61.6" y1="61.6" x2="61.6" y2="98.0" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="61.6,98.0 52.6,89.0 70.6,89.0" fill="#2563eb"/>
+  <circle cx="61.6" cy="61.6" r="10.0" fill="#4a90d9"/>
+  <circle cx="140.0" cy="56.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="184.8" cy="89.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="196.0" cy="140.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="196.0" cy="218.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <text x="61.6" y="61.6" text-anchor="middle" dominant-baseline="middle" font-size="15.5" font-weight="bold" fill="#1e40af" font-family="sans-serif">2</text>
+  <line x1="61.6" y1="61.6" x2="97.9" y2="59.0" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="97.9,59.0 89.6,68.6 88.3,50.7" fill="#2563eb"/>
+  <text x="140" y="275" text-anchor="middle" font-size="12" fill="#f97316" font-weight="bold" font-family="sans-serif">Medio</text>
+</svg>

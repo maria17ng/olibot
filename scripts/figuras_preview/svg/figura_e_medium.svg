@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="280" viewBox="0 0 280 280">
+  <rect width="280" height="280" fill="#f9fafb" rx="10"/>
+  <rect width="280" height="280" fill="none" rx="10" stroke="#f97316" stroke-width="2.5" opacity="0.4"/>
+  <path d="M106.4 131.6 L156.8 131.6 L212.8 131.6 L229.6 112.0 L232.4 84.0 L207.2 53.2 L140.0 44.8 L75.6 53.2 L50.4 84.0 L50.4 117.6 L56.0 156.8 L78.4 190.4 L120.4 215.6 L173.6 215.6 L218.4 187.6" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M106.4 131.6 L156.8 131.6 L212.8 131.6 L229.6 112.0 L232.4 84.0 L207.2 53.2 L140.0 44.8 L75.6 53.2 L50.4 84.0 L50.4 117.6 L56.0 156.8 L78.4 190.4 L120.4 215.6 L173.6 215.6 L218.4 187.6" stroke="#f97316" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <circle cx="106.4" cy="131.6" r="10.0" fill="#4a90d9"/>
+  <circle cx="156.8" cy="131.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="212.8" cy="131.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="229.6" cy="112.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="232.4" cy="84.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="207.2" cy="53.2" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="140.0" cy="44.8" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="75.6" cy="53.2" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="50.4" cy="84.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="50.4" cy="117.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="56.0" cy="156.8" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="78.4" cy="190.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="120.4" cy="215.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="173.6" cy="215.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="218.4" cy="187.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <line x1="106.4" y1="131.6" x2="142.8" y2="131.6" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="142.8,131.6 133.8,140.6 133.8,122.6" fill="#2563eb"/>
+  <text x="140" y="275" text-anchor="middle" font-size="12" fill="#f97316" font-weight="bold" font-family="sans-serif">Medio</text>
+</svg>

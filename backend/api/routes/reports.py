@@ -26,6 +26,7 @@ from backend.api.schemas.report import (
     TopicMasteryReport,
     SessionSummary,
     BDIExplanation,
+    AgeGroupReport,
 )
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -144,6 +145,7 @@ def get_student_report(student_id: int, db: Session = Depends(get_db)):
         topics_in_progress=topics_in_progress,
         topics_not_started=topics_not_started,
         mastery_by_topic=mastery_reports,
+        age_groups=_build_age_groups(mastery_reports, int(student.age or 4), student.name),
         recommended_focus=recommended_focus,
         recommended_display_names=recommended_display_names,
         recent_sessions=session_summaries,
@@ -282,3 +284,70 @@ def _build_bdi_explanation(
         mastery_evidence=evidence,
         belief_summary=belief_summary,
     )
+
+
+# ── Age-group breakdown builder ───────────────────────────────────────────────
+
+def _build_age_groups(
+    mastery_reports: list[TopicMasteryReport],
+    student_age: int,
+    student_name: str,
+) -> list[AgeGroupReport]:
+    """
+    Groups curriculum topics by min_age and builds a per-age summary.
+
+    For each group:
+      - Shows how many topics are mastered / in progress / not started.
+      - When all topics for a group are mastered, sets all_mastered=True and
+        builds an advance_message suggesting the parent consider moving up.
+      - For children aged 3-4 who complete their group, the message asks a
+        parent to be present before advancing to the next level.
+    """
+    groups: dict[int, list[TopicMasteryReport]] = {}
+    for r in mastery_reports:
+        topic_obj = CURRICULUM.get(r.topic_id)
+        if topic_obj is None:
+            continue
+        age_key = topic_obj.min_age
+        groups.setdefault(age_key, []).append(r)
+
+    result: list[AgeGroupReport] = []
+    for age in sorted(groups.keys()):
+        topics = groups[age]
+        total     = len(topics)
+        mastered  = sum(1 for t in topics if t.mastered)
+        in_prog   = sum(1 for t in topics if t.attempts > 0 and not t.mastered)
+        not_start = total - mastered - in_prog
+        completion = mastered / total if total > 0 else 0.0
+        all_done   = mastered == total and total > 0
+
+        if all_done:
+            next_age = age + 1
+            if student_age <= 4:
+                advance_message = (
+                    f"🎉 ¡{student_name} ha superado todos los niveles de {age} años! "
+                    f"Para continuar con las actividades de {next_age} años, "
+                    f"es recomendable que un adulto esté presente para acompañar "
+                    f"el avance a los nuevos contenidos."
+                )
+            else:
+                advance_message = (
+                    f"🎉 ¡{student_name} ha completado todos los niveles de {age} años! "
+                    f"Ya está listo/a para explorar los contenidos de {next_age} años."
+                )
+        else:
+            advance_message = ""
+
+        result.append(AgeGroupReport(
+            age=age,
+            total_topics=total,
+            mastered_topics=mastered,
+            in_progress_topics=in_prog,
+            not_started_topics=not_start,
+            all_mastered=all_done,
+            completion_pct=round(completion, 3),
+            advance_message=advance_message,
+            topics=sorted(topics, key=lambda t: (-int(t.mastered), -t.success_rate)),
+        ))
+
+    return result

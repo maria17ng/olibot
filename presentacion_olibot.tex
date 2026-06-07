@@ -1,0 +1,593 @@
+%% ============================================================
+%%  OLIBOT — Presentación TFM
+%%  Compilar con: pdflatex presentacion_olibot.tex (×2)
+%% ============================================================
+\documentclass[aspectratio=169, 10pt]{beamer}
+
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage{listings}
+
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{olibotBlue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{olibotTeal},
+  numbers=left, numberstyle=\tiny\color{gray},
+  frame=single, framexleftmargin=4pt,
+  breaklines=true, showstringspaces=false,
+  tabsize=2, xleftmargin=8pt,
+}
+
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, fit, backgrounds}
+
+%% ── Tema ─────────────────────────────────────────────────────
+\usetheme{Madrid}
+\usecolortheme{whale}
+
+\definecolor{olibotBlue}{RGB}{30, 58, 95}
+\definecolor{olibotTeal}{RGB}{42, 157, 143}
+\definecolor{olibotOrange}{RGB}{244, 162, 97}
+\definecolor{olibotRed}{RGB}{230, 57, 70}
+\definecolor{lightgray}{RGB}{245, 245, 245}
+
+\setbeamercolor{palette primary}{bg=olibotBlue, fg=white}
+\setbeamercolor{palette secondary}{bg=olibotBlue!80, fg=white}
+\setbeamercolor{palette tertiary}{bg=olibotBlue!60, fg=white}
+\setbeamercolor{structure}{fg=olibotBlue}
+\setbeamercolor{alerted text}{fg=olibotRed}
+\setbeamercolor{block title}{bg=olibotBlue, fg=white}
+\setbeamercolor{block body}{bg=olibotBlue!8}
+\setbeamercolor{block title alerted}{bg=olibotRed, fg=white}
+\setbeamercolor{block body alerted}{bg=olibotRed!8}
+\setbeamercolor{block title example}{bg=olibotTeal, fg=white}
+\setbeamercolor{block body example}{bg=olibotTeal!10}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{itemize items}[circle]
+
+%% ── Metadatos ────────────────────────────────────────────────
+\title[OLIBOT]{\textbf{OLIBOT}\\[4pt]
+  \large Agente Pedagógico Híbrido BDI–LLM\\para Educación Infantil}
+\subtitle{Trabajo de Fin de Máster}
+\author{María Emilia Núñez Guerrero}
+\institute[UC3M]{Universidad Carlos III de Madrid\\
+  Tutor: Javier Ignacio Carbó Rubiera}
+\date{Junio 2026}
+
+%% ── Macros ───────────────────────────────────────────────────
+\newcommand{\tech}[1]{\texttt{\footnotesize #1}}
+\newcommand{\concept}[1]{\textbf{\color{olibotBlue}#1}}
+
+%% ============================================================
+\begin{document}
+
+% ── Portada ──────────────────────────────────────────────────
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% ── Índice ───────────────────────────────────────────────────
+\begin{frame}{Índice}
+  \tableofcontents
+\end{frame}
+
+%% ============================================================
+\section{Motivación y contexto}
+%% ============================================================
+
+\begin{frame}{¿Por qué OLIBOT?}
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      \begin{block}{El reto educativo}
+        \small
+        \begin{itemize}
+          \item Decreto 36/2022 (Madrid): \textbf{45~min/día} de lectoescritura obligatorios en 5.º Infantil.
+          \item Niños de 3, 4 y 5 años requieren \textbf{interacciones radicalmente diferentes}.
+          \item Ratio alumno/docente elevado dificulta la atención personalizada.
+        \end{itemize}
+      \end{block}
+      \vspace{2pt}
+      \begin{block}{La oportunidad tecnológica}
+        \small
+        \begin{itemize}
+          \item LLMs conversacionales eficientes y rápidos.
+          \item Agentes BDI (JaCaMo) para lógica pedagógica fiable.
+          \item Interfaz por voz (ideal para niños que no leen).
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{alertblock}{Objetivo del TFM}
+        \small
+        Diseñar e implementar un \textbf{agente tutor conversacional} que:
+        \begin{enumerate}
+          \item Se adapte al \textbf{nivel cognitivo} del niño.
+          \item Utilice el \textbf{método socrático} (guiar, no dar la respuesta directa).
+          \item Implemente una \textbf{doble capa de seguridad} para menores.
+          \item Funcione de manera autónoma 100\% por \textbf{voz}.
+        \end{enumerate}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ============================================================
+\section{Bases teóricas}
+%% ============================================================
+
+\begin{frame}{Fundamentos pedagógicos}
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      \begin{exampleblock}{Zona de Desarrollo Próximo (Vygotsky)}
+        \footnotesize
+        El aprendizaje ocurre en lo que el niño \textit{no puede hacer solo} pero sí \textit{con ayuda}.\\[4pt]
+        OLIBOT usa \textbf{scaffolding graduado}: pistas de nivel 1 (sutil) a nivel 3 (casi directo), según los fallos.
+      \end{exampleblock}
+      \vspace{2pt}
+      \begin{block}{Método sintético-fonético}
+        \footnotesize
+        Secuencia curricular implementada:
+        \begin{itemize}
+          \item 3 años: pre-grafomotricidad + fonología oral
+          \item 4 años: vocales A-U + consonantes (m, l, s, p)
+          \item 5 años: consonantes complejas + sílabas + palabras
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{block}{Tutoría inteligente (ITS)}
+        \footnotesize
+        Modelo clásico adaptado a OLIBOT:
+        \begin{center}
+          \resizebox{0.7\linewidth}{!}{
+          \begin{tikzpicture}[
+            box/.style={rounded corners=4pt, draw=olibotBlue, fill=olibotBlue!10,
+                        minimum width=3.5cm, minimum height=0.6cm, font=\small},
+            arr/.style={-Stealth, thick, color=olibotBlue}
+          ]
+            \node[box] (dom)  {Modelo del dominio (Currículo)};
+            \node[box, below=0.3cm of dom]  (ped)  {Modelo pedagógico (BDI)};
+            \node[box, below=0.3cm of ped]  (est)  {Modelo del estudiante (DB)};
+            \node[box, below=0.3cm of est]  (int)  {Interfaz (React + Voz)};
+            \draw[arr] (dom) -- (ped);
+            \draw[arr] (ped) -- (est);
+            \draw[arr] (est) -- (int);
+          \end{tikzpicture}
+          }
+        \end{center}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Agentes BDI — la base de razonamiento}
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      \begin{block}{Arquitectura BDI}
+        \small
+        El agente mantiene:
+        \begin{itemize}
+          \item \concept{Beliefs} (Creencias): Nivel del alumno, aciertos, tema actual.
+          \item \concept{Desires} (Deseos): Que el alumno domine el temario.
+          \item \concept{Intentions} (Intenciones): Planes en ejecución (dar pista, avanzar tema).
+        \end{itemize}
+        \vspace{4pt}
+        Permite razonamiento \textbf{reactivo} (al habla) y \textbf{deliberativo} (plan de estudio).
+      \end{block}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{block}{¿Por qué BDI y no solo LLM?}
+        \begin{center}
+        \resizebox{\linewidth}{!}{
+        \begin{tikzpicture}[font=\small]
+          \node[draw=olibotRed!70, fill=olibotRed!8, rounded corners=3pt,
+                text width=3.5cm, align=center, inner sep=4pt] (llm) {Solo LLM\\\footnotesize Impredecible, propenso a alucinar, olvida reglas didácticas};
+          \node[draw=olibotTeal, fill=olibotTeal!10, rounded corners=3pt,
+                text width=3.5cm, align=center, inner sep=4pt, right=0.5cm of llm] (bdi) {BDI + LLM\\\footnotesize Lógica dura y determinista, el LLM solo redacta el texto};
+          \draw[-Stealth, thick, color=olibotBlue] (llm) -- (bdi);
+        \end{tikzpicture}
+        }
+        \end{center}
+        \vspace{4pt}
+        \small
+        Principio rector: \textbf{``Think BDI, Talk LLM''}.\\
+        El agente decide \textit{qué} hacer; el LLM decide \textit{cómo decirlo}.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ============================================================
+\section{Arquitectura del sistema}
+%% ============================================================
+
+\begin{frame}{Arquitectura global}
+  \begin{center}
+  \resizebox{0.85\linewidth}{!}{
+  \begin{tikzpicture}[
+    node distance=0.8cm and 1.2cm,
+    layer/.style={rounded corners=6pt, draw, minimum height=1.2cm, text width=2.8cm,
+                  align=center, font=\small\bfseries},
+    arr/.style={-Stealth, thick},
+    label/.style={font=\footnotesize\itshape, color=gray}
+  ]
+    %% Frontend
+    \node[layer, fill=olibotOrange!30, draw=olibotOrange] (fe)
+      {Frontend\\\footnotesize React + Vite};
+
+    %% Backend
+    \node[layer, fill=olibotBlue!15, draw=olibotBlue, right=1.5cm of fe] (be)
+      {Backend\\\footnotesize FastAPI (Python)};
+
+    %% BDI
+    \node[layer, fill=olibotTeal!20, draw=olibotTeal, right=1.5cm of be] (bdi)
+      {Agente BDI\\\footnotesize JaCaMo (Java)};
+
+    %% LLM
+    \node[layer, fill=purple!15, draw=purple!60, below=1cm of be] (llm)
+      {LLMs\\\footnotesize Ollama / Groq / Gemini};
+
+    %% DB
+    \node[layer, fill=gray!15, draw=gray, above=1cm of be] (db)
+      {Base de datos\\\footnotesize SQLite / SQLAlchemy};
+
+    %% Arrows
+    \draw[arr, <->] (fe) -- node[above, label]{REST/SSE} (be);
+    \draw[arr, <->] (be) -- node[above, label]{REST} (bdi);
+    \draw[arr, ->]  (be) -- node[right, label]{Prompt} (llm);
+    \draw[arr, <->] (be) -- node[right, label]{ORM} (db);
+
+    %% Voice (browser-native, no external server)
+    \node[layer, fill=olibotOrange!15, draw=olibotOrange!70,
+          below=1cm of fe, text width=2.8cm] (voice)
+      {Voz\\\footnotesize Web Speech API\\\footnotesize (STT + TTS en browser)};
+    \draw[arr, <->] (fe) -- (voice);
+    %% Voice stays in the browser — no direct arrow to backend
+
+  \end{tikzpicture}
+  }
+  \end{center}
+\end{frame}
+
+\begin{frame}{Pipeline de procesamiento de un turno}
+  \begin{center}
+  \resizebox{0.95\linewidth}{!}{
+  \begin{tikzpicture}[
+    stage/.style={rounded corners=5pt, draw=olibotBlue, fill=olibotBlue!12,
+                  minimum width=2.2cm, minimum height=1.0cm,
+                  align=center, font=\small\bfseries},
+    arr/.style={-Stealth, thick, color=olibotBlue},
+    note/.style={font=\footnotesize\itshape, color=gray, align=center}
+  ]
+    \node[stage] (nlu) {NLU\\\footnotesize Intención\\ + Entidades};
+    \node[stage, right=1.0cm of nlu] (bdi)  {Agente BDI\\\footnotesize Elige plan\\ pedagógico};
+    \node[stage, right=1.0cm of bdi] (nlg)  {NLG\\\footnotesize Generación\\ de texto (LLM)};
+    \node[stage, right=1.0cm of nlg] (sh)   {Safety Shield\\\footnotesize Filtro de\\ seguridad};
+    \node[stage, right=1.0cm of sh]  (out)  {Frontend\\\footnotesize Avatar + Voz};
+
+    \draw[arr] (nlu) -- (bdi);
+    \draw[arr] (bdi) -- (nlg);
+    \draw[arr] (nlg) -- (sh);
+    \draw[arr] (sh)  -- (out);
+
+    %% Input arrow
+    \node[left=0.8cm of nlu, note] (in) {Audio del niño\\\footnotesize (Web Speech API)};
+    \draw[arr] (in) -- (nlu);
+  \end{tikzpicture}
+  }
+  \end{center}
+
+  \vspace{6pt}
+  \begin{columns}[T]
+    \begin{column}{.32\textwidth}
+      \begin{block}{1. NLU}
+        \footnotesize
+        Clasifica la intención usando \textbf{embeddings} (\tech{nomic-embed-text}) y
+        similitud coseno frente a 216 ejemplos pre-vectorizados. Umbral~0.72;
+        si falla, cae a un LLM ligero (\tech{llama3.2:1b}).
+      \end{block}
+    \end{column}
+    \begin{column}{.32\textwidth}
+      \begin{block}{2. Agente BDI}
+        \footnotesize
+        Actualiza el estado del alumno, evalúa si requiere pista 1, 2 o 3, y emite una \textit{instrucción determinista}.
+      \end{block}
+    \end{column}
+    \begin{column}{.32\textwidth}
+      \begin{block}{3. Safety Shield}
+        \footnotesize
+        Filtra lenguaje inapropiado y verifica que el LLM no haya resuelto el ejercicio de forma directa.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ============================================================
+\section{Agente BDI}
+%% ============================================================
+
+\begin{frame}[fragile]{NLU: clasificación por embeddings}
+  \begin{columns}[T]
+    \begin{column}{.50\textwidth}
+      \begin{block}{Pipeline de clasificación (3 capas)}
+        \small
+        \begin{enumerate}
+          \item \textbf{Embeddings + coseno} \hfill \textit{$\sim$50 ms}\\
+                \tech{nomic-embed-text} + 216 ejemplos pre-vectorizados.\\
+                Si similitud $\geq 0.72$ → intención clasificada.
+          \item \textbf{LLM ligero} (\tech{llama3.2:1b}) \hfill \textit{$\sim$400 ms}\\
+                Si los embeddings no llegan al umbral.
+          \item \textbf{LLM principal} (\tech{llama3.1:8b}) \hfill \textit{$\sim$2 s}\\
+                Último recurso.
+        \end{enumerate}
+      \end{block}
+      \vspace{2pt}
+      \begin{exampleblock}{¿Por qué embeddings y no fine-tuning?}
+        \footnotesize
+        Añadir un intent nuevo = añadir ejemplos en Python y ejecutar\\
+        \tech{python -m backend.scripts.generate\_nlu\_embeddings}.\\
+        Sin reentrenar ningún modelo.
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{.46\textwidth}
+      \begin{block}{Núcleo del clasificador}
+      \begin{lstlisting}[language=Python]
+def _cosine_similarity(a, b):
+    dot = sum(x*y for x,y in zip(a,b))
+    na  = math.sqrt(sum(x*x for x in a))
+    nb  = math.sqrt(sum(x*x for x in b))
+    return dot / (na * nb + 1e-9)
+
+def _classify_by_embedding(msg_emb):
+    best_intent, best_sim = "unknown", 0.0
+    for intent, examples in INTENT_EMBEDDINGS.items():
+        sim = max(_cosine_similarity(msg_emb, ex)
+                  for ex in examples)
+        if sim > best_sim:
+            best_sim, best_intent = sim, intent
+    if best_sim >= THRESHOLD:   # 0.72
+        return best_intent, best_sim
+    return None  # -> cae al LLM
+      \end{lstlisting}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Gestión pedagógica en JaCaMo}
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      \begin{block}{Comunicación asíncrona}
+        \small
+        Python y Java (CArtAgO) se comunican mediante HTTP. Para evitar que el agente se ``congele'', se diseñaron \textbf{planes de contingencia (\texttt{-!})} que actúan si el backend tarda más de \textbf{8s} en responder.
+      \end{block}
+      \vspace{2pt}
+      \begin{block}{Criterio de dominio (Mastery)}
+        \small
+        El agente marca un tema como dominado si:
+        \begin{enumerate}
+          \item $\text{Tasa de éxito} \geq 70\%$
+          \item Intentos mínimos superados:
+            \begin{itemize}
+              \item 3 años $\rightarrow$ 3 intentos
+              \item 4 años $\rightarrow$ 2 intentos
+              \item 5 años $\rightarrow$ 1 intento
+            \end{itemize}
+        \end{enumerate}
+      \end{block}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{block}{Toma de decisiones BDI}
+        \begin{center}
+        \resizebox{\linewidth}{!}{
+        \begin{tikzpicture}[
+          dec/.style={diamond, draw=olibotBlue, fill=olibotBlue!10,
+                      minimum width=2cm, minimum height=1.2cm,
+                      align=center, font=\footnotesize, inner sep=0pt},
+          act/.style={rounded corners=3pt, draw=olibotTeal, fill=olibotTeal!10,
+                      minimum width=2.5cm, minimum height=0.6cm,
+                      align=center, font=\footnotesize},
+          arr/.style={-Stealth, thick, color=olibotBlue, font=\footnotesize}
+        ]
+          \node[act] (ev) {Respuesta del alumno};
+          \node[dec, below=0.4cm of ev] (d1) {¿Supera\\el umbral?};
+          \node[act, right=0.6cm of d1]  (hint) {Plan: Dar pista\\ según nivel};
+          \node[act, below=0.5cm of d1]  (next) {Buscar siguiente\\ tema en currículo};
+          \node[dec, below=0.4cm of next] (d2) {¿Prerreq.\\cumplidos?};
+          \node[act, below=0.4cm of d2]  (adv) {Avanzar tema\\ y felicitar};
+
+          \draw[arr] (ev)  -- (d1);
+          \draw[arr] (d1)  -- node[above]{No} (hint);
+          \draw[arr] (d1)  -- node[left]{Sí} (next);
+          \draw[arr] (next) -- (d2);
+          \draw[arr] (d2)  -- node[left]{Sí} (adv);
+          \draw[arr] (d2.east) -- ++(0.5,0) node[right]{No: Esperar};
+        \end{tikzpicture}
+        }
+        \end{center}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ============================================================
+\section{Currículum}
+%% ============================================================
+
+\begin{frame}{Currículum: origen y estructura}
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      \begin{block}{Fuente normativa}
+        \small
+        \begin{itemize}
+          \item \textbf{Decreto 36/2022} — Comunidad de Madrid.\\Educación Infantil, Área III (``Comunicación y representación de la realidad''), Bloque D.
+          \item Método \textbf{sintético-fonético}: de fonema $\rightarrow$ sílaba $\rightarrow$ palabra. Respaldado por la investigación frente al método global/léxico.
+          \item OLIBOT usa este orden para asegurar que ningún niño intente leer palabras sin dominar antes los fonemas.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{block}{DAG de prerrequisitos (extracto)}
+        \footnotesize
+        Los temas forman un \textbf{grafo acíclico dirigido}.
+        El agente BDI no puede avanzar si \texttt{prerequisites\_met()} devuelve \texttt{False}.
+        \begin{center}
+        \resizebox{\linewidth}{!}{
+        \begin{tikzpicture}[
+          t/.style={rounded corners=3pt, draw=olibotBlue, fill=olibotBlue!10,
+                    minimum width=2.2cm, minimum height=0.55cm,
+                    align=center, font=\tiny},
+          arr/.style={-Stealth, thick, color=olibotBlue, font=\tiny}
+        ]
+          \node[t, fill=olibotTeal!20] (t3) {Trazos pregráficos\\{\tiny (3 años)}};
+          \node[t, below=0.35cm of t3] (va) {Vocal A-U\\{\tiny (4 años)}};
+          \node[t, below=0.35cm of va] (co) {Consonantes m,l,s,p\\{\tiny (4 años)}};
+          \node[t, below=0.35cm of co] (si) {Sílabas ma, mi…\\{\tiny (5 años)}};
+          \node[t, below=0.35cm of si] (pa) {Palabras mamá…\\{\tiny (5 años)}};
+          \draw[arr] (t3) -- (va);
+          \draw[arr] (va) -- (co);
+          \draw[arr] (co) -- (si);
+          \draw[arr] (si) -- (pa);
+        \end{tikzpicture}
+        }
+        \end{center}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Definición de tema en código (\texttt{curriculum.py})}
+  \begin{block}{Cada tema es un \texttt{CurriculumTopic}}
+  \begin{lstlisting}[language=Python]
+# Extracto de backend/pedagogy/curriculum.py
+@dataclass
+class CurriculumTopic:
+    id: str
+    display_name: str
+    category: CurriculumCategory   # pregrafomotricidad, lectoescritura...
+    difficulty: int                # 1-5
+    prerequisites: list[str]       # IDs de temas que deben dominarse antes
+    hints: list[str]               # Pistas de nivel 1, 2, 3
+    min_age: int                   # Edad minima recomendada
+
+# Ejemplo real:
+"vocal_a": CurriculumTopic(
+    id="vocal_a",  display_name="Vocal A",  emoji="\U0001f1e6",
+    min_age=4,
+    prerequisites=["trazo_linea_h", "trazo_linea_v",
+                   "trazo_curva", "trazo_circulo"],
+    hints=["Empieza por arriba y baja hacia la izquierda",
+           "Tiene dos palitos y una rayita en el medio",
+           "Mira: /\\, con una linea cruzando"],
+),
+  \end{lstlisting}
+  \end{block}
+  \vspace{-4pt}
+  \begin{exampleblock}{}
+    \footnotesize
+    El agente no puede proponer \texttt{vocal\_a} hasta que el niño haya dominado los 4 trazos pregráficos. La validación es \textbf{determinista}, nunca la decide el LLM.
+  \end{exampleblock}
+\end{frame}
+
+%% ============================================================
+\section{Interfaz y Voz}
+%% ============================================================
+
+\begin{frame}{Interfaz orientada a Infantil (3–5 años)}
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      \begin{block}{Principios UX/UI}
+        \small
+        \begin{itemize}
+          \item \textbf{Cero texto escrito}: Todo se transmite mediante iconos, animaciones y síntesis de voz.
+          \item \textbf{Manos libres}: El STT usa detección de actividad de voz (VAD) para cortar el audio y responder rápidamente.
+          \item \textbf{Avatares dinámicos}: Identidad visual para el niño (DiceBear) y Olibot reactivo.
+        \end{itemize}
+      \end{block}
+      \vspace{2pt}
+      \begin{block}{Actividades}
+        \small
+        \begin{enumerate}
+          \item \textbf{Conversación y Conteo}: Interacción verbal natural.
+          \item \textbf{Grafomotricidad (Canvas)}: Dibuja letras en pantalla táctil con corrección de trazo.
+          \item \textbf{Colorear}: Imágenes SVG rellenables tipo \textit{flood-fill}.
+        \end{enumerate}
+      \end{block}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{exampleblock}{Tiempos de latencia (Streaming)}
+        \small
+        Para evitar frustración, se implementó generación por \textbf{Streaming}:
+        \begin{itemize}
+          \item En cuanto el LLM genera el primer punto o coma, se envía al motor TTS.
+          \item El robot empieza a hablar en \textbf{< 1 segundo}, mientras Python sigue generando el resto de la frase en segundo plano.
+        \end{itemize}
+      \end{exampleblock}
+      \vspace{4pt}
+      \begin{alertblock}{Barge-in (Interrupción)}
+        \small
+        Si OLIBOT está hablando y el micrófono detecta que el niño responde ("¡Ya lo sé!"), el backend corta el audio de Olibot inmediatamente para escuchar.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ============================================================
+\section{Conclusiones y trabajo futuro}
+%% ============================================================
+
+\begin{frame}{Conclusiones y líneas futuras}
+  \begin{columns}[T]
+    \begin{column}{.50\textwidth}
+      \begin{block}{Aportaciones clave}
+        \small
+        \begin{enumerate}
+          \item \textbf{Tutor fiable}: La unión BDI + LLM evita las alucinaciones de la IA y asegura que se respete la curva de aprendizaje (scaffolding).
+          \item \textbf{Alineación normativa}: Trazado curricular basado en el Decreto 36/2022 de Madrid.
+          \item \textbf{Accesibilidad Infantil}: Interfaz asíncrona, conversacional y visualmente adaptada a niños que no saben leer.
+          \item \textbf{Multi-modelo}: Capacidad de funcionar offline (Ollama) en colegios sin internet, o en nube (Gemini/Groq) para alta velocidad.
+        \end{enumerate}
+      \end{block}
+    \end{column}
+    \begin{column}{.46\textwidth}
+      \begin{block}{Trabajo futuro}
+        \small
+        \begin{itemize}
+          \item \textbf{Modelo emocional:} Detección de frustración o aburrimiento mediante el tono de voz.
+          \item \textbf{Prueba de nivel (Placement Test):} Módulo inicial para ubicar a nuevos alumnos en el grafo curricular automáticamente.
+          \item \textbf{Panel para Docentes:} Dashboard con estadísticas de la tasa de éxito de la clase.
+          \item \textbf{Testeo longitudinal:} Validar empíricamente con grupos de control en aulas reales.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ── Cierre ───────────────────────────────────────────────────
+\begin{frame}[plain]
+  \begin{center}
+    {\Huge \textbf{¡Gracias por su atención!}}\\[16pt]
+    {\large A continuación: demostración del sistema}\\[24pt]
+    \begin{tikzpicture}
+      \node[rounded corners=10pt, draw=olibotBlue, fill=olibotBlue!8,
+            inner sep=14pt, text width=8cm, align=center] {
+        \textbf{OLIBOT} — ``Think BDI, Talk LLM''\\[6pt]
+        \footnotesize
+        Agente pedagógico híbrido para educación infantil\\
+        Decreto 36/2022 · JaCaMo/Jason · FastAPI · React · Voz
+      };
+    \end{tikzpicture}\\[16pt]
+    {\small \textit{María Emilia Núñez Guerrero · Trabajo de Fin de Máster}}
+  \end{center}
+\end{frame}
+
+\end{document}

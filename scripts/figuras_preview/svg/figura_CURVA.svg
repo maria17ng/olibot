@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
+  <rect width="320" height="320" fill="#f9fafb" rx="12"/>
+  <path d="M32.0 160.0 L70.4 89.6 L121.6 160.0 L172.8 230.4 L224.0 160.0 L262.4 89.6 L288.0 160.0" stroke="#374151" stroke-width="70.4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.12"/>
+  <path d="M32.0 160.0 L70.4 89.6 L121.6 160.0 L172.8 230.4 L224.0 160.0 L262.4 89.6 L288.0 160.0" stroke="rgba(239,68,68,0.65)" stroke-width="13.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="32.0" cy="160.0" r="12.3" fill="#4a90d9"/>
+  <circle cx="70.4" cy="89.6" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <circle cx="121.6" cy="160.0" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <circle cx="172.8" cy="230.4" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <circle cx="224.0" cy="160.0" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <circle cx="262.4" cy="89.6" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <circle cx="288.0" cy="160.0" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <line x1="32.0" y1="160.0" x2="73.6" y2="160.0" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="4 3"/>
+  <polygon points="73.6,160.0 63.3,170.3 63.3,149.7" fill="#2563eb"/>
+  <text x="160" y="314" text-anchor="middle" font-size="13" fill="#4b5563" font-family="sans-serif">Curva ~</text>
+</svg>

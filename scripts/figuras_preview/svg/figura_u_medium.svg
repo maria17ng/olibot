@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="280" viewBox="0 0 280 280">
+  <rect width="280" height="280" fill="#f9fafb" rx="10"/>
+  <rect width="280" height="280" fill="none" rx="10" stroke="#f97316" stroke-width="2.5" opacity="0.4"/>
+  <path d="M78.4 61.6 L78.4 126.0 L78.4 168.0 L92.4 204.4 L140.0 224.0 L187.6 204.4 L201.6 168.0 L201.6 126.0 L201.6 61.6" stroke="#374151" stroke-width="61.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.10"/>
+  <path d="M78.4 61.6 L78.4 126.0 L78.4 168.0 L92.4 204.4 L140.0 224.0 L187.6 204.4 L201.6 168.0 L201.6 126.0 L201.6 61.6" stroke="#f97316" stroke-width="11.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+  <circle cx="78.4" cy="61.6" r="10.0" fill="#4a90d9"/>
+  <circle cx="78.4" cy="126.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="78.4" cy="168.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="92.4" cy="204.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="140.0" cy="224.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="187.6" cy="204.4" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="201.6" cy="168.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="201.6" cy="126.0" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <circle cx="201.6" cy="61.6" r="10.0" fill="rgba(74,144,217,0.4)"/>
+  <line x1="78.4" y1="61.6" x2="78.4" y2="98.0" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="4 3"/>
+  <polygon points="78.4,98.0 69.4,89.0 87.4,89.0" fill="#2563eb"/>
+  <text x="140" y="275" text-anchor="middle" font-size="12" fill="#f97316" font-weight="bold" font-family="sans-serif">Medio</text>
+</svg>

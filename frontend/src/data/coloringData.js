@@ -1,11 +1,18 @@
 /**
- * coloringData.js — SVG outlines for the free-drawing coloring activity.
+ * coloringData.js — datos de la actividad de colorear.
  *
- * Each SVG is a coloring-book style black outline (fill="none", stroke="black").
- * The child paints on a canvas placed behind the SVG overlay.
+ * Modo imagen (preferido): si `imageFile` está presente en la variante,
+ *   ColoringCanvas carga el PNG y usa flood-fill para colorear.
+ *   Los ficheros se descargan con scripts/download_crayola_coloring.py y
+ *   se guardan en frontend/public/coloring/.
+ *
+ * Modo SVG (fallback): si no hay imageFile, se usa el SVG overlay clásico.
+ *
+ * Para activar una imagen descargada, añade el campo imageFile a la variante:
+ *   { id: "perro_crayola", label: "Perro", imageFile: "/coloring/perro.png" }
  *
  * Structure:
- *   COLORING_DATA[subject] = { label, emoji, variants: [{ id, label, svg }] }
+ *   COLORING_DATA[subject] = { label, emoji, variants: [{ id, label, svg?, imageFile? }] }
  */
 
 const SVG_ATTRS = `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
@@ -405,19 +412,188 @@ export const COLORING_DATA = {
   pelota:    { label: "Pelota",     emoji: "⚽", variants: [{ id: "pelota",    label: "Pelota",    svg: svgs.pelota }]},
 };
 
+// ── Manifest (imágenes descargadas de colorearm.com) ─────────────────────────
+// El manifest vive en frontend/public/descargas/manifest.json y lo genera
+// scripts/download_crayola_coloring.py.
+// Estructura: [{ categoria, nombre, images: ["/descargas/.../file.webp"] }]
+
+let _manifest = null;  // null = no intentado, [] = cargado pero vacío
+
+export async function loadColoringManifest() {
+  if (_manifest !== null) return _manifest;
+  try {
+    const r = await fetch("/descargas/manifest.json");
+    if (!r.ok) { _manifest = []; return []; }
+    _manifest = await r.json();
+    return _manifest;
+  } catch {
+    _manifest = [];
+    return [];
+  }
+}
+
+// ── Normalize: strip accents and lowercase for fuzzy matching ────────────────
+export function normalize(s) {
+  return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+// Palabras clave para mapear subject-key → entradas del manifest.
+// Solo se necesita para alias que no coinciden directamente con el nombre del manifest.
+// Para nombres directos (leon, tigre, cocodrilo…) la normalización automática se encarga.
+const SUBJECT_KEYWORDS = {
+  // ── Animals already in COLORING_DATA ──────────────────────────────────────
+  perro:     ["perro", "cachorro", "perrita", "can", "dog"],
+  gato:      ["gato", "gatito", "gata", "cat"],
+  pato:      ["pato", "patito", "duck"],
+  conejo:    ["conejo", "conejito", "rabbit"],
+  mariposa:  ["mariposa", "butterfly"],
+  pez:       ["pez", "peces", "pescado", "fish"],
+  pajaro:    ["pajaro", "pájaro", "pajarito", "bird"],
+  elefante:  ["elefante", "elephant"],
+  oso:       ["oso", "osito", "bear"],
+  // ── All manifest animals (normalized key → match keywords) ────────────────
+  abeja:       ["abeja", "abejita", "bee"],
+  ajolote:     ["ajolote", "axolotl"],
+  ardilla:     ["ardilla", "ardillita", "squirrel"],
+  burro:       ["burro", "asno", "donkey"],
+  buho:        ["buho", "búho", "lechuza", "owl"],
+  caballo:     ["caballo", "caballito", "yegua", "horse"],
+  canguro:     ["canguro", "kangaroo"],
+  capibara:    ["capibara", "capivara", "carpincho"],
+  caracol:     ["caracol", "snail"],
+  cebra:       ["cebra", "zebra"],
+  cerdo:       ["cerdo", "cerdito", "cochino", "chancho", "marrano", "pig"],
+  ciervo:      ["ciervo", "ciervos", "venado", "alce", "deer"],
+  cocodrilo:   ["cocodrilo", "caimán", "caiman", "crocodile"],
+  colibri:     ["colibri", "colibrí", "hummingbird"],
+  delfin:      ["delfin", "delfines", "delfín", "dolphin"],
+  dinosaurio:  ["dinosaurio", "dinosaurios", "dino"],
+  dragon:      ["dragon", "dragón"],
+  erizo:       ["erizo", "erizos", "hedgehog"],
+  guacamaya:   ["guacamaya", "guacamayo", "macaw"],
+  guepardo:    ["guepardo", "chita", "cheetah"],
+  gusano:      ["gusano", "oruga", "worm"],
+  hamster:     ["hamster", "hámster"],
+  hipopotamo:  ["hipopotamo", "hipopótamo", "hippo"],
+  hormiga:     ["hormiga", "hormiguita", "ant"],
+  iguana:      ["iguana"],
+  jaguar:      ["jaguar"],
+  jirafa:      ["jirafa", "giraffe"],
+  koala:       ["koala"],
+  leon:        ["leon", "leona", "leoncito", "lion"],
+  lobo:        ["lobo", "lobito", "wolf"],
+  loro:        ["loro", "papagayo", "cotorra", "parrot"],
+  mono:        ["mono", "monito", "mico", "chimpancé", "monkey"],
+  panda:       ["panda", "oso panda"],
+  "oso polar": ["oso polar", "polar bear"],
+  oveja:       ["oveja", "ovejita", "borrego", "sheep", "lamb"],
+  perrito:     ["perrito", "cachorro"],
+  pinguino:    ["pinguino", "pingüino", "penguin"],
+  pollo:       ["pollo", "pollito", "gallina", "chicken"],
+  pterodactilo:["pterodactilo", "pterodactyl", "pterodáctilo"],
+  pulpo:       ["pulpo", "octopus"],
+  rana:        ["rana", "sapito", "frog"],
+  raton:       ["raton", "ratón", "ratoncito", "mouse"],
+  reno:        ["reno", "reindeer"],
+  sardina:     ["sardina", "sardine"],
+  serpiente:   ["serpiente", "culebra", "víbora", "vibora", "cobra", "snake"],
+  trex:        ["rex", "t-rex", "tiranosaurio", "tiranosaurus", "tiranosaurio rex"],
+  tiburon:     ["tiburon", "tiburón", "shark"],
+  tigre:       ["tigre", "tigresa", "tiger"],
+  tortuga:     ["tortuga", "tortuga marina", "turtle"],
+  triceratops: ["triceratops"],
+  tucan:       ["tucan", "tucán", "toucan"],
+  unicornio:   ["unicornio", "unicorn"],
+  vaca:        ["vaca", "toro", "novillo", "cow"],
+  zorro:       ["zorro", "zorrito", "fox"],
+  aguila:      ["aguila", "águila", "eagle"],
+  // ── Non-animal subjects ───────────────────────────────────────────────────
+  flor:      ["flor", "flower"],
+  arbol:     ["arbol", "árbol", "tree"],
+  casa:      ["casa", "casita", "house"],
+  sol:       ["sol", "sun"],
+  estrella:  ["estrella", "star"],
+  corazon:   ["corazon", "corazón", "heart"],
+  nube:      ["nube", "nubecita", "cloud"],
+  pelota:    ["pelota", "balon", "balón", "ball"],
+  helado:    ["helado", "paleta", "ice cream"],
+};
+
+// ── Extract a coloring subject from any free-form text ───────────────────────
+// Returns the subject key (e.g. "perro", "leon") or null if nothing matched.
+export function subjectFromText(text) {
+  const normText = normalize(text);
+  for (const [subj, kws] of Object.entries(SUBJECT_KEYWORDS)) {
+    if (kws.map(normalize).some(kw => normText.includes(kw))) return subj;
+  }
+  return null;
+}
+
+function _pickFromManifest(subject, manifest) {
+  if (!manifest || !manifest.length) return null;
+
+  // 1. Try keyword-list match first (handles aliases like "cachorro"→"perro")
+  const kws = SUBJECT_KEYWORDS[subject];
+  if (kws) {
+    const normKws = kws.map(normalize);
+    const pool = manifest.filter(e =>
+      normKws.some(kw => normalize(e.nombre).includes(kw))
+    );
+    if (pool.length) {
+      const entry = pool[Math.floor(Math.random() * pool.length)];
+      return _variantFromEntry(entry);
+    }
+  }
+
+  // 2. Normalized direct match (handles "leon"→"León", "aguila"→"Águila", etc.)
+  const normSubj = normalize(subject);
+  const directPool = manifest.filter(e => {
+    const n = normalize(e.nombre);
+    return n === normSubj || n.startsWith(normSubj) || normSubj.startsWith(n) || n.includes(normSubj);
+  });
+  if (directPool.length) {
+    const entry = directPool[Math.floor(Math.random() * directPool.length)];
+    return _variantFromEntry(entry);
+  }
+
+  // 3. Fallback: random animal
+  const fallback = manifest.filter(e => e.categoria === "animales-para-colorear");
+  const pool = fallback.length ? fallback : manifest;
+  const entry = pool[Math.floor(Math.random() * pool.length)];
+  return _variantFromEntry(entry);
+}
+
+function _variantFromEntry(entry) {
+  const images = (entry.images || []).filter(Boolean);
+  if (!images.length) return null;
+  return {
+    id:        `${entry.nombre}_img`,
+    label:     entry.nombre,
+    imageFile: images[Math.floor(Math.random() * images.length)],
+  };
+}
+
 /** Returns a random subject key different from the one currently active. */
 export function getRandomDifferentSubject(currentSubject) {
   const keys = Object.keys(COLORING_DATA).filter(k => k !== currentSubject);
   return keys[Math.floor(Math.random() * keys.length)];
 }
 
-/** Returns a random variant for a given subject key, or random subject if key not found. */
-export function getColoringVariant(subject) {
+/**
+ * Returns a coloring variant for the given subject.
+ * Prefers a downloaded image from the manifest when available (pass the loaded
+ * manifest array); falls back to the built-in SVG otherwise.
+ */
+export function getColoringVariant(subject, manifest = null) {
+  if (manifest) {
+    const fromManifest = _pickFromManifest(subject, manifest);
+    if (fromManifest) return fromManifest;
+  }
   const entry = COLORING_DATA[subject];
   if (!entry) {
-    const keys = Object.keys(COLORING_DATA);
-    const random = COLORING_DATA[keys[Math.floor(Math.random() * keys.length)]];
-    return random.variants[0];
+    // Subject not in COLORING_DATA (e.g. "leon", "cebra").
+    // Return null so the canvas stays blank until the manifest loads.
+    return null;
   }
   const idx = Math.floor(Math.random() * entry.variants.length);
   return entry.variants[idx];

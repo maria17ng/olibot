@@ -12,11 +12,12 @@
  *   onComplete (result) => void
  *   disabled   bool   — canvas bloqueado mientras OLIBOT piensa
  *   minimal    bool   — modo pantalla completa (oculta cabecera de texto)
+ *   title      string — etiqueta descriptiva mostrada en modo minimal (p.ej. "Vocal A")
  */
 import { useEffect, useRef } from "react";
 import { useLetterTracing } from "../hooks/useLetterTracing";
 
-export default function LetterTracing({ charData, hintLevel = 3, onComplete, onDemoEnd, skipInitialDemo = false, disabled = false, minimal = false }) {
+export default function LetterTracing({ charData, hintLevel = 3, onComplete, onDemoEnd, skipInitialDemo = false, disabled = false, isThinking = false, minimal = false, title = "" }) {
   const {
     canvasRef,
     currentStrokeIdx,
@@ -24,11 +25,17 @@ export default function LetterTracing({ charData, hintLevel = 3, onComplete, onD
     phase,
     result,
     skipDemo,
+    cancelStroke,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
     reset,
   } = useLetterTracing({ charData, hintLevel, onComplete, skipInitialDemo });
+
+  // Cancel any active stroke when the canvas is disabled mid-draw
+  useEffect(() => {
+    if (disabled) cancelStroke();
+  }, [disabled, cancelStroke]);
 
   // Call onDemoEnd when demo transitions to tracing
   const prevPhaseRef = useRef(phase);
@@ -103,6 +110,26 @@ export default function LetterTracing({ charData, hintLevel = 3, onComplete, onD
         </div>
       )}
 
+      {/* Title label — minimal mode only */}
+      {minimal && title && (
+        <div
+          style={{
+            background: "rgba(30, 58, 95, 0.82)",
+            color: "#fff",
+            padding: "5px 22px",
+            borderRadius: "24px",
+            fontSize: "20px",
+            fontWeight: "bold",
+            letterSpacing: "0.5px",
+            marginBottom: "2px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.18)",
+            userSelect: "none",
+          }}
+        >
+          {title}
+        </div>
+      )}
+
       {/* Stroke progress dots — minimal only, multi-stroke */}
       {minimal && totalStrokes > 1 && (
         <div style={{ display: "flex", gap: "10px", marginBottom: "2px" }}>
@@ -139,34 +166,48 @@ export default function LetterTracing({ charData, hintLevel = 3, onComplete, onD
 
         {/* Demo phase: no text overlay — the robot speaks the instructions via TTS */}
 
-        {/* ── Loading overlay ───────────────────────────────────────────────── */}
+        {/* ── Loading / speaking overlay ───────────────────────────────── */}
         {disabled && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              borderRadius: "12px",
-              background: "rgba(255,255,255,0.75)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-            }}
-          >
+          isThinking ? (
+            /* OLIBOT procesando: spinner opaco */
             <div
               style={{
-                width: "44px",
-                height: "44px",
-                border: "5px solid #dce8f5",
-                borderTop: "5px solid #4a90d9",
-                borderRadius: "50%",
-                animation: "ltSpin 0.9s linear infinite",
+                position: "absolute",
+                inset: 0,
+                borderRadius: "12px",
+                background: "rgba(255,255,255,0.75)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px",
+              }}
+            >
+              <div
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  border: "5px solid #dce8f5",
+                  borderTop: "5px solid #4a90d9",
+                  borderRadius: "50%",
+                  animation: "ltSpin 0.9s linear infinite",
+                }}
+              />
+              <style>{`@keyframes ltSpin { to { transform: rotate(360deg); } }`}</style>
+              <span style={{ fontSize: "13px", color: "#4a5568" }}>OLIBOT está pensando…</span>
+            </div>
+          ) : (
+            /* OLIBOT hablando (tutorial): gris para ver la animación */
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "12px",
+                background: "rgba(0,0,0,0.15)",
+                cursor: "not-allowed",
               }}
             />
-            <style>{`@keyframes ltSpin { to { transform: rotate(360deg); } }`}</style>
-            <span style={{ fontSize: "13px", color: "#4a5568" }}>OLIBOT está pensando…</span>
-          </div>
+          )
         )}
 
         {/* ── Result overlay ────────────────────────────────────────────────── */}
@@ -197,33 +238,6 @@ export default function LetterTracing({ charData, hintLevel = 3, onComplete, onD
           </div>
         )}
 
-        {/* ── Tracing phase: floating reset button ─────────────────────────── */}
-        {phase === "tracing" && !disabled && (
-          <button
-            onClick={reset}
-            style={{
-              position: "absolute",
-              top: "12px",
-              right: "12px",
-              width: "44px",
-              height: "44px",
-              borderRadius: "50%",
-              border: "none",
-              background: "rgba(255,255,255,0.82)",
-              color: "#374151",
-              fontSize: "20px",
-              cursor: "pointer",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 6,
-            }}
-            title="Ver demo otra vez"
-          >
-            🔄
-          </button>
-        )}
       </div>
 
       {/* Instruction text — non-minimal tracing phase */}

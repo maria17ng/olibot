@@ -7,8 +7,8 @@ method (método sintético-fonético) predominant in Madrid schools.
 
 Topic progression by age (Decreto 36/2022, Área III Bloque D):
   - 3 años: Pre-graphomotricity strokes + vowel sound recognition
-  - 4 años: Vowel tracing (upper/lower case) + consonants phase 1 (m,l,s,p) + numbers 1-10
-  - 5 años: Consonants phase 2 (t,n,d,f,r) + syllables + bisyllabic words
+  - 4 años: Numbers 1-10, then vowels (upper+lower case), then consonants b-z (excl. h,k,q,w,x) alphabetically
+  - 5 años: Consonants h,k,q,w,x + syllables + bisyllabic words
 
 Each CurriculumTopic maps to a BDI concept:
   - beliefs: student mastery per topic
@@ -59,9 +59,9 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         difficulty=1, prerequisites=[], min_age=3,
         description_for_student="¡Vamos a trazar una línea recta!",
         hints=[
-            "¡Empieza aquí y ve recto! ➡️",
-            "¡Como un tren en sus raíles! 🚂",
-            "¡De aquí a aquí, sin torcer! 🎯",
+            "Sigue la línea roja de ejemplo 🖊️",
+            "Sigue los puntos de guía 🔴",
+            "¡Mira el tutorial otra vez! ▶️",
         ],
         expected_answers=["línea", "raya", "trazo"],
         example_questions=["¿Puedes trazar una línea recta?"],
@@ -73,9 +73,9 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         difficulty=1, prerequisites=["trazo_linea_h"], min_age=3,
         description_for_student="¡Ahora trazamos hacia abajo!",
         hints=[
-            "¡Empieza arriba y baja despacito! ⬇️",
-            "¡Como la lluvia que cae! 🌧️",
-            "¡Del cielo al suelo, recto! ☁️",
+            "Sigue la línea roja de ejemplo 🖊️",
+            "Sigue los puntos de guía 🔴",
+            "¡Mira el tutorial otra vez! ▶️",
         ],
         expected_answers=["línea", "raya", "trazo"],
         example_questions=["¿Puedes trazar una línea hacia abajo?"],
@@ -87,9 +87,9 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         difficulty=1, prerequisites=["trazo_linea_h"], min_age=3,
         description_for_student="¡Trazamos una ola del mar!",
         hints=[
-            "¡Sube, baja, sube, baja... como las olas! 🌊",
-            "¡Suavecito, sin prisa! 🐌",
-            "¡Arriba y abajo, como un columpio! 🎠",
+            "Sigue la línea roja de ejemplo 🖊️",
+            "Sigue los puntos de guía 🔴",
+            "¡Mira el tutorial otra vez! ▶️",
         ],
         expected_answers=["curva", "ola", "onda"],
         example_questions=["¿Puedes hacer una ola con el lápiz?"],
@@ -101,9 +101,9 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         difficulty=2, prerequisites=["trazo_curva"], min_age=3,
         description_for_student="¡Trazamos un rayo! ⚡",
         hints=[
-            "¡Arriba, abajo, arriba, abajo... como un rayo! ⚡",
-            "¡Sube al pico y baja rápido! 🏔️",
-            "¡Como los dientes de un tiburón! 🦈",
+            "Sigue la línea roja de ejemplo 🖊️",
+            "Sigue los puntos de guía 🔴",
+            "¡Mira el tutorial otra vez! ▶️",
         ],
         expected_answers=["zigzag", "rayo", "picos"],
         example_questions=["¿Puedes hacer un zigzag?"],
@@ -115,9 +115,9 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         difficulty=2, prerequisites=["trazo_curva"], min_age=3,
         description_for_student="¡Dibujamos una pelota redonda!",
         hints=[
-            "¡Empieza arriba y gira sin levantar el lápiz! ⭕",
-            "¡Como una pelota o el sol! ☀️",
-            "¡Da la vuelta y vuelve al principio! 🔄",
+            "Sigue la línea roja de ejemplo 🖊️",
+            "Sigue los puntos de guía 🔴",
+            "¡Mira el tutorial otra vez! ▶️",
         ],
         expected_answers=["círculo", "pelota", "redondo"],
         example_questions=["¿Puedes dibujar un círculo?"],
@@ -129,9 +129,9 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         difficulty=2, prerequisites=["trazo_linea_v"], min_age=3,
         description_for_student="¡Trazamos una montaña!",
         hints=[
-            "¡Sube hasta el pico y baja por el otro lado! 🏔️",
-            "¡Como el tejado de una casa! 🏠",
-            "¡Al pico y de vuelta abajo! ⛰️",
+            "Sigue la línea roja de ejemplo 🖊️",
+            "Sigue los puntos de guía 🔴",
+            "¡Mira el tutorial otra vez! ▶️",
         ],
         expected_answers=["ángulo", "montaña", "pico", "tejado"],
         example_questions=["¿Puedes trazar una montaña?"],
@@ -142,7 +142,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "vocal_a": CurriculumTopic(
         id="vocal_a", display_name="La vocal A", emoji="🅰️",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=1, prerequisites=["trazo_angulo", "trazo_linea_h"], min_age=4,
+        difficulty=2, prerequisites=["trazo_angulo", "trazo_linea_h"], min_age=4,
         description_for_student="¡Hoy aprendemos la A! Es la primera vocal.",
         hints=[
             "¿Qué sonido hacemos cuando decimos 'aaa' muy fuerte? 🎵",
@@ -160,7 +160,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "vocal_e": CurriculumTopic(
         id="vocal_e", display_name="La vocal E", emoji="🐘",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=1, prerequisites=["trazo_linea_h", "trazo_linea_v"], min_age=4,
+        difficulty=2, prerequisites=["trazo_linea_h", "trazo_linea_v"], min_age=4,
         description_for_student="¡La vocal E! Se escucha en muchas palabras.",
         hints=[
             "¿Cómo suena cuando dices 'eee'? Como cuando el médico dice 'di eee' 🩺",
@@ -177,7 +177,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "vocal_i": CurriculumTopic(
         id="vocal_i", display_name="La vocal I", emoji="🦔",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=1, prerequisites=["trazo_linea_v"], min_age=4,
+        difficulty=2, prerequisites=["trazo_linea_v"], min_age=4,
         description_for_student="¡La vocal I! Es pequeñita pero muy importante.",
         hints=[
             "Es el sonido que hacemos cuando algo nos duele un poquito: 'iii' 😣",
@@ -194,7 +194,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "vocal_o": CurriculumTopic(
         id="vocal_o", display_name="La vocal O", emoji="🐙",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=1, prerequisites=["trazo_circulo"], min_age=4,
+        difficulty=2, prerequisites=["trazo_circulo"], min_age=4,
         description_for_student="¡La vocal O! Es redondita como una pelota.",
         hints=[
             "Es redonda como una pelota ⚽ y suena 'ooo'",
@@ -211,7 +211,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "vocal_u": CurriculumTopic(
         id="vocal_u", display_name="La vocal U", emoji="🦄",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=1, prerequisites=["trazo_curva"], min_age=4,
+        difficulty=2, prerequisites=["trazo_curva"], min_age=4,
         description_for_student="¡La U! Es la última vocal.",
         hints=[
             "Suena como cuando soplas una vela: 'uuu' 🕯️",
@@ -230,7 +230,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "vocal_a_min": CurriculumTopic(
         id="vocal_a_min", display_name="La vocal a", emoji="🐜",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=1, prerequisites=["vocal_a"], min_age=4,
+        difficulty=2, prerequisites=["vocal_a"], min_age=4,
         description_for_student="¡La a pequeña! Se escribe diferente a la grande.",
         hints=[
             "La 'a' pequeña tiene un círculo y una patita 🐌",
@@ -244,7 +244,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "vocal_e_min": CurriculumTopic(
         id="vocal_e_min", display_name="La vocal e", emoji="🐘",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=1, prerequisites=["vocal_e"], min_age=4,
+        difficulty=2, prerequisites=["vocal_e"], min_age=4,
         description_for_student="¡La e pequeña! Es como dibujar una curva especial.",
         hints=[
             "La 'e' pequeña empieza con una línea que luego se curva ✏️",
@@ -258,7 +258,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "vocal_i_min": CurriculumTopic(
         id="vocal_i_min", display_name="La vocal i", emoji="🦔",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=1, prerequisites=["vocal_i"], min_age=4,
+        difficulty=2, prerequisites=["vocal_i"], min_age=4,
         description_for_student="¡La i pequeña! Tiene un palito y un punto arriba.",
         hints=[
             "La 'i' pequeña es un palito con un puntito encima 👆",
@@ -272,7 +272,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "vocal_o_min": CurriculumTopic(
         id="vocal_o_min", display_name="La vocal o", emoji="🐙",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=1, prerequisites=["vocal_o"], min_age=4,
+        difficulty=2, prerequisites=["vocal_o"], min_age=4,
         description_for_student="¡La o pequeña! Es un círculo.",
         hints=[
             "La 'o' pequeña es un círculo, igual que la O grande! ⭕",
@@ -286,7 +286,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "vocal_u_min": CurriculumTopic(
         id="vocal_u_min", display_name="La vocal u", emoji="🦄",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=1, prerequisites=["vocal_u"], min_age=4,
+        difficulty=2, prerequisites=["vocal_u"], min_age=4,
         description_for_student="¡La u pequeña! Es como una taza.",
         hints=[
             "La 'u' pequeña baja, se curva y vuelve a subir 🏊",
@@ -356,7 +356,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "numero_6": CurriculumTopic(
         id="numero_6", display_name="El número 6", emoji="6️⃣",
         category=CurriculumCategory.NUMERACION,
-        difficulty=2, prerequisites=["numero_5"], min_age=4,
+        difficulty=1, prerequisites=["numero_5"], min_age=4,
         description_for_student="¡El 6! Es el 5 con uno más.",
         hints=["5 caramelos y uno más... 🍬", "Viene después del 5...", "Cinco más uno es..."],
         expected_answers=["6", "seis", "el 6", "el seis"],
@@ -366,7 +366,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "numero_7": CurriculumTopic(
         id="numero_7", display_name="El número 7", emoji="7️⃣",
         category=CurriculumCategory.NUMERACION,
-        difficulty=2, prerequisites=["numero_6"], min_age=4,
+        difficulty=1, prerequisites=["numero_6"], min_age=4,
         description_for_student="¡El 7! Los días de la semana.",
         hints=["¿Cuántos días tiene una semana? 📅", "Viene después del 6...", "Lunes, martes, miércoles... ¿cuántos son?"],
         expected_answers=["7", "siete", "el 7", "el siete"],
@@ -376,7 +376,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "numero_8": CurriculumTopic(
         id="numero_8", display_name="El número 8", emoji="8️⃣",
         category=CurriculumCategory.NUMERACION,
-        difficulty=2, prerequisites=["numero_7"], min_age=4,
+        difficulty=1, prerequisites=["numero_7"], min_age=4,
         description_for_student="¡El 8! Como dos círculos.",
         hints=["¿Cuántas patas tiene una araña? 🕷️", "Viene después del 7...", "Una araña tiene... ¿cuántas patas?"],
         expected_answers=["8", "ocho", "el 8", "el ocho"],
@@ -386,7 +386,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "numero_9": CurriculumTopic(
         id="numero_9", display_name="El número 9", emoji="9️⃣",
         category=CurriculumCategory.NUMERACION,
-        difficulty=2, prerequisites=["numero_8"], min_age=4,
+        difficulty=1, prerequisites=["numero_8"], min_age=4,
         description_for_student="¡Casi llegamos al 10! Solo falta el 9.",
         hints=["7, 8, ... ¿qué sigue?", "Viene después del 8...", "Ocho globos y uno más 🎈"],
         expected_answers=["9", "nueve", "el 9", "el nueve"],
@@ -396,7 +396,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "numero_10": CurriculumTopic(
         id="numero_10", display_name="El número 10", emoji="🔟",
         category=CurriculumCategory.NUMERACION,
-        difficulty=2, prerequisites=["numero_9"], min_age=4,
+        difficulty=1, prerequisites=["numero_9"], min_age=4,
         description_for_student="¡El 10! Los dedos de las dos manos.",
         hints=["¿Cuántos dedos tienes en las dos manos? 🙌", "Viene después del 9...", "Cinco más cinco es..."],
         expected_answers=["10", "diez", "el 10", "el diez"],
@@ -408,8 +408,8 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "consonante_m": CurriculumTopic(
         id="consonante_m", display_name="La letra M", emoji="🌙",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=2,
-        prerequisites=["vocal_a", "vocal_e", "vocal_i", "vocal_o", "vocal_u"],
+        difficulty=3,
+        prerequisites=["consonante_l"],
         min_age=4,
         description_for_student="¡La M! La letra de mamá.",
         hints=[
@@ -424,8 +424,8 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "consonante_l": CurriculumTopic(
         id="consonante_l", display_name="La letra L", emoji="🦁",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=2,
-        prerequisites=["vocal_a", "vocal_e", "vocal_i", "vocal_o", "vocal_u"],
+        difficulty=3,
+        prerequisites=["consonante_j"],
         min_age=4,
         description_for_student="¡La L! Una letra suavecita.",
         hints=[
@@ -440,8 +440,8 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "consonante_s": CurriculumTopic(
         id="consonante_s", display_name="La letra S", emoji="🐍",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=2,
-        prerequisites=["vocal_a", "vocal_e", "vocal_i", "vocal_o", "vocal_u"],
+        difficulty=3,
+        prerequisites=["consonante_r"],
         min_age=4,
         description_for_student="¡La S! Suena como una serpiente.",
         hints=[
@@ -456,8 +456,8 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "consonante_p": CurriculumTopic(
         id="consonante_p", display_name="La letra P", emoji="🦜",
         category=CurriculumCategory.LECTOESCRITURA,
-        difficulty=2,
-        prerequisites=["vocal_a", "vocal_e", "vocal_i", "vocal_o", "vocal_u"],
+        difficulty=3,
+        prerequisites=["consonante_ñ"],
         min_age=4,
         description_for_student="¡La P! Una letra que sopla.",
         hints=[
@@ -475,8 +475,8 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         id="consonante_t", display_name="La letra T", emoji="🐢",
         category=CurriculumCategory.LECTOESCRITURA,
         difficulty=3,
-        prerequisites=["consonante_m", "consonante_l", "consonante_s", "consonante_p"],
-        min_age=5,
+        prerequisites=["consonante_s"],
+        min_age=4,
         description_for_student="¡La T! La lengua golpea suavito.",
         hints=[
             "Pon la punta de la lengua arriba y di 'ttt'... 👅",
@@ -491,8 +491,8 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         id="consonante_n", display_name="La letra N", emoji="🌙",
         category=CurriculumCategory.LECTOESCRITURA,
         difficulty=3,
-        prerequisites=["consonante_m", "consonante_l", "consonante_s", "consonante_p"],
-        min_age=5,
+        prerequisites=["consonante_m"],
+        min_age=4,
         description_for_student="¡La N! Suena como cuando dices 'no'.",
         hints=[
             "Pon la lengua arriba y di 'nnn'...",
@@ -507,8 +507,8 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         id="consonante_d", display_name="La letra D", emoji="🦌",
         category=CurriculumCategory.LECTOESCRITURA,
         difficulty=3,
-        prerequisites=["consonante_m", "consonante_l", "consonante_s", "consonante_p"],
-        min_age=5,
+        prerequisites=["consonante_c"],
+        min_age=4,
         description_for_student="¡La D! La lengua toca los dientes.",
         hints=[
             "Pon la lengua en los dientes y di 'ddd'...",
@@ -523,8 +523,8 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         id="consonante_f", display_name="La letra F", emoji="🌸",
         category=CurriculumCategory.LECTOESCRITURA,
         difficulty=3,
-        prerequisites=["consonante_m", "consonante_l", "consonante_s", "consonante_p"],
-        min_age=5,
+        prerequisites=["consonante_d"],
+        min_age=4,
         description_for_student="¡La F! Los dientes tocan el labio.",
         hints=[
             "Muerde el labio de abajo suavito y di 'fff'... 💨",
@@ -539,8 +539,8 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         id="consonante_r", display_name="La letra R", emoji="🐸",
         category=CurriculumCategory.LECTOESCRITURA,
         difficulty=3,
-        prerequisites=["consonante_t", "consonante_n", "consonante_d", "consonante_f"],
-        min_age=5,
+        prerequisites=["consonante_p"],
+        min_age=4,
         description_for_student="¡La R! Hace vibrar la lengua.",
         hints=[
             "Haz vibrar la lengua: 'rrr'... 👅",
@@ -551,13 +551,225 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         example_questions=["¿Con qué letra empieza 'rana'?"],
     ),
 
+    # ── CONSONANTES FASE 3 — 4 años (b, c, g, j, ñ, v, y, z) ───────────────
+
+    "consonante_b": CurriculumTopic(
+        id="consonante_b", display_name="La letra B", emoji="🐋",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["vocal_a", "vocal_e", "vocal_i", "vocal_o", "vocal_u"],
+        min_age=4,
+        description_for_student="¡La B! Cierra los labios y suelta el aire.",
+        hints=[
+            "Cierra los labios y di 'bbb'... 👄",
+            "Es la letra de 'boca', 'ballena' y 'burro' 🐋",
+            "La ballena empieza con esta letra... ¿cuál es? 🐋",
+        ],
+        expected_answers=["b", "la b", "consonante b", "letra b", "la letra b"],
+        example_questions=["¿Con qué letra empieza 'boca'?"],
+    ),
+
+    "consonante_c": CurriculumTopic(
+        id="consonante_c", display_name="La letra C", emoji="🏠",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_b"],
+        min_age=4,
+        description_for_student="¡La C! Como un círculo abierto.",
+        hints=[
+            "La C es como un círculo al que le falta un trocito 🌙",
+            "Es la letra de 'casa', 'cama' y 'coco' 🏠",
+            "La casa empieza con esta letra... ¿cuál es? 🏠",
+        ],
+        expected_answers=["c", "la c", "consonante c", "letra c", "la letra c"],
+        example_questions=["¿Con qué letra empieza 'casa'?"],
+    ),
+
+    "consonante_g": CurriculumTopic(
+        id="consonante_g", display_name="La letra G", emoji="🐱",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_f"],
+        min_age=4,
+        description_for_student="¡La G! Viene del fondo de la garganta.",
+        hints=[
+            "Abre la boca y di 'ggg' desde la garganta 👄",
+            "Es la letra de 'gato', 'globo' y 'gorila' 🐱",
+            "El gato empieza con esta letra... ¿cuál es? 🐱",
+        ],
+        expected_answers=["g", "la g", "consonante g", "letra g", "la letra g"],
+        example_questions=["¿Con qué letra empieza 'gato'?"],
+    ),
+
+    "consonante_j": CurriculumTopic(
+        id="consonante_j", display_name="La letra J", emoji="🦒",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_g"],
+        min_age=4,
+        description_for_student="¡La J! Como un soplo de aire.",
+        hints=[
+            "Pon la lengua atrás y di 'jjj'... como soplar fuerte 💨",
+            "Es la letra de 'jirafa', 'jabón' y 'juguete' 🦒",
+            "La jirafa empieza con esta letra... ¿cuál es? 🦒",
+        ],
+        expected_answers=["j", "la j", "consonante j", "letra j", "la letra j"],
+        example_questions=["¿Con qué letra empieza 'jirafa'?"],
+    ),
+
+    "consonante_ñ": CurriculumTopic(
+        id="consonante_ñ", display_name="La letra Ñ", emoji="👦",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_n"],
+        min_age=4,
+        description_for_student="¡La Ñ! La letra española especial.",
+        hints=[
+            "La Ñ es como la N pero con una rayita encima: ñ 🎩",
+            "Es la letra de 'niño', 'piñata' y 'muñeca' 👦",
+            "Niño empieza con esta letra... ¿cuál es? 👦",
+        ],
+        expected_answers=["ñ", "la ñ", "consonante ñ", "letra ñ", "la letra ñ"],
+        example_questions=["¿Con qué letra empieza 'niño'?"],
+    ),
+
+    "consonante_v": CurriculumTopic(
+        id="consonante_v", display_name="La letra V", emoji="🐄",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_t"],
+        min_age=4,
+        description_for_student="¡La V! Suena igual que la B.",
+        hints=[
+            "Muerde el labio de abajo suavito y di 'vvv'... 😄",
+            "Es la letra de 'vaca', 'ventana' y 'verde' 🐄",
+            "La vaca empieza con esta letra... ¿cuál es? 🐄",
+        ],
+        expected_answers=["v", "la v", "consonante v", "letra v", "la letra v"],
+        example_questions=["¿Con qué letra empieza 'vaca'?"],
+    ),
+
+    "consonante_y": CurriculumTopic(
+        id="consonante_y", display_name="La letra Y", emoji="🪀",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_v"],
+        min_age=4,
+        description_for_student="¡La Y! También puede ser vocal.",
+        hints=[
+            "La Y suena 'yy' como en 'yema' 🥚",
+            "Es la letra de 'yema', 'yogur' y 'yoyo' 🥚",
+            "El yoyo empieza con esta letra... ¿cuál es? 🪀",
+        ],
+        expected_answers=["y", "la y", "consonante y", "letra y", "la letra y"],
+        example_questions=["¿Con qué letra empieza 'yoyo'?"],
+    ),
+
+    "consonante_z": CurriculumTopic(
+        id="consonante_z", display_name="La letra Z", emoji="🦓",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_y"],
+        min_age=4,
+        description_for_student="¡La Z! La lengua toca los dientes.",
+        hints=[
+            "Pon la punta de la lengua entre los dientes y di 'zzz' 😬",
+            "Es la letra de 'zapato', 'zorro' y 'cebra' 🦓",
+            "La cebra empieza con esta letra... ¿cuál es? 🦓",
+        ],
+        expected_answers=["z", "la z", "consonante z", "letra z", "la letra z"],
+        example_questions=["¿Con qué letra empieza 'zapato'?"],
+    ),
+
+    # ── CONSONANTES FASE 4 — 5 años (h, k, q, w, x) ─────────────────────────
+
+    "consonante_h": CurriculumTopic(
+        id="consonante_h", display_name="La letra H", emoji="🥚",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_g"],
+        min_age=5,
+        description_for_student="¡La H! Esta letra es silenciosa.",
+        hints=[
+            "La H es especial: ¡no suena! Es una letra silenciosa 🤫",
+            "Es la letra de 'huevo', 'hola' y 'helado' 🥚",
+            "El helado empieza con una letra silenciosa... ¿cuál es? 🍦",
+        ],
+        expected_answers=["h", "la h", "consonante h", "letra h", "la letra h"],
+        example_questions=["¿Con qué letra empieza 'huevo'?"],
+    ),
+
+    "consonante_k": CurriculumTopic(
+        id="consonante_k", display_name="La letra K", emoji="🐨",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_j"],
+        min_age=5,
+        description_for_student="¡La K! Es parecida a la C.",
+        hints=[
+            "La K es de palabras extranjeras y hace el sonido 'k' 🌍",
+            "Es la letra de 'koala', 'kilo' y 'kárate' 🐨",
+            "El koala empieza con esta letra... ¿cuál es? 🐨",
+        ],
+        expected_answers=["k", "la k", "consonante k", "letra k", "la letra k"],
+        example_questions=["¿Con qué letra empieza 'koala'?"],
+    ),
+
+    "consonante_q": CurriculumTopic(
+        id="consonante_q", display_name="La letra Q", emoji="🧀",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_p"],
+        min_age=5,
+        description_for_student="¡La Q! Siempre va con la U.",
+        hints=[
+            "La Q casi siempre va con la U: 'qu'... 🧀",
+            "Es la letra de 'queso', 'quiero' y 'quince' 🧀",
+            "El queso empieza con esta letra... ¿cuál es? 🧀",
+        ],
+        expected_answers=["q", "la q", "consonante q", "letra q", "la letra q"],
+        example_questions=["¿Con qué letra empieza 'queso'?"],
+    ),
+
+    "consonante_w": CurriculumTopic(
+        id="consonante_w", display_name="La letra W", emoji="🚰",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_v"],
+        min_age=5,
+        description_for_student="¡La W! Es una letra de otros idiomas.",
+        hints=[
+            "La W es de palabras extranjeras, como 'wáter' 🌍",
+            "Es la letra de 'wáter' y 'wifi' 🚰",
+            "El wáter empieza con esta letra... ¿cuál es? 🚰",
+        ],
+        expected_answers=["w", "la w", "consonante w", "letra w", "la letra w"],
+        example_questions=["¿Con qué letra empieza 'wáter'?"],
+    ),
+
+    "consonante_x": CurriculumTopic(
+        id="consonante_x", display_name="La letra X", emoji="🎸",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_w"],
+        min_age=5,
+        description_for_student="¡La X! A veces suena 'ks'.",
+        hints=[
+            "La X puede sonar 'ks' como en 'taxi' 🚕",
+            "Es la letra de 'xilófono' y 'taxi' 🎸",
+            "El xilófono empieza con esta letra... ¿cuál es? 🎸",
+        ],
+        expected_answers=["x", "la x", "consonante x", "letra x", "la letra x"],
+        example_questions=["¿Con qué letra empieza 'xilófono'?"],
+    ),
+
     # ── SÍLABAS — 5 años ─────────────────────────────────────────────────────
     # Activity type: phonics (no canvas). BDI guides tracing M then A then asks "ma".
 
     "silaba_ma": CurriculumTopic(
         id="silaba_ma", display_name="La sílaba MA", emoji="🌟",
         category=CurriculumCategory.SILABAS,
-        difficulty=3,
+        difficulty=4,
         prerequisites=["consonante_m", "vocal_a"],
         min_age=5,
         description_for_student="¡Juntamos M y A y hacen 'ma'!",
@@ -573,7 +785,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "silaba_mi": CurriculumTopic(
         id="silaba_mi", display_name="La sílaba MI", emoji="🌟",
         category=CurriculumCategory.SILABAS,
-        difficulty=3,
+        difficulty=4,
         prerequisites=["consonante_m", "vocal_i"],
         min_age=5,
         description_for_student="¡M con I hacen 'mi'!",
@@ -589,7 +801,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "silaba_sa": CurriculumTopic(
         id="silaba_sa", display_name="La sílaba SA", emoji="🌟",
         category=CurriculumCategory.SILABAS,
-        difficulty=3,
+        difficulty=4,
         prerequisites=["consonante_s", "vocal_a"],
         min_age=5,
         description_for_student="¡S con A hacen 'sa'!",
@@ -605,7 +817,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "silaba_la": CurriculumTopic(
         id="silaba_la", display_name="La sílaba LA", emoji="🌟",
         category=CurriculumCategory.SILABAS,
-        difficulty=3,
+        difficulty=4,
         prerequisites=["consonante_l", "vocal_a"],
         min_age=5,
         description_for_student="¡L con A hacen 'la'!",
@@ -621,7 +833,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "silaba_pa": CurriculumTopic(
         id="silaba_pa", display_name="La sílaba PA", emoji="🌟",
         category=CurriculumCategory.SILABAS,
-        difficulty=3,
+        difficulty=4,
         prerequisites=["consonante_p", "vocal_a"],
         min_age=5,
         description_for_student="¡P con A hacen 'pa'!",
@@ -640,7 +852,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "palabra_mama": CurriculumTopic(
         id="palabra_mama", display_name="La palabra MAMÁ", emoji="👩",
         category=CurriculumCategory.PALABRAS,
-        difficulty=4,
+        difficulty=5,
         prerequisites=["silaba_ma"],
         min_age=5,
         description_for_student="¡Leemos la palabra 'mamá'!",
@@ -656,7 +868,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "palabra_mesa": CurriculumTopic(
         id="palabra_mesa", display_name="La palabra MESA", emoji="🪑",
         category=CurriculumCategory.PALABRAS,
-        difficulty=4,
+        difficulty=5,
         prerequisites=["silaba_ma", "silaba_sa"],
         min_age=5,
         description_for_student="¡Leemos la palabra 'mesa'!",
@@ -672,7 +884,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "palabra_pato": CurriculumTopic(
         id="palabra_pato", display_name="La palabra PATO", emoji="🦆",
         category=CurriculumCategory.PALABRAS,
-        difficulty=4,
+        difficulty=5,
         prerequisites=["silaba_pa"],
         min_age=5,
         description_for_student="¡Leemos la palabra 'pato'!",
@@ -688,7 +900,7 @@ CURRICULUM: dict[str, CurriculumTopic] = {
     "palabra_luna": CurriculumTopic(
         id="palabra_luna", display_name="La palabra LUNA", emoji="🌙",
         category=CurriculumCategory.PALABRAS,
-        difficulty=4,
+        difficulty=5,
         prerequisites=["silaba_la"],
         min_age=5,
         description_for_student="¡Leemos la palabra 'luna'!",
@@ -700,6 +912,483 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         expected_answers=["luna", "la luna"],
         example_questions=["¿Qué pone aquí? 🌙 l-u-n-a"],
     ),
+
+    # ── CONSONANTES MINÚSCULAS — fase 1 (edad 4) ─────────────────────────────
+    # Activity type: tracing. Misma fonética que la mayúscula, escritura minúscula.
+
+    "consonante_m_min": CurriculumTopic(
+        id="consonante_m_min", display_name="La m minúscula", emoji="🍄",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_m"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la m pequeñita!",
+        hints=[
+            "La m pequeña tiene tres palos. ¡Como tres patas! 🍄",
+            "Mmm... como en 'mamá' pero chiquitita 👩",
+            "¿Puedes trazar la m minúscula? 🖊️",
+        ],
+        expected_answers=["m", "la m", "m minúscula", "m pequeña"],
+        example_questions=["¿Cómo se escribe la m minúscula?"],
+    ),
+
+    "consonante_l_min": CurriculumTopic(
+        id="consonante_l_min", display_name="La l minúscula", emoji="🦁",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_l"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la l pequeñita!",
+        hints=[
+            "La l es un palo recto que baja. ¡Muy fácil! 🦁",
+            "Llll... como en 'luna' pero chiquitita 🌙",
+            "¿Puedes trazar la l minúscula? 🖊️",
+        ],
+        expected_answers=["l", "la l", "l minúscula", "l pequeña"],
+        example_questions=["¿Cómo se escribe la l minúscula?"],
+    ),
+
+    "consonante_s_min": CurriculumTopic(
+        id="consonante_s_min", display_name="La s minúscula", emoji="🐍",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_s"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la s pequeñita!",
+        hints=[
+            "La s pequeña se retuerce como una serpiente 🐍",
+            "Ssss... como en 'sol' pero chiquitita ☀️",
+            "¿Puedes trazar la s minúscula? 🖊️",
+        ],
+        expected_answers=["s", "la s", "s minúscula", "s pequeña"],
+        example_questions=["¿Cómo se escribe la s minúscula?"],
+    ),
+
+    "consonante_p_min": CurriculumTopic(
+        id="consonante_p_min", display_name="La p minúscula", emoji="🐟",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_p"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la p pequeñita!",
+        hints=[
+            "La p tiene un palo que baja y una barriguita a la derecha 🐟",
+            "Ppp... como en 'papá' pero chiquitita 👨",
+            "¿Puedes trazar la p minúscula? 🖊️",
+        ],
+        expected_answers=["p", "la p", "p minúscula", "p pequeña"],
+        example_questions=["¿Cómo se escribe la p minúscula?"],
+    ),
+
+    "consonante_t_min": CurriculumTopic(
+        id="consonante_t_min", display_name="La t minúscula", emoji="🌷",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_t"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la t pequeñita!",
+        hints=[
+            "La t tiene un palo con una rayita cruzada 🌷",
+            "Ttt... como en 'tomate' pero chiquitita 🍅",
+            "¿Puedes trazar la t minúscula? 🖊️",
+        ],
+        expected_answers=["t", "la t", "t minúscula", "t pequeña"],
+        example_questions=["¿Cómo se escribe la t minúscula?"],
+    ),
+
+    # ── CONSONANTES MINÚSCULAS — fase 2 (edad 4) ─────────────────────────────
+
+    "consonante_n_min": CurriculumTopic(
+        id="consonante_n_min", display_name="La n minúscula", emoji="🦋",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_n", "consonante_m_min"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la n pequeñita!",
+        hints=[
+            "La n tiene un palo y un arco a la derecha 🦋",
+            "Nnn... como en 'nido' pero chiquitita 🐣",
+            "¿Puedes trazar la n minúscula? 🖊️",
+        ],
+        expected_answers=["n", "la n", "n minúscula", "n pequeña"],
+        example_questions=["¿Cómo se escribe la n minúscula?"],
+    ),
+
+    "consonante_d_min": CurriculumTopic(
+        id="consonante_d_min", display_name="La d minúscula", emoji="🦌",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_d", "vocal_a_min"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la d pequeñita!",
+        hints=[
+            "La d tiene un palo alto y un círculo a la izquierda 🦌",
+            "Ddd... como en 'dedo' pero chiquitita 👆",
+            "¿Puedes trazar la d minúscula? 🖊️",
+        ],
+        expected_answers=["d", "la d", "d minúscula", "d pequeña"],
+        example_questions=["¿Cómo se escribe la d minúscula?"],
+    ),
+
+    "consonante_f_min": CurriculumTopic(
+        id="consonante_f_min", display_name="La f minúscula", emoji="🌸",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_f"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la f pequeñita!",
+        hints=[
+            "La f tiene una curva arriba y una rayita cruzada 🌸",
+            "Fff... como en 'foca' pero chiquitita 🦭",
+            "¿Puedes trazar la f minúscula? 🖊️",
+        ],
+        expected_answers=["f", "la f", "f minúscula", "f pequeña"],
+        example_questions=["¿Cómo se escribe la f minúscula?"],
+    ),
+
+    "consonante_r_min": CurriculumTopic(
+        id="consonante_r_min", display_name="La r minúscula", emoji="🐸",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_r"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la r pequeñita!",
+        hints=[
+            "La r tiene un palo y una curvita arriba 🐸",
+            "Rrr... como en 'rana' pero chiquitita 🐸",
+            "¿Puedes trazar la r minúscula? 🖊️",
+        ],
+        expected_answers=["r", "la r", "r minúscula", "r pequeña"],
+        example_questions=["¿Cómo se escribe la r minúscula?"],
+    ),
+
+    # ── CONSONANTES MINÚSCULAS — fase 3 (edad 4) ─────────────────────────────
+
+    "consonante_b_min": CurriculumTopic(
+        id="consonante_b_min", display_name="La b minúscula", emoji="🐋",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_b"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la b pequeñita!",
+        hints=[
+            "La b tiene un palo alto y una barriguita a la derecha 🐋",
+            "Bbb... como en 'boca' pero chiquitita 👄",
+            "¿Puedes trazar la b minúscula? 🖊️",
+        ],
+        expected_answers=["b", "la b", "b minúscula", "b pequeña"],
+        example_questions=["¿Cómo se escribe la b minúscula?"],
+    ),
+
+    "consonante_c_min": CurriculumTopic(
+        id="consonante_c_min", display_name="La c minúscula", emoji="🏠",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_c"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la c pequeñita!",
+        hints=[
+            "La c pequeña es un arco abierto a la derecha 🏠",
+            "Ccc... como en 'casa' pero chiquitita 🏠",
+            "¿Puedes trazar la c minúscula? 🖊️",
+        ],
+        expected_answers=["c", "la c", "c minúscula", "c pequeña"],
+        example_questions=["¿Cómo se escribe la c minúscula?"],
+    ),
+
+    "consonante_g_min": CurriculumTopic(
+        id="consonante_g_min", display_name="La g minúscula", emoji="🐱",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_g"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la g pequeñita!",
+        hints=[
+            "La g tiene un círculo y una colita que baja 🐱",
+            "Ggg... como en 'gato' pero chiquitita 🐱",
+            "¿Puedes trazar la g minúscula? 🖊️",
+        ],
+        expected_answers=["g", "la g", "g minúscula", "g pequeña"],
+        example_questions=["¿Cómo se escribe la g minúscula?"],
+    ),
+
+    "consonante_j_min": CurriculumTopic(
+        id="consonante_j_min", display_name="La j minúscula", emoji="🦒",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_j"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la j pequeñita!",
+        hints=[
+            "La j tiene un palo con un punto arriba y una curvita abajo 🦒",
+            "Jjj... como en 'jirafa' pero chiquitita 🦒",
+            "¿Puedes trazar la j minúscula? 🖊️",
+        ],
+        expected_answers=["j", "la j", "j minúscula", "j pequeña"],
+        example_questions=["¿Cómo se escribe la j minúscula?"],
+    ),
+
+    "consonante_ñ_min": CurriculumTopic(
+        id="consonante_ñ_min", display_name="La ñ minúscula", emoji="👦",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_ñ", "consonante_n_min"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la ñ pequeñita!",
+        hints=[
+            "La ñ es como la n pero con una rayita encima 👦",
+            "Ññ... como en 'niño' pero chiquitita 👦",
+            "¿Puedes trazar la ñ minúscula? 🖊️",
+        ],
+        expected_answers=["ñ", "la ñ", "ñ minúscula", "ñ pequeña"],
+        example_questions=["¿Cómo se escribe la ñ minúscula?"],
+    ),
+
+    "consonante_v_min": CurriculumTopic(
+        id="consonante_v_min", display_name="La v minúscula", emoji="🐄",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_v"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la v pequeñita!",
+        hints=[
+            "La v tiene dos palitos que se juntan abajo en punta 🐄",
+            "Vvv... como en 'vaca' pero chiquitita 🐄",
+            "¿Puedes trazar la v minúscula? 🖊️",
+        ],
+        expected_answers=["v", "la v", "v minúscula", "v pequeña"],
+        example_questions=["¿Cómo se escribe la v minúscula?"],
+    ),
+
+    "consonante_y_min": CurriculumTopic(
+        id="consonante_y_min", display_name="La y minúscula", emoji="🪀",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_y"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la y pequeñita!",
+        hints=[
+            "La y tiene dos palitos que se unen y luego bajan 🪀",
+            "Yyy... como en 'yoyo' pero chiquitita 🪀",
+            "¿Puedes trazar la y minúscula? 🖊️",
+        ],
+        expected_answers=["y", "la y", "y minúscula", "y pequeña"],
+        example_questions=["¿Cómo se escribe la y minúscula?"],
+    ),
+
+    "consonante_z_min": CurriculumTopic(
+        id="consonante_z_min", display_name="La z minúscula", emoji="🦓",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_z"],
+        min_age=4,
+        description_for_student="¡Vamos a escribir la z pequeñita!",
+        hints=[
+            "La z tiene tres líneas: una arriba, una diagonal y una abajo 🦓",
+            "Zzz... como en 'zapato' pero chiquitita 👟",
+            "¿Puedes trazar la z minúscula? 🖊️",
+        ],
+        expected_answers=["z", "la z", "z minúscula", "z pequeña"],
+        example_questions=["¿Cómo se escribe la z minúscula?"],
+    ),
+
+    # ── CONSONANTES MINÚSCULAS — fase 4 (edad 5) ─────────────────────────────
+
+    "consonante_h_min": CurriculumTopic(
+        id="consonante_h_min", display_name="La h minúscula", emoji="🥚",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_h"],
+        min_age=5,
+        description_for_student="¡Vamos a escribir la h pequeñita!",
+        hints=[
+            "La h tiene un palo alto y un arco a la derecha 🥚",
+            "La h es silenciosa... pero hay que escribirla bien 🤫",
+            "¿Puedes trazar la h minúscula? 🖊️",
+        ],
+        expected_answers=["h", "la h", "h minúscula", "h pequeña"],
+        example_questions=["¿Cómo se escribe la h minúscula?"],
+    ),
+
+    "consonante_k_min": CurriculumTopic(
+        id="consonante_k_min", display_name="La k minúscula", emoji="🐨",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_k"],
+        min_age=5,
+        description_for_student="¡Vamos a escribir la k pequeñita!",
+        hints=[
+            "La k tiene un palo y dos patitas que salen 🐨",
+            "Kkk... como en 'koala' pero chiquitita 🐨",
+            "¿Puedes trazar la k minúscula? 🖊️",
+        ],
+        expected_answers=["k", "la k", "k minúscula", "k pequeña"],
+        example_questions=["¿Cómo se escribe la k minúscula?"],
+    ),
+
+    "consonante_q_min": CurriculumTopic(
+        id="consonante_q_min", display_name="La q minúscula", emoji="🧀",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_q"],
+        min_age=5,
+        description_for_student="¡Vamos a escribir la q pequeñita!",
+        hints=[
+            "La q tiene un círculo y un palo que baja a la derecha 🧀",
+            "La q va con la u para hacer 'qu'... 🧀",
+            "¿Puedes trazar la q minúscula? 🖊️",
+        ],
+        expected_answers=["q", "la q", "q minúscula", "q pequeña"],
+        example_questions=["¿Cómo se escribe la q minúscula?"],
+    ),
+
+    "consonante_w_min": CurriculumTopic(
+        id="consonante_w_min", display_name="La w minúscula", emoji="🚰",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_w"],
+        min_age=5,
+        description_for_student="¡Vamos a escribir la w pequeñita!",
+        hints=[
+            "La w tiene cuatro puntitas hacia abajo 🚰",
+            "Www... como en 'wáter' pero chiquitita 🚰",
+            "¿Puedes trazar la w minúscula? 🖊️",
+        ],
+        expected_answers=["w", "la w", "w minúscula", "w pequeña"],
+        example_questions=["¿Cómo se escribe la w minúscula?"],
+    ),
+
+    "consonante_x_min": CurriculumTopic(
+        id="consonante_x_min", display_name="La x minúscula", emoji="🎸",
+        category=CurriculumCategory.LECTOESCRITURA,
+        difficulty=3,
+        prerequisites=["consonante_x"],
+        min_age=5,
+        description_for_student="¡Vamos a escribir la x pequeñita!",
+        hints=[
+            "La x son dos líneas cruzadas 🎸",
+            "Xxx... como en 'taxi' pero chiquitita 🚕",
+            "¿Puedes trazar la x minúscula? 🖊️",
+        ],
+        expected_answers=["x", "la x", "x minúscula", "x pequeña"],
+        example_questions=["¿Cómo se escribe la x minúscula?"],
+    ),
+
+    # ── SÍLABAS MINÚSCULAS — 5 años ───────────────────────────────────────────
+
+    "silaba_ma_min": CurriculumTopic(
+        id="silaba_ma_min", display_name="La sílaba ma (minúscula)", emoji="🌟",
+        category=CurriculumCategory.SILABAS,
+        difficulty=4,
+        prerequisites=["silaba_ma", "consonante_m_min", "vocal_a_min"],
+        min_age=4,
+        description_for_student="¡Juntamos m y a y hacen 'ma'!",
+        hints=[
+            "La m dice 'mmm' y la a dice 'aaa'... ¿qué dicen juntas? 🤔",
+            "m... a... ¡ma! 👏",
+            "m + a = 'ma', como en 'mamá' 👩",
+        ],
+        expected_answers=["ma", "la ma", "sílaba ma"],
+        example_questions=["¿Qué dicen la m y la a juntas?"],
+    ),
+
+    "silaba_pa_min": CurriculumTopic(
+        id="silaba_pa_min", display_name="La sílaba pa (minúscula)", emoji="🌟",
+        category=CurriculumCategory.SILABAS,
+        difficulty=4,
+        prerequisites=["silaba_pa", "consonante_p_min", "vocal_a_min"],
+        min_age=4,
+        description_for_student="¡Juntamos p y a y hacen 'pa'!",
+        hints=[
+            "La p dice 'ppp' y la a dice 'aaa'... ¿qué hacen juntas? 🤔",
+            "p... a... ¡pa! 👏",
+            "p + a = 'pa', como en 'papá' 👨",
+        ],
+        expected_answers=["pa", "la pa", "sílaba pa"],
+        example_questions=["¿Qué dicen la p y la a juntas?"],
+    ),
+
+    "silaba_sa_min": CurriculumTopic(
+        id="silaba_sa_min", display_name="La sílaba sa (minúscula)", emoji="🌟",
+        category=CurriculumCategory.SILABAS,
+        difficulty=4,
+        prerequisites=["silaba_sa", "consonante_s_min", "vocal_a_min"],
+        min_age=5,
+        description_for_student="¡Juntamos s y a y hacen 'sa'!",
+        hints=[
+            "La s dice 'sss' y la a dice 'aaa'... ¿qué hacen juntas? 🤔",
+            "s... a... ¡sa! 👏",
+            "s + a = 'sa', como en 'sala' 🏠",
+        ],
+        expected_answers=["sa", "la sa", "sílaba sa"],
+        example_questions=["¿Qué dicen la s y la a juntas?"],
+    ),
+
+    "silaba_la_min": CurriculumTopic(
+        id="silaba_la_min", display_name="La sílaba la (minúscula)", emoji="🌟",
+        category=CurriculumCategory.SILABAS,
+        difficulty=4,
+        prerequisites=["silaba_la", "consonante_l_min", "vocal_a_min"],
+        min_age=5,
+        description_for_student="¡Juntamos l y a y hacen 'la'!",
+        hints=[
+            "La l dice 'lll' y la a dice 'aaa'... ¿qué hacen juntas? 🤔",
+            "l... a... ¡la! 👏",
+            "l + a = 'la', como en 'luna' 🌙",
+        ],
+        expected_answers=["la", "la sílaba la", "sílaba la"],
+        example_questions=["¿Qué dicen la l y la a juntas?"],
+    ),
+
+    # ── PALABRAS — trazado letra a letra (edad 5) ─────────────────────────────
+
+    "palabra_mama_traz": CurriculumTopic(
+        id="palabra_mama_traz", display_name="Trazar 'mamá'", emoji="👩",
+        category=CurriculumCategory.PALABRAS,
+        difficulty=5,
+        prerequisites=["silaba_ma_min"],
+        min_age=5,
+        description_for_student="¡Vamos a trazar la palabra 'mamá' letra a letra!",
+        hints=[
+            "m - a - m - a... ¿puedes trazarlas todas? 👩",
+            "Cuatro letras: m, a, m, a 🖊️",
+            "¡Escribe 'mamá' con el dedo! 👩",
+        ],
+        expected_answers=["mamá", "mama"],
+        example_questions=["¿Puedes trazar 'mamá'?"],
+    ),
+
+    "palabra_papa_traz": CurriculumTopic(
+        id="palabra_papa_traz", display_name="Trazar 'papá'", emoji="👨",
+        category=CurriculumCategory.PALABRAS,
+        difficulty=5,
+        prerequisites=["silaba_pa_min"],
+        min_age=5,
+        description_for_student="¡Vamos a trazar la palabra 'papá' letra a letra!",
+        hints=[
+            "p - a - p - a... ¿puedes trazarlas todas? 👨",
+            "Cuatro letras: p, a, p, a 🖊️",
+            "¡Escribe 'papá' con el dedo! 👨",
+        ],
+        expected_answers=["papá", "papa"],
+        example_questions=["¿Puedes trazar 'papá'?"],
+    ),
+
+    "palabra_casa_traz": CurriculumTopic(
+        id="palabra_casa_traz", display_name="Trazar 'casa'", emoji="🏠",
+        category=CurriculumCategory.PALABRAS,
+        difficulty=5,
+        prerequisites=["consonante_s_min", "vocal_a_min"],
+        min_age=5,
+        description_for_student="¡Vamos a trazar la palabra 'casa' letra a letra!",
+        hints=[
+            "c - a - s - a... ¿puedes trazarlas todas? 🏠",
+            "Cuatro letras: c, a, s, a 🖊️",
+            "¡Escribe 'casa' con el dedo! 🏠",
+        ],
+        expected_answers=["casa", "la casa"],
+        example_questions=["¿Puedes trazar 'casa'?"],
+    ),
 }
 
 
@@ -709,8 +1398,8 @@ class CurriculumEngine:
 
     Age-based topic filtering (Decreto 36/2022):
         age=3 → only min_age <= 3 topics (pre-writing strokes)
-        age=4 → only min_age <= 4 topics (strokes + vowels + consonants phase 1 + numbers)
-        age=5 → all topics (+ consonants phase 2 + syllables + words)
+        age=4 → min_age <= 4 topics: strokes→numbers(d=1)→vowels(d=2)→consonants b-z(d=3)
+        age=5 → all: + consonants h,k,q,w,x(d=3) + syllables(d=4) + words(d=5)
     """
 
     ZDP_MIN_RATE       = 0.20
@@ -745,8 +1434,17 @@ class CurriculumEngine:
         correct   = mastery.get("correct", 0)
         return correct / attempts if attempts > 0 else 0.0
 
-    def prerequisites_met(self, beliefs: dict, topic: CurriculumTopic) -> bool:
-        return all(self.is_mastered(beliefs, prereq) for prereq in topic.prerequisites)
+    def prerequisites_met(self, beliefs: dict, topic: CurriculumTopic, student_age: int = 4) -> bool:
+        """Check prerequisites. For age 5, min_age=3 topics are auto-considered mastered."""
+        for prereq_id in topic.prerequisites:
+            if self.is_mastered(beliefs, prereq_id):
+                continue
+            if student_age >= 5:
+                prereq = CURRICULUM.get(prereq_id)
+                if prereq and prereq.min_age <= 3:
+                    continue  # age 5 students skip age-3 prerequisites
+            return False
+        return True
 
     def in_zdp(self, beliefs: dict, topic_id: str) -> bool:
         mastery  = beliefs.get("mastery", {}).get(topic_id, {})
@@ -765,7 +1463,10 @@ class CurriculumEngine:
             3. Review topic with lowest success rate
         """
         available = self.get_topics_for_age(student_age)
-        eligible  = [t for t in available if self.prerequisites_met(beliefs, t)]
+        eligible  = [t for t in available if self.prerequisites_met(beliefs, t, student_age)]
+        # Age 5: skip age-3 topics (assumed already learned), start directly from age 4
+        if student_age >= 5:
+            eligible = [t for t in eligible if t.min_age >= 4]
 
         zdp_topics = [t for t in eligible if self.in_zdp(beliefs, t.id)]
         if zdp_topics:
@@ -786,7 +1487,8 @@ class CurriculumEngine:
             return min(mastered_eligible, key=lambda t: self.get_success_rate(beliefs, t.id))
 
         # Fallback: first age-appropriate topic
-        return available[0] if available else CURRICULUM["trazo_linea_h"]
+        fallback = [t for t in available if t.min_age >= 4] if student_age >= 5 else available
+        return fallback[0] if fallback else CURRICULUM["trazo_linea_h"]
 
     def get_alternatives(
         self,
@@ -799,8 +1501,11 @@ class CurriculumEngine:
         available = self.get_topics_for_age(student_age)
         eligible  = [
             t for t in available
-            if self.prerequisites_met(beliefs, t) and t.id != current_topic_id
+            if self.prerequisites_met(beliefs, t, student_age) and t.id != current_topic_id
         ]
+        # Age 5: exclude age-3 topics from alternatives
+        if student_age >= 5:
+            eligible = [t for t in eligible if t.min_age >= 4]
         zdp      = [t for t in eligible if self.in_zdp(beliefs, t.id)]
         unstarted = [
             t for t in eligible

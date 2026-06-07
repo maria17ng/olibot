@@ -71,7 +71,7 @@ export default function ProgressReport({ student, onClose }) {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("overview"); // "overview" | "topics" | "sessions" | "bdi"
+  const [activeTab, setActiveTab] = useState("overview"); // "overview" | "ages" | "topics" | "sessions"
 
   useEffect(() => {
     if (!student) return;
@@ -140,12 +140,12 @@ export default function ProgressReport({ student, onClose }) {
         </div>
 
         {/* Tab bar */}
-        <div style={{ display: "flex", borderBottom: "2px solid #e5e7eb", background: "#f9fafb" }}>
+        <div style={{ display: "flex", borderBottom: "2px solid #e5e7eb", background: "#f9fafb", overflowX: "auto", flexShrink: 0 }}>
           {[
             { key: "overview", label: "📊 Resumen" },
+            { key: "ages",     label: "📅 Por Edades" },
             { key: "topics",   label: "📚 Temas" },
             { key: "sessions", label: "🗓️ Sesiones" },
-            { key: "bdi",      label: "🤖 Agente BDI" },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -156,11 +156,12 @@ export default function ProgressReport({ student, onClose }) {
                 border: "none",
                 background: "none",
                 cursor: "pointer",
-                fontSize: "14px",
+                fontSize: "13px",
                 fontWeight: activeTab === key ? "bold" : "normal",
                 color: activeTab === key ? "#4a90d9" : "#6b7280",
                 borderBottom: activeTab === key ? "3px solid #4a90d9" : "3px solid transparent",
                 marginBottom: "-2px",
+                whiteSpace: "nowrap",
               }}
             >
               {label}
@@ -169,7 +170,7 @@ export default function ProgressReport({ student, onClose }) {
         </div>
 
         {/* Tab content */}
-        <div style={{ overflowY: "auto", flex: 1, padding: "20px 24px" }}>
+        <div style={{ overflowY: "auto", flex: 1, minHeight: 0, padding: "20px 24px" }}>
 
           {/* ── OVERVIEW ─────────────────────────────────────────────── */}
           {activeTab === "overview" && (
@@ -220,6 +221,90 @@ export default function ProgressReport({ student, onClose }) {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ── POR EDADES ───────────────────────────────────────────── */}
+          {activeTab === "ages" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              {(!report.age_groups || report.age_groups.length === 0) ? (
+                <p style={{ color: "#9ca3af", textAlign: "center", paddingTop: "40px" }}>
+                  Sin actividad registrada aún.
+                </p>
+              ) : report.age_groups.map(group => {
+                const pct = Math.round(group.completion_pct * 100);
+                const barColor = group.all_mastered ? "#22c55e" : pct >= 50 ? "#f59e0b" : "#94a3b8";
+                return (
+                  <div key={group.age} style={{
+                    border: `2px solid ${group.all_mastered ? "#86efac" : "#e5e7eb"}`,
+                    borderRadius: "16px",
+                    overflow: "hidden",
+                    background: group.all_mastered ? "#f0fdf4" : "white",
+                  }}>
+                    {/* Group header */}
+                    <div style={{
+                      padding: "14px 18px",
+                      background: group.all_mastered ? "#dcfce7" : "#f9fafb",
+                      display: "flex", alignItems: "center", gap: "12px",
+                    }}>
+                      <span style={{ fontSize: "28px" }}>
+                        {group.age === 3 ? "🐣" : group.age === 4 ? "🐥" : "🎓"}
+                      </span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: "bold", fontSize: "16px", color: "#1e3a5f" }}>
+                          Actividades de {group.age} años
+                        </div>
+                        <div style={{ fontSize: "13px", color: "#6b7280" }}>
+                          {group.mastered_topics}/{group.total_topics} temas superados
+                          {group.in_progress_topics > 0 && ` · ${group.in_progress_topics} en progreso`}
+                        </div>
+                      </div>
+                      <div style={{
+                        fontSize: "20px", fontWeight: "bold",
+                        color: group.all_mastered ? "#15803d" : "#374151",
+                      }}>
+                        {pct}%
+                      </div>
+                    </div>
+
+                    {/* Progress bar */}
+                    <div style={{ height: "8px", background: "#e5e7eb" }}>
+                      <div style={{
+                        height: "100%", width: `${pct}%`,
+                        background: barColor, transition: "width 0.4s ease",
+                      }} />
+                    </div>
+
+                    {/* Advance message */}
+                    {group.all_mastered && group.advance_message && (
+                      <div style={{
+                        padding: "12px 18px",
+                        background: "#fefce8", borderTop: "1px solid #fde68a",
+                        fontSize: "14px", color: "#854d0e",
+                        fontWeight: "500",
+                      }}>
+                        {group.advance_message}
+                      </div>
+                    )}
+
+                    {/* Topic list (collapsed if many) */}
+                    <div style={{ padding: "10px 14px", display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                      {group.topics.map(t => (
+                        <span key={t.topic_id} style={{
+                          display: "inline-flex", alignItems: "center", gap: "4px",
+                          padding: "4px 10px", borderRadius: "20px", fontSize: "12px",
+                          background: t.mastered ? "#dcfce7" : t.attempts > 0 ? "#fef3c7" : "#f3f4f6",
+                          color: t.mastered ? "#15803d" : t.attempts > 0 ? "#92400e" : "#6b7280",
+                          border: `1px solid ${t.mastered ? "#86efac" : t.attempts > 0 ? "#fde68a" : "#e5e7eb"}`,
+                        }}>
+                          {t.emoji} {t.display_name}
+                          {t.mastered && " ✅"}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -334,84 +419,7 @@ export default function ProgressReport({ student, onClose }) {
               )}
             </div>
           )}
-          {/* ── BDI AGENT ────────────────────────────────────────────── */}
-          {activeTab === "bdi" && report.bdi_explanation && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
 
-              {/* L1 — Intention */}
-              <div style={bdiCardStyle("#eff6ff", "#bfdbfe", "#1e40af")}>
-                <div style={bdiCardTitleStyle}>
-                  <span>🎯</span>
-                  <span>Nivel 1 — Intención actual</span>
-                  <span style={{ marginLeft: "auto", fontSize: "11px", opacity: 0.7 }}>L1</span>
-                </div>
-                <div style={{ marginTop: "8px", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
-                  <span
-                    style={{
-                      background: "#1e40af",
-                      color: "white",
-                      borderRadius: "16px",
-                      padding: "3px 10px",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {report.bdi_explanation.agent_status}
-                  </span>
-                </div>
-                <p style={{ margin: "8px 0 0", fontSize: "14px", color: "#1e3a8a", lineHeight: 1.5 }}>
-                  {report.bdi_explanation.current_desire}
-                </p>
-              </div>
-
-              {/* L2 — Plan */}
-              <div style={bdiCardStyle("#f0fdf4", "#bbf7d0", "#166534")}>
-                <div style={bdiCardTitleStyle}>
-                  <span>🗺️</span>
-                  <span>Nivel 2 — Plan pedagógico</span>
-                  <span style={{ marginLeft: "auto", fontSize: "11px", opacity: 0.7 }}>L2</span>
-                </div>
-                <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "10px" }}>
-                  <div>
-                    <div style={bdiSubLabelStyle}>Selección de tema</div>
-                    <p style={bdiTextStyle}>{report.bdi_explanation.topic_selection_reason}</p>
-                  </div>
-                  <div>
-                    <div style={bdiSubLabelStyle}>Estrategia de andamiaje</div>
-                    <p style={bdiTextStyle}>{report.bdi_explanation.hint_strategy}</p>
-                  </div>
-                  <div>
-                    <div style={bdiSubLabelStyle}>Siguiente paso previsto</div>
-                    <p style={bdiTextStyle}>{report.bdi_explanation.next_topic_preview}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* L3 — Beliefs */}
-              <div style={bdiCardStyle("#fdf4ff", "#e9d5ff", "#6b21a8")}>
-                <div style={bdiCardTitleStyle}>
-                  <span>🧠</span>
-                  <span>Nivel 3 — Base de creencias</span>
-                  <span style={{ marginLeft: "auto", fontSize: "11px", opacity: 0.7 }}>L3</span>
-                </div>
-                <p style={{ ...bdiTextStyle, marginTop: "8px", fontStyle: "italic" }}>
-                  {report.bdi_explanation.belief_summary}
-                </p>
-                <ul style={{ margin: "10px 0 0", paddingLeft: "18px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                  {report.bdi_explanation.mastery_evidence.map((line, i) => (
-                    <li key={i} style={{ fontSize: "13px", color: "#4c1d95", lineHeight: 1.5 }}>
-                      {line}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Citation footer */}
-              <p style={{ fontSize: "11px", color: "#9ca3af", textAlign: "center", margin: 0 }}>
-                Explicabilidad BDI basada en Dennis &amp; Oren (2022) y Yan, Burattini et al. (2023)
-              </p>
-            </div>
-          )}
 
         </div>
       </div>

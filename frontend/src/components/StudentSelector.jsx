@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import { api } from "../services/api";
 import DiceBearAvatar from "./DiceBearAvatar";
 
-const AGE_OPTS = [3, 4, 5, 6];
+const AGE_OPTS = [3, 4, 5];
 
 // Pre-defined seeds for the robot picker grid
 const ROBOT_SEEDS = [
@@ -54,8 +54,8 @@ export default function StudentSelector({ onSelectStudent }) {
     setNewAge(4);
   };
 
-  // The seed used for DiceBear: picked robot if no name yet, else the name itself
-  const previewSeed = newName.trim() || avatarSeed;
+  // The seed used for DiceBear: always the picked robot, the name never overrides it
+  const previewSeed = avatarSeed;
 
   return (
     <div
@@ -97,7 +97,6 @@ export default function StudentSelector({ onSelectStudent }) {
         }}
       >
         {students.map((s) => {
-          const stars = Math.min(s.total_sessions ?? 0, 5);
           const seed  = s.avatar_id && s.avatar_id !== "robot" ? s.avatar_id : s.name;
           return (
             <div key={s.id} style={{ position: "relative" }}>
@@ -131,9 +130,6 @@ export default function StudentSelector({ onSelectStudent }) {
                   {s.name}
                 </span>
                 <span style={{ fontSize: "12px", color: "#6b7280" }}>{s.age} años</span>
-                {stars > 0 && (
-                  <div style={{ fontSize: "12px" }}>{"⭐".repeat(stars)}</div>
-                )}
               </button>
 
               {/* Delete button — top-right corner */}
@@ -246,12 +242,12 @@ export default function StudentSelector({ onSelectStudent }) {
                       padding: "6px",
                       borderRadius: "12px",
                       cursor: "pointer",
-                      background: avatarSeed === seed && !newName.trim() ? "#dbeafe" : "white",
-                      border:
-                        avatarSeed === seed && !newName.trim()
-                          ? "3px solid #4a90d9"
-                          : "2px solid #e5e7eb",
-                      transform: avatarSeed === seed && !newName.trim() ? "scale(1.12)" : "scale(1)",
+                    background: avatarSeed === seed ? "#dbeafe" : "white",
+                    border:
+                      avatarSeed === seed
+                        ? "3px solid #4a90d9"
+                        : "2px solid #e5e7eb",
+                    transform: avatarSeed === seed ? "scale(1.12)" : "scale(1)",
                       transition: "all 0.12s",
                       display: "flex",
                       alignItems: "center",

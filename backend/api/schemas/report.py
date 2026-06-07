@@ -70,6 +70,19 @@ class BDIExplanation(BaseModel):
     belief_summary: str           # Human-readable summary of belief base state
 
 
+class AgeGroupReport(BaseModel):
+    """Summary of curriculum topics for a specific age bracket."""
+    age: int                         # 3, 4, or 5
+    total_topics: int
+    mastered_topics: int
+    in_progress_topics: int
+    not_started_topics: int
+    all_mastered: bool               # True when child has completed all age-level topics
+    completion_pct: float            # 0.0 – 1.0
+    advance_message: str             # Message shown when all_mastered=True
+    topics: list[TopicMasteryReport] # Per-topic details for this age group
+
+
 class StudentProgressReport(BaseModel):
     """
     Full progress report for a student.
@@ -81,6 +94,7 @@ class StudentProgressReport(BaseModel):
         - Tasa de éxito global (overall_success_rate)
         - Recomendaciones para casa (recommended_focus)
         - Explicabilidad BDI (bdi_explanation) — Fase 8, medium priority
+        - Actividades por edad (age_groups) — Fase 9
     """
     student_id: int
     student_name: str
@@ -97,6 +111,9 @@ class StudentProgressReport(BaseModel):
     topics_in_progress: int
     topics_not_started: int
     mastery_by_topic: list[TopicMasteryReport]
+
+    # Age-group breakdown (Fase 9)
+    age_groups: list[AgeGroupReport]
 
     # Pedagogical recommendations
     recommended_focus: list[str]             # topic_ids to reinforce at home

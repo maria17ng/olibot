@@ -12,7 +12,7 @@
  * Control buttons (fixed, top-left, same row as App.jsx parent buttons):
  *   🏠 left:12  (App.jsx — home)
  *   📋 left:82  (App.jsx — reports)
- *   📚 left:152 (ChatWindow — topic picker)  ← was wrongly at left:12, hidden behind 🏠
+ *   📚 left:152 (ChatWindow — topic picker)
  *   🔄 right:12 (ChatWindow — replay demo)   ← visible only during tracing
  */
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -22,10 +22,48 @@ import DiceBearAvatar from "./DiceBearAvatar";
 import LetterTracing from "./LetterTracing";
 import ColoringCanvas from "./ColoringCanvas";
 import { getCharData, getSyllableLetters, getCharDataByKey } from "../data/letterData";
-import { getRandomDifferentSubject } from "../data/coloringData";
+import { getRandomDifferentSubject, subjectFromText } from "../data/coloringData";
 
 const MAX_TURNS_BY_AGE   = { 3: 4,  4: 8,  5: 12 };
-const REQUIRED_PRACTICES = { 3: 3,  4: 2,  5: 1  };
+// Niveles de dificultad de trazado: 0=fácil(muchos puntos), 1=medio, 2=difícil
+// Para avanzar de nivel el niño necesita 3 intentos verdes (LEVEL_PASS_REQUIRED) seguidos.
+const LEVEL_PASS_REQUIRED = 3;
+const BADGE_W = 186; // badge panel width in px (stars + separator + circles + padding)
+
+// ── Web Audio feedback sounds ─────────────────────────────────────────────
+function playFeedbackSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+
+    if (type === "correct") {
+      // Rising chord: C5 → E5 → G5 (cheerful ding)
+      osc.frequency.setValueAtTime(523, ctx.currentTime);
+      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.12);
+      osc.frequency.setValueAtTime(784, ctx.currentTime + 0.24);
+      gain.gain.setValueAtTime(0.28, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.55);
+    } else {
+      // Descending: A3 → G3 (soft buzz)
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      osc.frequency.setValueAtTime(196, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.22, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.45);
+    }
+    // Auto-close AudioContext after sound finishes to free resources
+    setTimeout(() => ctx.close(), 800);
+  } catch {
+    // AudioContext not available — silent fallback
+  }
+}
 
 // Tutorial steps: explain each control button to new students
 // spot.right is used instead of spot.left for right-anchored buttons (🔄)
@@ -54,9 +92,16 @@ const TUTORIAL_STEPS = [
     spot:   { top: 12, right: 12, w: 60, h: 60 },   // right-anchored
     bubble: { top: 84, right: 12 },
   },
+  {
+    voice:  "¡Mira aquí a la derecha! Hay tres filas, una por nivel. Los circulitos se ponen verdes cuando lo haces bien. ¡Con tres circulitos verdes subes de nivel!",
+    hint:   "Tus estrellas y niveles",
+    spot:   { top: "calc(50vh - 85px)", right: 4, w: BADGE_W + 8, h: 170, r: "20px" },
+    bubble: { top: "calc(50vh + 96px)", right: 4 },
+  },
 ];
 
-// Shared button style that matches App.jsx parent buttons
+// Index of the tutorial step that explains the level badge (0-based)
+const LEVEL_BADGE_TUTORIAL_STEP = 4;
 const CTRL_BTN = {
   position: "fixed",
   width: "60px", height: "60px", borderRadius: "50%",
@@ -76,12 +121,16 @@ export default function ChatWindow({ student, isNewStudent = false }) {
   const [sessionStats,   setSessionStats]   = useState({ correct: 0, incorrect: 0, hints: 0 });
   const [turnCount,      setTurnCount]      = useState(0);
   const [currentBeliefs, setCurrentBeliefs] = useState({});
-  const [practiceCount,     setPracticeCount]     = useState(0);
+  // Nivel de trazado local (0=fácil, 1=medio, 2=difícil) y registro de intentos por nivel
+  const [tracingLevel,  setTracingLevel]  = useState(0);          // 0|1|2
+  const [levelAttempts, setLevelAttempts] = useState([[], [], []]); // por nivel: últimos N booleans
   const [tracingKey,        setTracingKey]        = useState(0);
   const [syllableLetterIdx, setSyllableLetterIdx] = useState(0);
   const [syllableSayPhase,  setSyllableSayPhase]  = useState(false);
   // Mastery dialog
   const [masteryDialog,     setMasteryDialog]     = useState(null); // { topicId, nextTopicId }
+  // Age-complete popup (parents)
+  const [ageCompleteDialog, setAgeCompleteDialog] = useState(false);
   // Free drawing
   const [coloringSubject,   setColoringSubject]   = useState(null);
   // Topic picker
@@ -91,9 +140,11 @@ export default function ChatWindow({ student, isNewStudent = false }) {
   // Tutorial
   const [tutorialStep, setTutorialStep] = useState(null); // null=done, 0-3=active
 
-  const ageProfile        = student ? Math.min(Math.max(parseInt(student.age) || 4, 3), 5) : 4;
-  const maxTurns          = MAX_TURNS_BY_AGE[ageProfile]   ?? 12;
-  const requiredPractices = REQUIRED_PRACTICES[ageProfile] ?? 1;
+  const ageProfile = student ? Math.min(Math.max(parseInt(student.age) || 4, 3), 5) : 4;
+  const maxTurns   = MAX_TURNS_BY_AGE[ageProfile] ?? 12;
+
+  // Display name for the current topic (used as title in LetterTracing)
+  const currentTopicDisplayName = accessibleTopics.find(t => t.id === currentTopicId)?.display_name ?? "";
 
   // ── Voice ─────────────────────────────────────────────────────────────────
   const sendRef           = useRef(null);
@@ -103,6 +154,21 @@ export default function ChatWindow({ student, isNewStudent = false }) {
   const topicPickerOpenRef = useRef(false);  // mirrors topicPickerOpen for stable handleSilence
   const listenFnRef       = useRef(null);    // points to startListeningStable (set after useSpeech)
   const tutorialStepRef   = useRef(null);    // mirrors tutorialStep
+  const badgeRef          = useRef(null);    // level-progress badge div (kept for future use)
+  const [badgeRight, setBadgeRight] = useState(8);
+
+  // ── Badge responsive positioning ──────────────────────────────────────────
+  useEffect(() => {
+    const update = () => {
+      const canvasSize = Math.max(Math.min(window.innerWidth - 16, window.innerHeight - 16, 1200), 200);
+      const rightMargin = (window.innerWidth - canvasSize) / 2;
+      setBadgeRight(Math.max(4, (rightMargin - BADGE_W) / 2));
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Stable transcript handler — uses refs so useSpeech never recreates the listener
   const handleTranscript = useCallback((text) => {
@@ -117,12 +183,18 @@ export default function ChatWindow({ student, isNewStudent = false }) {
       setTutorialStep(0);
       return;
     }
-    // During free drawing: only exit/change commands are processed
+    // During free drawing: exit/change/resume commands only
     if (coloringSubjectRef.current) {
       console.log("[handleTranscript] coloring mode, subject:", coloringSubjectRef.current, "text:", lower);
       if (/\b(salir|volver|terminar|ya terminé|fin|salgo)\b/i.test(lower)) {
         setColoringSubject(null);
         const msg = "¡Qué bonito dibujo! ¿Continuamos?";
+        setLastMessage(msg);
+        speakRef.current?.(msg);
+      } else if (/\b(seguir|continuar|practicar|ejercicio|aprender|lección|leccion|clase|estudio)\b/i.test(lower)) {
+        // Child wants to go back to the lesson
+        setColoringSubject(null);
+        const msg = "¡Vamos a practicar!";
         setLastMessage(msg);
         speakRef.current?.(msg);
       } else if (/\b(otro|cambiar|diferente|nuevo dibujo|otra cosa|cambia|cambiarlo)\b/i.test(lower)) {
@@ -131,6 +203,27 @@ export default function ChatWindow({ student, isNewStudent = false }) {
         const msg = "¡Aquí tienes otro dibujo!";
         setLastMessage(msg);
         speakRef.current?.(msg);
+      } else {
+        // Detect a specific animal request: "quiero un perro", "pon un tigre", etc.
+        const reqSubject = subjectFromText(lower);
+        if (reqSubject && reqSubject !== coloringSubjectRef.current) {
+          setColoringSubject(reqSubject);
+          const msg = `¡Vamos a dibujar ${reqSubject}!`;
+          setLastMessage(msg);
+          speakRef.current?.(msg);
+        } else {
+          // Catch-all in coloring mode: encourage painting
+          const subject = coloringSubjectRef.current;
+          const encouragements = [
+            `¡Sigue pintando tu ${subject}! 🎨`,
+            `¡Qué bonito te está quedando! Sigue así 🌈`,
+            `¡Pon muchos colores! ¿Qué color vas a usar? 🖌️`,
+            `¡Lo estás haciendo genial! ¡Sigue pintando! 🎨`,
+          ];
+          const msg = encouragements[Math.floor(Math.random() * encouragements.length)];
+          setLastMessage(msg);
+          speakRef.current?.(msg);
+        }
       }
       return;
     }
@@ -243,7 +336,8 @@ export default function ChatWindow({ student, isNewStudent = false }) {
   // Reset practice counter, syllable step on topic change + queue tutorial text
   const prevTopicIdRef = useRef(null);
   useEffect(() => {
-    setPracticeCount(0);
+    setTracingLevel(0);
+    setLevelAttempts([[], [], []]);
     setSyllableLetterIdx(0);
     setSyllableSayPhase(false);
     setTracingKey((k) => k + 1);
@@ -266,6 +360,18 @@ export default function ChatWindow({ student, isNewStudent = false }) {
   useEffect(() => { topicPickerOpenRef.current  = topicPickerOpen;   }, [topicPickerOpen]);
   useEffect(() => { tutorialStepRef.current     = tutorialStep;      }, [tutorialStep]);
   useEffect(() => { coloringSubjectRef.current  = coloringSubject;   }, [coloringSubject]);
+
+  // Close open popups when the child enters free drawing
+  useEffect(() => {
+    if (!coloringSubject) return;
+    setMasteryDialog(null);
+    setTopicPickerOpen(false);
+  }, [coloringSubject]);
+
+  // Close topic picker when the active topic changes externally
+  useEffect(() => {
+    setTopicPickerOpen(false);
+  }, [currentTopicId]);
 
   // Fetch accessible topics when picker is requested
   useEffect(() => {
@@ -299,7 +405,9 @@ export default function ChatWindow({ student, isNewStudent = false }) {
     console.log("[TUTORIAL] Step changed to:", tutorialStep, "step:", step);
     if (!step) return;
     speakRef.current?.(step.voice);
-    const tid = setTimeout(() => advanceTutorial(), 8000);
+    // Step 4 (badge explanation) has a longer text → give it more time
+    const autoAdvanceMs = tutorialStep === LEVEL_BADGE_TUTORIAL_STEP ? 16000 : 9000;
+    const tid = setTimeout(() => advanceTutorial(), autoAdvanceMs);
     return () => clearTimeout(tid);
   }, [tutorialStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -321,13 +429,15 @@ export default function ChatWindow({ student, isNewStudent = false }) {
     }
   }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Always-on: restart mic whenever it drops and we're not busy
+  // Always-on: restart mic whenever it drops and we're not busy.
+  // topicPickerOpen is in deps so the effect re-fires when the picker closes,
+  // which is what actually re-enables the mic after the picker dismissal.
   useEffect(() => {
     if (listening || speaking || loading || !supported) return;
-    if (topicPickerOpenRef.current) return;
+    if (topicPickerOpen) return;
     const tid = setTimeout(() => startListeningStable(), 600);
     return () => clearTimeout(tid);
-  }, [listening, speaking, loading, supported, startListeningStable]);
+  }, [listening, speaking, loading, supported, startListeningStable, topicPickerOpen]);
 
   // ── Core send (streaming) ─────────────────────────────────────────────────
   const sendMessage = useCallback(async (text) => {
@@ -380,6 +490,9 @@ export default function ChatWindow({ student, isNewStudent = false }) {
 
           if (masteryActions.includes(event.bdi_action)) {
             setMasteryDialog({ topicId: event.current_topic_id, nextTopicId: event.next_topic_id });
+            if (event.all_age_topics_complete && student && student.age < 5) {
+              setAgeCompleteDialog(true);
+            }
           }
           if (event.bdi_action === "offer_alternatives") {
             setTopicPickerPending(true);
@@ -390,10 +503,13 @@ export default function ChatWindow({ student, isNewStudent = false }) {
           setTurnCount((n) => n + 1);
 
           if (["attempt_answer", "tracing_complete"].includes(event.detected_intent)) {
-            if (event.is_correct === true)
+            if (event.is_correct === true) {
               setSessionStats((s) => ({ ...s, correct: s.correct + 1 }));
-            else if (event.is_correct === false)
+              playFeedbackSound("correct");
+            } else if (event.is_correct === false) {
               setSessionStats((s) => ({ ...s, incorrect: s.incorrect + 1 }));
+              playFeedbackSound("incorrect");
+            }
           }
           if (["ask_for_hint", "ask_for_answer"].includes(event.detected_intent)) {
             setSessionStats((s) => ({ ...s, hints: s.hints + 1 }));
@@ -460,6 +576,18 @@ export default function ChatWindow({ student, isNewStudent = false }) {
     setLastMessage(msg);
     speak(msg);
   }, [speak]);
+
+  const handleAgeAdvance = useCallback(() => {
+    if (!student) return;
+    const newAge = Math.min(parseInt(student.age) + 1, 5);
+    setAgeCompleteDialog(false);
+    api.updateStudentAge(student.id, newAge)
+      .then(() => {
+        // Reload page so the parent component refreshes the student with new age
+        window.location.reload();
+      })
+      .catch(e => console.error("[ageAdvance]", e));
+  }, [student]);
 
   // ── Topic picker ──────────────────────────────────────────────────────────
   const openTopicPicker = useCallback(() => setTopicPickerPending(true), []);
@@ -549,45 +677,69 @@ export default function ChatWindow({ student, isNewStudent = false }) {
       }
     }
 
-    const nextCount = practiceCount + 1;
-    if (nextCount < requiredPractices) {
-      setPracticeCount(nextCount);
-      setTracingKey((k) => k + 1);
-      const msg = passed ? "¡Muy bien! 🌟 Otra vez..." : "¡Casi! 💪 Inténtalo otra vez...";
-      setLastMessage(msg);
-      speak(msg);
-      return;
+    // ── Registro de intento en el nivel actual ────────────────────────────
+    const curLevelAttempts = [...levelAttempts[tracingLevel], passed].slice(-LEVEL_PASS_REQUIRED);
+    setLevelAttempts(prev => prev.map((a, i) => i === tracingLevel ? curLevelAttempts : a));
+
+    const allGreen = curLevelAttempts.length === LEVEL_PASS_REQUIRED
+      && curLevelAttempts.every(Boolean);
+
+    if (allGreen) {
+      if (tracingLevel < 2) {
+        // ── Avanzar al siguiente nivel (más difícil) ──────────────────────
+        const nextLevel = tracingLevel + 1;
+        setTracingLevel(nextLevel);
+        // Limpiar los intentos del nuevo nivel para que empiece fresco
+        setLevelAttempts(prev => prev.map((a, i) => i === nextLevel ? [] : a));
+        setTracingKey(k => k + 1);
+        const levelMsg = nextLevel === 1
+          ? "¡Genial! ¡Ahora sin tantos puntos! 🌟🌟"
+          : "¡Increíble! ¡Ahora el nivel más difícil! 🌟🌟🌟";
+        setLastMessage(levelMsg);
+        speak(levelMsg);
+        return;
+      } else {
+        // ── Nivel difícil completado → reportar al agente (posible mastery) ─
+        const charInfo = getCharData(currentTopicId);
+        const key      = charInfo?.key ?? "";
+        const isStroke = currentTopicId?.startsWith("trazo_");
+        const subject  = isStroke ? `el trazo ${key}` : `la letra ${key}`;
+        const msg = `He trazado ${subject} y me ha salido bien en todos los niveles (${score}% de acierto)`;
+        sendMessage(msg);
+        return;
+      }
     }
 
-    setPracticeCount(0);
-    const charInfo = getCharData(currentTopicId);
-    const key      = charInfo?.key ?? "";
-    const isStroke = currentTopicId?.startsWith("trazo_");
-    const subject  = isStroke ? `el trazo ${key}` : `la letra ${key}`;
-    const msg      = passed
-      ? `He trazado ${subject} y me ha salido bien (${score}% de acierto)`
-      : `He intentado trazar ${subject} pero necesito practicar más (${score}%)`;
-    sendMessage(msg);
-  }, [practiceCount, requiredPractices, currentTopicId, syllableLetterIdx, speak, sendMessage]);
+    // ── Continuar en el mismo nivel ───────────────────────────────────────
+    // Si los 3 huecos están llenos y no son todos verdes → mensaje especial + reset
+    if (curLevelAttempts.length === LEVEL_PASS_REQUIRED) {
+      setLevelAttempts(prev => prev.map((a, i) => i === tracingLevel ? [] : a));
+      const msg = "¡Ánimo! Para subir de estrella necesitas tres círculos verdes. ¡Lo intentamos de nuevo!";
+      setLastMessage(msg);
+      speak(msg);
+      setTracingKey((k) => k + 1);
+      return;
+    }
+    setTracingKey((k) => k + 1);
+    const msg = passed ? "¡Muy bien! 🌟 Otra vez..." : "¡Casi! 💪 Inténtalo otra vez...";
+    setLastMessage(msg);
+    speak(msg);
+  }, [tracingLevel, levelAttempts, currentTopicId, syllableLetterIdx, speak, sendMessage]);
 
 
   // ── Derived values ────────────────────────────────────────────────────────
   const isPlacementInProgress = currentBeliefs?.placement_in_progress === true;
+
+  // hintLevel viene directamente del nivel local (0=fácil→3, 1=medio→2, 2=difícil→1)
+  const hintLevel         = 3 - tracingLevel;
+  const tracingDifficulty = tracingLevel;
+
   const syllableLetters       = isPlacementInProgress ? null : getSyllableLetters(currentTopicId);
   const charData = isPlacementInProgress ? null
     : syllableLetters
-      ? (syllableSayPhase ? null : getCharDataByKey(syllableLetters[syllableLetterIdx]))
-      : getCharData(currentTopicId);
+      ? (syllableSayPhase ? null : getCharDataByKey(syllableLetters[syllableLetterIdx], tracingDifficulty))
+      : getCharData(currentTopicId, tracingDifficulty);
   charDataRef.current = charData;
-
-  const topicMastery  = currentBeliefs?.mastery?.[currentTopicId] ?? {};
-  const topicAttempts = topicMastery.attempts ?? 0;
-  const topicCorrect  = topicMastery.correct  ?? 0;
-  const topicSR       = topicAttempts > 0 ? Math.round((topicCorrect / topicAttempts) * 100) : null;
-  const hintLevel =
-    ageProfile <= 3              ? 3 :
-    topicSR === null || topicSR < 40 ? 3 :
-    topicSR < 70                ? 2 : 1;
 
   const avatarState = speaking ? "speaking" : listening ? "listening" : loading ? "thinking" : "idle";
   const avatarSize  = charData ? 90 : 130;
@@ -661,6 +813,49 @@ export default function ChatWindow({ student, isNewStudent = false }) {
         </div>
       )}
 
+      {/* ── Age-complete popup (for parents) ──────────────────────────────── */}
+      {ageCompleteDialog && (
+        <div
+          style={{
+            position: "absolute", inset: 0, zIndex: 55,
+            background: "rgba(0,0,0,0.65)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              background: "white", borderRadius: "24px", padding: "28px 24px",
+              maxWidth: "360px", width: "90vw", textAlign: "center",
+              boxShadow: "0 8px 40px rgba(0,0,0,0.35)",
+            }}
+          >
+            <div style={{ fontSize: "56px", marginBottom: "8px" }}>🎓</div>
+            <div style={{ fontSize: "20px", fontWeight: "bold", color: "#1e3a5f", marginBottom: "8px" }}>
+              ¡Mensaje para mamá o papá!
+            </div>
+            <div style={{ fontSize: "15px", color: "#4a5568", marginBottom: "20px", lineHeight: 1.5 }}>
+              <strong>{student?.name}</strong> ha completado todas las actividades
+              de <strong>{student?.age} años</strong>. ¿Deseas que continúe con
+              las actividades de <strong>{(student?.age || 4) + 1} años</strong>?
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <button
+                onClick={handleAgeAdvance}
+                style={{ padding: "14px", borderRadius: "16px", border: "none", background: "#4a90d9", color: "white", fontSize: "16px", cursor: "pointer", fontWeight: "bold" }}
+              >
+                ✅ Sí, avanzar a {(student?.age || 4) + 1} años
+              </button>
+              <button
+                onClick={() => setAgeCompleteDialog(false)}
+                style={{ padding: "14px", borderRadius: "16px", border: "2px solid #dce8f5", background: "white", fontSize: "16px", cursor: "pointer" }}
+              >
+                ⏳ Seguir repasando por ahora
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Topic picker overlay ───────────────────────────────────────────── */}
       {topicPickerOpen && (
         <div
@@ -683,24 +878,42 @@ export default function ChatWindow({ student, isNewStudent = false }) {
               ¿Qué quieres practicar?
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              {accessibleTopics.map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => handleTopicSelect(t.id)}
-                  style={{
-                    padding: "12px 8px", borderRadius: "14px", cursor: "pointer",
-                    border: t.id === currentTopicId ? "3px solid #4a90d9" : "2px solid #e0e0e0",
-                    background: t.mastered ? "#f0fdf4" : t.id === currentTopicId ? "#e8f0fb" : "white",
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
-                    fontSize: "13px", fontWeight: t.id === currentTopicId ? "bold" : "normal",
-                  }}
-                >
-                  <span style={{ fontSize: "28px" }}>{t.emoji}</span>
-                  <span>{t.display_name}</span>
-                  {t.mastered && <span style={{ fontSize: "11px", color: "#16a34a" }}>✓ Dominado</span>}
-                  {!t.mastered && t.attempts > 0 && <span style={{ fontSize: "11px", color: "#f59e0b" }}>En progreso</span>}
-                </button>
-              ))}
+              {accessibleTopics.map(t => {
+                const isLocked   = t.locked === true;
+                const bgColor    = isLocked          ? "#f3f4f6"
+                                 : t.mastered        ? "#f0fdf4"
+                                 : t.attempts > 0 && t.success_rate < 0.5 ? "#fff1f2"
+                                 : t.id === currentTopicId ? "#e8f0fb"
+                                 : "white";
+                const borderColor = isLocked         ? "#e0e0e0"
+                                  : t.mastered       ? "#86efac"
+                                  : t.id === currentTopicId ? "#4a90d9"
+                                  : "#e0e0e0";
+                return (
+                  <button
+                    key={t.id}
+                    onClick={isLocked ? undefined : () => handleTopicSelect(t.id)}
+                    style={{
+                      padding: "12px 8px", borderRadius: "14px", cursor: isLocked ? "default" : "pointer",
+                      border: `${t.id === currentTopicId ? "3px" : "2px"} solid ${borderColor}`,
+                      background: bgColor,
+                      display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
+                      fontSize: "13px", fontWeight: t.id === currentTopicId ? "bold" : "normal",
+                      opacity: isLocked ? 0.55 : 1,
+                      position: "relative",
+                    }}
+                  >
+                    <span style={{ fontSize: "28px" }}>{isLocked ? "🔒" : t.emoji}</span>
+                    <span style={{ textAlign: "center" }}>{t.display_name}</span>
+                    {t.mastered && <span style={{ fontSize: "11px", color: "#15803d", fontWeight: "bold" }}>✅ Superado</span>}
+                    {!t.mastered && t.attempts > 0 && !isLocked && (
+                      <span style={{ fontSize: "11px", color: t.success_rate >= 0.5 ? "#b45309" : "#dc2626" }}>
+                        {Math.round(t.success_rate * 100)}% acierto
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -710,14 +923,15 @@ export default function ChatWindow({ student, isNewStudent = false }) {
       {tutorialStep !== null && TUTORIAL_STEPS[tutorialStep] && (() => {
         const step = TUTORIAL_STEPS[tutorialStep];
         // Support both left- and right-anchored spots (🔄 is right-anchored)
+        const toCss = v => v == null ? undefined : typeof v === "string" ? v : `${v}px`;
         const spotStyle = {
           position: "fixed",
-          top:    step.spot.top    != null ? `${step.spot.top}px`    : undefined,
-          bottom: step.spot.bottom != null ? `${step.spot.bottom}px` : undefined,
-          left:   step.spot.left   != null ? `${step.spot.left}px`   : undefined,
-          right:  step.spot.right  != null ? `${step.spot.right}px`  : undefined,
+          top:    toCss(step.spot.top),
+          bottom: toCss(step.spot.bottom),
+          left:   toCss(step.spot.left),
+          right:  toCss(tutorialStep === LEVEL_BADGE_TUTORIAL_STEP ? badgeRight - 4 : step.spot.right),
           width: `${step.spot.w}px`, height: `${step.spot.h}px`,
-          borderRadius: "50%",
+          borderRadius: step.spot.r ?? "50%",
           boxShadow: "0 0 0 9999px rgba(0,0,0,0.76)",
           border: "3px solid rgba(255,255,255,0.9)",
           zIndex: 491, pointerEvents: "none",
@@ -725,10 +939,10 @@ export default function ChatWindow({ student, isNewStudent = false }) {
         };
         const bubbleStyle = {
           position: "fixed",
-          top:    step.bubble.top    != null ? `${step.bubble.top}px`    : undefined,
-          bottom: step.bubble.bottom != null ? `${step.bubble.bottom}px` : undefined,
-          left:   step.bubble.left   != null ? `${step.bubble.left}px`   : undefined,
-          right:  step.bubble.right  != null ? `${step.bubble.right}px`  : undefined,
+          top:    toCss(step.bubble.top),
+          bottom: toCss(step.bubble.bottom),
+          left:   toCss(step.bubble.left),
+          right:  toCss(tutorialStep === LEVEL_BADGE_TUTORIAL_STEP ? badgeRight - 4 : step.bubble.right),
           maxWidth: "230px",
           background: "white", borderRadius: "16px", padding: "14px 16px",
           boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
@@ -762,8 +976,8 @@ export default function ChatWindow({ student, isNewStudent = false }) {
         );
       })()}
 
-      {/* ── 📚 Topic picker — visible when topic active OR spotlighted in tutorial step 2 */}
-      {(currentTopicId || tutorialStep === 2) && !masteryDialog && (
+      {/* ── 📚 Topic picker — visible when topic active OR during any tutorial step */}
+      {(currentTopicId || tutorialStep !== null) && !masteryDialog && (
         <button
           onClick={tutorialStep !== null ? undefined : openTopicPicker}
           style={{ ...CTRL_BTN, top: "12px", left: "152px",
@@ -785,7 +999,7 @@ export default function ChatWindow({ student, isNewStudent = false }) {
       </button>
 
       {/* ── 🔄 Replay-demo — visible during tracing OR spotlighted in tutorial step 3 */}
-      {(charData || tutorialStep === 3) && !masteryDialog && (
+      {(charData || tutorialStep === 3) && !masteryDialog && !coloringSubject && (
         <button
           onClick={tutorialStep !== null ? undefined : handleReplayDemo}
           style={{ ...CTRL_BTN, top: "12px", right: "12px", left: "auto",
@@ -797,22 +1011,6 @@ export default function ChatWindow({ student, isNewStudent = false }) {
         </button>
       )}
 
-      {/* ── Turn-limit badge — bottom-left ─────────────────────────────────── */}
-      {turnCount >= maxTurns && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "16px",
-            left: "16px",
-            zIndex: 30,
-            fontSize: "28px",
-            lineHeight: 1,
-            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
-          }}
-        >
-          🌟🌟🌟
-        </div>
-      )}
 
       {/* ── Letter tracing — hidden while free-drawing ─────────────────────── */}
       {charData && !coloringSubject && (
@@ -834,9 +1032,85 @@ export default function ChatWindow({ student, isNewStudent = false }) {
             onComplete={handleTracingComplete}
             onDemoEnd={handleDemoEnd}
             skipInitialDemo={demoShownRef.current === currentTopicId}
-            disabled={loading}
+            disabled={loading || speaking}
+            isThinking={loading}
             minimal={true}
+            title={currentTopicDisplayName}
           />
+        </div>
+      )}
+
+      {/* ── Level progress badge (right side, shown during tracing OR tutorial step) ─ */}
+      {(charData || tutorialStep === LEVEL_BADGE_TUTORIAL_STEP) && !coloringSubject && (
+        <div
+          ref={badgeRef}
+          style={{
+            position: "fixed",
+            right: `${badgeRight}px`,
+            top: 0,
+            bottom: 0,
+            marginTop: "auto",
+            marginBottom: "auto",
+            height: "fit-content",
+            zIndex: 10,
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+            background: "rgba(255,255,255,0.95)",
+            borderRadius: "20px",
+            padding: "16px 14px",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.16)",
+            pointerEvents: "none",
+          }}
+        >
+          {[0, 1, 2].map(lvl => {
+            const isActive = lvl === tracingLevel;
+            const isDone   = lvl < tracingLevel;
+            const attempts = levelAttempts[lvl] ?? [];
+            const allGreenDone = isDone || (isActive && attempts.length === LEVEL_PASS_REQUIRED && attempts.every(Boolean));
+            return (
+              <div
+                key={lvl}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  opacity: !isDone && !isActive ? 0.30 : 1,
+                  transition: "opacity 0.3s",
+                }}
+              >
+                {/* Estrellas: lvl+1 rellenas, el resto vacías */}
+                <div style={{ display: "flex", gap: "1px" }}>
+                  {[0, 1, 2].map(si => (
+                    <span key={si} style={{ fontSize: "20px", lineHeight: 1 }}>
+                      {si <= lvl ? (allGreenDone ? "⭐" : "★") : "☆"}
+                    </span>
+                  ))}
+                </div>
+                {/* Separador */}
+                <div style={{ width: "1px", height: "22px", background: "#d1d5db", margin: "0 4px" }} />
+                {/* Círculos de intento */}
+                {[0, 1, 2].map(ai => {
+                  const val = attempts[ai];
+                  const isNext = isActive && ai === attempts.length;
+                  return (
+                    <div
+                      key={ai}
+                      style={{
+                        width: "22px",
+                        height: "22px",
+                        borderRadius: "50%",
+                        background: val === undefined ? "#e5e7eb" : val ? "#16a34a" : "#dc2626",
+                        border: isNext ? "2px solid #4a90d9" : "2px solid transparent",
+                        flexShrink: 0,
+                        transition: "background 0.25s",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -860,6 +1134,7 @@ export default function ChatWindow({ student, isNewStudent = false }) {
             key={coloringSubject}
             inline
             subject={coloringSubject}
+            disabled={speaking || loading}
             onBack={() => {
               setColoringSubject(null);
               const msg = "¡Qué bonito dibujo! ¿Continuamos?";

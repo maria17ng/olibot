@@ -4,13 +4,20 @@ SQLite database connection and session management using SQLAlchemy.
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 from backend.config.settings import get_settings
 
 settings = get_settings()
 
+# NullPool: SQLite does not benefit from connection pooling.
+# Using the default QueuePool causes exhaustion when async routes hold
+# connections open across LLM calls (several seconds per turn).
+# NullPool opens/closes a fresh connection per request, which SQLite
+# handles fine and avoids "QueuePool limit reached" errors.
 engine = create_engine(
     settings.database_url,
-    connect_args={"check_same_thread": False},  # Required for SQLite with FastAPI
+    connect_args={"check_same_thread": False},
+    poolclass=NullPool,
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -104,7 +104,7 @@ async def advance_session_topic(
 
 @router.get("/student/{student_id}/topics")
 async def get_accessible_topics(student_id: int, db: Session = Depends(get_db)):
-    """Returns all topics whose prerequisites are met for this student."""
+    """Returns ALL topics for this student's age with a 'locked' flag for blocked ones."""
     from backend.db.repositories.student_repo import StudentRepository
     from backend.pedagogy.curriculum import CurriculumEngine
     student_repo = StudentRepository(db)
@@ -115,19 +115,27 @@ async def get_accessible_topics(student_id: int, db: Session = Depends(get_db)):
     age = int(student.age or 4)
     curriculum = CurriculumEngine()
     topics = curriculum.get_topics_for_age(age)
-    accessible = [t for t in topics if curriculum.prerequisites_met(beliefs, t)]
     mastery_data = beliefs.get("mastery", {})
-    return [
-        {
-            "id": t.id,
+    result = []
+    for t in topics:
+        m = mastery_data.get(t.id, {})
+        attempts = m.get("attempts", 0)
+        correct  = m.get("correct",  0)
+        mastered = m.get("mastered", False)
+        sr = round(correct / attempts, 2) if attempts > 0 else 0.0
+        locked = not curriculum.prerequisites_met(beliefs, t, age)
+        result.append({
+            "id":           t.id,
             "display_name": t.display_name,
-            "emoji": t.emoji,
-            "category": t.category.value,
-            "attempts": mastery_data.get(t.id, {}).get("attempts", 0),
-            "mastered": mastery_data.get(t.id, {}).get("mastered", False),
-        }
-        for t in accessible
-    ]
+            "emoji":        t.emoji,
+            "category":     t.category.value,
+            "attempts":     attempts,
+            "correct":      correct,
+            "success_rate": sr,
+            "mastered":     mastered,
+            "locked":       locked,
+        })
+    return result
 
 
 @router.get("/session/{session_id}/history")

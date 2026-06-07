@@ -389,6 +389,17 @@ class SessionManager:
         ):
             self.session_repo.increment_hints(session.id)
 
+        # ── 14. Age-completion check (only on mastery events for age < 5) ─────
+        mastery_actions = {"mastery_achieved", "praise_and_advance"}
+        all_age_topics_complete = False
+        if bdi_decision.action in mastery_actions and int(student.age or 4) < 5:
+            age_topics = _curriculum.get_topics_for_age(int(student.age or 4))
+            mastery_data = updated_beliefs.get("mastery", {})
+            all_age_topics_complete = (
+                len(age_topics) > 0
+                and all(mastery_data.get(t.id, {}).get("mastered", False) for t in age_topics)
+            )
+
         # ── 13. Topic advancement — skip for mastery_achieved/praise_and_advance ─
         # Child chooses via the mastery dialog; session_id stays so the dialog
         # can call /advance when the child picks the next topic.
@@ -425,6 +436,7 @@ class SessionManager:
             "current_topic_id": current_topic.id if current_topic else None,
             "bdi_action": bdi_decision.action,
             "free_drawing_subject": bdi_decision.free_drawing_subject,
+            "all_age_topics_complete": all_age_topics_complete,
         }
 
     def _get_or_create_session(

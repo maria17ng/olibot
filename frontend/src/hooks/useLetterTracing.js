@@ -115,7 +115,7 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
   const [phase, setPhase] = useState(skipInitialDemo ? "tracing" : "demo");
   const [result, setResult] = useState(null);
 
-  const totalStrokes = charData?.strokes?.length ?? 0;
+  const totalStrokes = (charData?.demoStrokes ?? charData?.strokes)?.length ?? 0;
 
   // Keep charDataRef current
   useEffect(() => { charDataRef.current = charData; }, [charData]);
@@ -136,15 +136,15 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
     ctx.fillStyle = "#fafafa";
     ctx.fillRect(0, 0, W, H);
 
-    // 2. Ghost letter guide (hintLevel 3)
-    if (hintLevel >= 3) {
+    // 2. Ghost letter guide (hintLevel 2 y 3 — muestra el fondo gris en nivel medio y fácil)
+    if (hintLevel >= 2) {
       ctx.save();
       ctx.globalAlpha = 0.12;
       ctx.strokeStyle = "#374151";
       ctx.lineWidth = Math.min(W, H) * 0.22;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
-      for (const stroke of charData.strokes) {
+      for (const stroke of (charData.demoStrokes ?? charData.strokes)) {
         if (!stroke.points.length) continue;
         ctx.beginPath();
         ctx.moveTo(stroke.points[0].x * W, stroke.points[0].y * H);
@@ -188,7 +188,12 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
 
       if (hintLevel >= 3 && active && stroke.points.length >= 1) {
         const p0 = stroke.points[0];
-        const arrowAngle = stroke.arrowAngle ?? 0;
+        const arrowAngle = stroke.arrowAngle != null
+          ? stroke.arrowAngle
+          : (stroke.points.length >= 2
+              ? Math.atan2(stroke.points[1].y - stroke.points[0].y,
+                           stroke.points[1].x - stroke.points[0].x) * 180 / Math.PI
+              : 0);
         const arrowLen = Math.min(W, H) * 0.13;
         const rad = (arrowAngle * Math.PI) / 180;
         const ax = p0.x * W;
@@ -352,7 +357,7 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
       demoElapsedRef.current += dt;
 
       const si = demoStrokeIdxRef.current;
-      const stroke = cd.strokes[si];
+      const stroke = (cd.demoStrokes ?? cd.strokes)[si];
       if (!stroke) {
         demoCursorRef.current = null;
         demoPathRef.current = [];
@@ -378,7 +383,7 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
 
       if (t >= 1) {
         const nextSi = si + 1;
-        if (nextSi >= cd.strokes.length) {
+        if (nextSi >= (cd.demoStrokes ?? cd.strokes).length) {
           // One full pass done — check if we should repeat
           if (demoRepeatCountRef.current < DEMO_REPEATS - 1) {
             demoRepeatCountRef.current += 1;
@@ -502,6 +507,15 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
     }
   }, [charData, currentStrokeIdx, totalStrokes, finalize, scheduleRedraw]);
 
+  // ── Cancel current stroke (called when canvas is disabled mid-stroke) ────
+
+  const cancelStroke = useCallback(() => {
+    if (!drawingRef.current) return;
+    drawingRef.current = false;
+    currentPath.current = [];
+    scheduleRedraw();
+  }, [scheduleRedraw]);
+
   // ── Reset ─────────────────────────────────────────────────────────────────
 
   const reset = useCallback(() => {
@@ -539,6 +553,7 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
     phase,      // "demo" | "tracing" | "done"
     result,
     skipDemo,
+    cancelStroke,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,

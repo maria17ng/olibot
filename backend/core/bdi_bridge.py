@@ -323,7 +323,11 @@ class PythonBDIFallback:
             syllable_sound = current_topic.display_name.split()[-1] if is_syllable and current_topic else ""
 
             if passed:
-                beliefs = _scaffolding.record_attempt(beliefs, topic_id, True)
+                # El frontend ya aplica la regla de 3 niveles × 3 intentos verdes antes de
+                # enviar este mensaje, así que registramos MIN_ATTEMPTS intentos correctos de
+                # golpe para que should_advance_topic() detecte la maestría correctamente.
+                for _ in range(_scaffolding.MIN_ATTEMPTS):
+                    beliefs = _scaffolding.record_attempt(beliefs, topic_id, True)
                 next_topic_id = None
                 mastery_achieved = False
                 if not is_syllable and _scaffolding.should_advance_topic(beliefs, topic_id):
@@ -463,12 +467,8 @@ class PythonBDIFallback:
         # ── Plan: greeting — placement test for age≥4, proactive topic for others ──
         # Jason: +!respond(greet, _, _) <- greet_and_propose_topic.
         if intent.name == "greet":
-            # Check if placement test is needed (age >= 4, first session, no mastery yet)
-            needs_placement = (
-                student_age >= 4
-                and not beliefs.get("placement_done", False)
-                and not beliefs.get("mastery")
-            )
+            # Placement test disabled: young children (3-5) go directly to their first topic
+            needs_placement = False
 
             child_said = f"The child said: '{user_message}'. " if user_message else ""
 
@@ -543,7 +543,7 @@ class PythonBDIFallback:
             # Fix: use _curriculum.get_topic() instead of the undefined CURRICULUM dict
             requested_topic = _curriculum.get_topic(requested_id) if requested_id else None
 
-            if requested_topic and _curriculum.prerequisites_met(beliefs, requested_topic):
+            if requested_topic and _curriculum.prerequisites_met(beliefs, requested_topic, student_age):
                 instruction = (
                     f"The student wants to practice '{requested_topic.display_name}'. "
                     f"Accept enthusiastically! {requested_topic.description_for_student}"
@@ -582,21 +582,84 @@ class PythonBDIFallback:
 
         # ── Plan: free drawing request ─────────────────────────────────────────
         if intent.name == "free_drawing":
-            # Extract drawing subject from message (simple keyword match)
+            # Extract drawing subject from message (keyword match — mirrors frontend subjectFromText)
             msg_lower = user_message.lower() if user_message else ""
             subject_map = {
-                "perro": "perro", "can": "perro", "cachorro": "perro",
-                "gato": "gato", "gatito": "gato",
-                "pato": "pato",
-                "conejo": "conejo",
-                "mariposa": "mariposa",
-                "pez": "pez", "peces": "pez",
+                # Dogs
+                "perro": "perro", "cachorro": "perro", "perrita": "perro", "can": "perro",
+                # Cats
+                "gato": "gato", "gatito": "gato", "gata": "gato",
+                # Birds
+                "pato": "pato", "patito": "pato",
                 "pajaro": "pajaro", "pájaro": "pajaro", "pajarito": "pajaro",
+                "buho": "buho", "búho": "buho", "lechuza": "buho",
+                "guacamaya": "guacamaya", "loro": "loro", "cotorra": "loro", "papagayo": "loro",
+                "pollo": "pollo", "pollito": "pollo",
+                "pinguino": "pinguino", "pingüino": "pinguino",
+                "aguila": "aguila", "águila": "aguila",
+                "tucan": "tucan", "tucán": "tucan",
+                "colibri": "colibri", "colibrí": "colibri",
+                # Insects
+                "mariposa": "mariposa",
+                "abeja": "abeja", "abejita": "abeja",
+                "hormiga": "hormiga",
+                "caracol": "caracol",
+                "gusano": "gusano",
+                # Fish / aquatic
+                "pez": "pez", "peces": "pez", "pescado": "pez",
+                "tiburon": "tiburon", "tiburón": "tiburon",
+                "delfin": "delfin", "delfín": "delfin",
+                "pulpo": "pulpo",
+                "sardina": "sardina",
+                # Mammals
+                "conejo": "conejo", "conejito": "conejo",
+                "oso": "oso", "osito": "oso",
+                "panda": "panda", "oso panda": "panda",
                 "elefante": "elefante",
-                "sol": "sol",
-                "casa": "casa",
+                "jirafa": "jirafa",
+                "leon": "leon", "león": "leon",
+                "tigre": "tigre",
+                "cebra": "cebra",
+                "mono": "mono", "monito": "mono", "mico": "mono",
+                "hipopotamo": "hipopotamo", "hipopótamo": "hipopotamo",
+                "cocodrilo": "cocodrilo",
+                "serpiente": "serpiente", "culebra": "serpiente", "víbora": "serpiente",
+                "rana": "rana",
+                "tortuga": "tortuga",
+                "caballo": "caballo", "caballito": "caballo",
+                "vaca": "vaca",
+                "cerdo": "cerdo", "cerdito": "cerdo", "cochino": "cerdo",
+                "oveja": "oveja", "borrego": "oveja",
+                "lobo": "lobo",
+                "zorro": "zorro",
+                "unicornio": "unicornio",
+                "hamster": "hamster",
+                "iguana": "iguana",
+                "koala": "koala",
+                "raton": "raton", "ratón": "raton",
+                "canguro": "canguro",
+                "ardilla": "ardilla",
+                "guepardo": "guepardo",
+                "jaguar": "jaguar",
+                "burro": "burro", "asno": "burro",
+                "reno": "reno",
+                "ciervo": "ciervo", "venado": "ciervo",
+                "capibara": "capibara",
+                "erizo": "erizo",
+                "ajolote": "ajolote",
+                # Dinosaurs
+                "dinosaurio": "dinosaurio", "dino": "dinosaurio",
+                "rex": "trex", "t-rex": "trex", "tiranosaurio": "trex",
+                "triceratops": "triceratops",
+                "pterodactilo": "pterodactilo",
+                # Fantasy
+                "dragon": "dragon", "dragón": "dragon",
+                # Non-animal subjects
+                "sol": "sol", "casa": "casa", "casita": "casa",
                 "arbol": "arbol", "árbol": "arbol",
                 "corazon": "corazon", "corazón": "corazon",
+                "flor": "flor", "estrella": "estrella",
+                "nube": "nube", "pelota": "pelota", "helado": "helado",
             }
             subject = next((v for k, v in subject_map.items() if k in msg_lower), None)
             instruction = (
@@ -615,25 +678,52 @@ class PythonBDIFallback:
         # ── Plan: student expresses emotion ────────────────────────────────────
         if intent.name == "express_emotion":
             child_said = f"The child said: '{user_message}'. " if user_message else ""
+            msg_lower = (user_message or "").lower()
+            is_tired = any(w in msg_lower for w in ["cansado", "cansada", "aburrido", "aburrida", "no quiero", "no puedo más"])
+            tired_offer = (
+                "If they seem tired or bored, warmly offer a short drawing break: "
+                "'¿Quieres descansar un ratito y pintar algo bonito? 🎨'. "
+            ) if is_tired else ""
+            activity_ctx = (
+                f"The current activity is '{current_topic.display_name}'. "
+                f"After acknowledging, gently invite them back: '¡Vamos a {current_topic.description_for_student.rstrip('!')}!' "
+            ) if current_topic else "After acknowledging, gently offer to start an activity. "
             return BDIDecision(
                 action="acknowledge_emotion",
                 instruction=(
                     f"{child_said}Acknowledge exactly what they expressed with empathy and warmth. "
                     "If frustrated, reassure them patiently. If happy, celebrate together. "
-                    "Then gently return to the activity with encouragement."
+                    f"{tired_offer}"
+                    f"{activity_ctx}"
+                    "Keep it very short (1-2 sentences max)."
                 ),
                 updated_beliefs=beliefs,
             )
 
         # ── Plan: off-topic / unknown → redirect (catch-all) ──────────────────
         child_said = f"The child said: '{user_message}'. " if user_message else ""
+        msg_lower = (user_message or "").lower()
+        seems_tired = any(w in msg_lower for w in ["cansado", "cansada", "aburrido", "aburrida", "no quiero"])
+        tired_hint = (
+            "If the child seems tired or bored, offer a drawing break: '¿Quieres pintar un ratito? 🎨'. "
+        ) if seems_tired else ""
+        if current_topic:
+            redirect_instruction = (
+                f"{child_said}The child said something off-topic or unclear. "
+                f"Respond with ONE warm sentence (no questions), then immediately "
+                f"invite them to continue: '¡Vamos a {current_topic.description_for_student.rstrip('!')}! {current_topic.emoji}'. "
+                f"{tired_hint}"
+                f"Do NOT explain the concept. Just animate them to TRY it."
+            )
+        else:
+            redirect_instruction = (
+                f"{child_said}The child said something off-topic. "
+                "Respond with ONE warm sentence, then ask them what they want to practice today. "
+                "Suggest something fun (tracing lines, a vowel, a number). Keep it very short."
+            )
         return BDIDecision(
             action="redirect",
-            instruction=(
-                f"{child_said}Respond briefly and warmly to what the child said (1 sentence), "
-                "then gently redirect them back to the lesson "
-                + (f"about '{current_topic.display_name}'." if current_topic else ".")
-            ),
+            instruction=redirect_instruction,
             updated_beliefs=beliefs,
         )
 

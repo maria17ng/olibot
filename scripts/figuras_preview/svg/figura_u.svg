@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
+  <rect width="320" height="320" fill="#f9fafb" rx="12"/>
+  <path d="M89.6 70.4 L89.6 144.0 L89.6 192.0 L105.6 233.6 L160.0 256.0 L214.4 233.6 L230.4 192.0 L230.4 144.0 L230.4 70.4" stroke="#374151" stroke-width="70.4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.12"/>
+  <path d="M89.6 70.4 L89.6 144.0 L89.6 192.0 L105.6 233.6 L160.0 256.0 L214.4 233.6 L230.4 192.0 L230.4 144.0 L230.4 70.4" stroke="rgba(239,68,68,0.65)" stroke-width="13.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="89.6" cy="70.4" r="12.3" fill="#4a90d9"/>
+  <circle cx="89.6" cy="144.0" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <circle cx="89.6" cy="192.0" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <circle cx="105.6" cy="233.6" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <circle cx="160.0" cy="256.0" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <circle cx="214.4" cy="233.6" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <circle cx="230.4" cy="192.0" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <circle cx="230.4" cy="144.0" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <circle cx="230.4" cy="70.4" r="12.3" fill="rgba(74,144,217,0.45)"/>
+  <line x1="89.6" y1="70.4" x2="89.6" y2="112.0" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="4 3"/>
+  <polygon points="89.6,112.0 79.3,101.7 99.9,101.7" fill="#2563eb"/>
+  <text x="160" y="314" text-anchor="middle" font-size="13" fill="#4b5563" font-family="sans-serif">u (min)</text>
+</svg>

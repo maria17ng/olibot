@@ -31,6 +31,7 @@ class StudentModel(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     sessions = relationship("SessionModel", back_populates="student", cascade="all, delete")
+    emotional_checkpoints = relationship("EmotionalCheckpointModel", back_populates="student", cascade="all, delete-orphan")
 
     @property
     def beliefs(self) -> dict:
@@ -147,3 +148,29 @@ class ActivityModel(Base):
             f"<Activity(id={self.id}, topic='{self.topic_id}', "
             f"correct={self.is_correct}, session_id={self.session_id})>"
         )
+
+
+class EmotionalCheckpointModel(Base):
+    """
+    Records a snapshot of the child's emotional state at key moments.
+
+    context values:
+      session_start   — logged when the BDI session is first created
+      post_levelup    — logged after the child selects an emotion in EmotionPicker
+      coloring_start  — logged when the child enters free-drawing mode
+      tracing_resume  — logged when the child returns from coloring to tracing
+
+    emotion values (nullable except post_levelup): happy / sad / tired / angry
+    """
+    __tablename__ = "emotional_checkpoints"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    emotion    = Column(String(20), nullable=True)   # happy/sad/tired/angry or None
+    context    = Column(String(30), nullable=False)  # session_start/post_levelup/coloring_start/tracing_resume
+    timestamp  = Column(DateTime, default=datetime.utcnow, index=True)
+
+    student = relationship("StudentModel", back_populates="emotional_checkpoints")
+
+    def __repr__(self):
+        return f"<EmotionalCheckpoint(student={self.student_id}, emotion={self.emotion!r}, ctx={self.context!r})>"

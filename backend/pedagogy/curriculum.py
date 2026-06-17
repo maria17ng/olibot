@@ -27,6 +27,9 @@ class CurriculumCategory(str, Enum):
     FONOLOGIA          = "fonologia"           # Phonics / letter-sound mapping
     SILABAS            = "silabas"             # Syllable decoding (age 5)
     PALABRAS           = "palabras"            # Word recognition (age 5)
+    SILABAS_COMPLEJAS  = "silabas_complejas"   # Inverse/complex syllables (age 6)
+    PALABRAS_AVANZADAS = "palabras_avanzadas"  # Trisyllabic words + inverse-syllable words (age 6)
+    FRASES             = "frases"              # Simple sentence reading (age 6)
 
 
 @dataclass
@@ -1389,17 +1392,256 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         expected_answers=["casa", "la casa"],
         example_questions=["¿Puedes trazar 'casa'?"],
     ),
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # NIVEL 6 AÑOS — Sílabas complejas, palabras avanzadas y frases simples
+    # Prerequisito: dominio de todas las palabras bisílabas del nivel 5
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # ── SÍLABAS INVERSAS — 6 años ─────────────────────────────────────────────
+    # Vocal seguida de consonante (estructura VC). OLIBOT guía con tracing.
+
+    "silaba_inv_as": CurriculumTopic(
+        id="silaba_inv_as", display_name="La sílaba AS", emoji="🌟",
+        category=CurriculumCategory.SILABAS_COMPLEJAS,
+        difficulty=6, min_age=6,
+        prerequisites=["palabra_mama", "palabra_mesa", "palabra_pato", "palabra_luna"],
+        description_for_student="¡La A y la S juntas hacen 'as'!",
+        hints=["A... S... 'as', como en 'asco' o 'as de oros' 🃏", "A + S = 'as' 👏", "'as' como cuando dices 'por las mañanas' 🌅"],
+        expected_answers=["as", "la as", "sílaba as"],
+        example_questions=["¿Qué dicen la A y la S juntas al revés?"],
+    ),
+
+    "silaba_inv_es": CurriculumTopic(
+        id="silaba_inv_es", display_name="La sílaba ES", emoji="⭐",
+        category=CurriculumCategory.SILABAS_COMPLEJAS,
+        difficulty=6, min_age=6,
+        prerequisites=["silaba_inv_as"],
+        description_for_student="¡E con S hacen 'es'!",
+        hints=["E... S... 'es', como en 'España' 🇪🇸", "E + S = 'es' 👏", "'es' como cuando preguntas '¿qué es?' 🤔"],
+        expected_answers=["es", "la es", "sílaba es"],
+        example_questions=["¿Qué dicen la E y la S juntas?"],
+    ),
+
+    "silaba_inv_al": CurriculumTopic(
+        id="silaba_inv_al", display_name="La sílaba AL", emoji="🦅",
+        category=CurriculumCategory.SILABAS_COMPLEJAS,
+        difficulty=6, min_age=6,
+        prerequisites=["silaba_inv_as"],
+        description_for_student="¡A con L hacen 'al'!",
+        hints=["A... L... 'al', como en 'al final' 🏁", "A + L = 'al' 👏", "'al' como en 'animal' 🦁"],
+        expected_answers=["al", "la al", "sílaba al"],
+        example_questions=["¿Qué dicen la A y la L juntas?"],
+    ),
+
+    "silaba_inv_ar": CurriculumTopic(
+        id="silaba_inv_ar", display_name="La sílaba AR", emoji="🌳",
+        category=CurriculumCategory.SILABAS_COMPLEJAS,
+        difficulty=6, min_age=6,
+        prerequisites=["silaba_inv_al"],
+        description_for_student="¡A con R hacen 'ar'!",
+        hints=["A... R... 'ar', como en 'árbol' 🌳", "A + R = 'ar' 👏", "'ar' como en 'árbol' o 'arco' 🌈"],
+        expected_answers=["ar", "la ar", "sílaba ar"],
+        example_questions=["¿Qué dicen la A y la R juntas?"],
+    ),
+
+    "silaba_inv_an": CurriculumTopic(
+        id="silaba_inv_an", display_name="La sílaba AN", emoji="🦢",
+        category=CurriculumCategory.SILABAS_COMPLEJAS,
+        difficulty=6, min_age=6,
+        prerequisites=["silaba_inv_ar"],
+        description_for_student="¡A con N hacen 'an'!",
+        hints=["A... N... 'an', como en 'antes' ⏳", "A + N = 'an' 👏", "'an' como en 'ancla' ⚓"],
+        expected_answers=["an", "la an", "sílaba an"],
+        example_questions=["¿Qué dicen la A y la N juntas?"],
+    ),
+
+    # ── SÍLABAS COMPLEJAS (CCV) — 6 años ─────────────────────────────────────
+    # Dos consonantes + vocal. OLIBOT usa tracing de la sílaba como bloque.
+
+    "silaba_bra": CurriculumTopic(
+        id="silaba_bra", display_name="La sílaba BRA", emoji="💪",
+        category=CurriculumCategory.SILABAS_COMPLEJAS,
+        difficulty=6, min_age=6,
+        prerequisites=["silaba_inv_as"],
+        description_for_student="¡B, R y A juntas hacen 'bra'!",
+        hints=["B + R + A = 'bra' 💪", "'bra' como en 'brazo' 💪", "B, R, A... ¡BRA! ¿Lo puedes decir deprisa?"],
+        expected_answers=["bra", "la bra", "sílaba bra"],
+        example_questions=["¿Qué dicen B, R y A juntas?"],
+    ),
+
+    "silaba_tra": CurriculumTopic(
+        id="silaba_tra", display_name="La sílaba TRA", emoji="🚂",
+        category=CurriculumCategory.SILABAS_COMPLEJAS,
+        difficulty=6, min_age=6,
+        prerequisites=["silaba_inv_as"],
+        description_for_student="¡T, R y A juntas hacen 'tra'!",
+        hints=["T + R + A = 'tra' 🚂", "'tra' como en 'tren' 🚂", "T, R, A... ¡TRA! Como el tren que va traca-traca 🚂"],
+        expected_answers=["tra", "la tra", "sílaba tra"],
+        example_questions=["¿Qué dicen T, R y A juntas?"],
+    ),
+
+    "silaba_pla": CurriculumTopic(
+        id="silaba_pla", display_name="La sílaba PLA", emoji="🏖️",
+        category=CurriculumCategory.SILABAS_COMPLEJAS,
+        difficulty=6, min_age=6,
+        prerequisites=["silaba_inv_as"],
+        description_for_student="¡P, L y A juntas hacen 'pla'!",
+        hints=["P + L + A = 'pla' 🏖️", "'pla' como en 'playa' 🏖️", "P, L, A... ¡PLA! ¿Puedes decirlo rápido?"],
+        expected_answers=["pla", "la pla", "sílaba pla"],
+        example_questions=["¿Qué dicen P, L y A juntas?"],
+    ),
+
+    "silaba_cla": CurriculumTopic(
+        id="silaba_cla", display_name="La sílaba CLA", emoji="🔑",
+        category=CurriculumCategory.SILABAS_COMPLEJAS,
+        difficulty=6, min_age=6,
+        prerequisites=["silaba_bra"],
+        description_for_student="¡C, L y A juntas hacen 'cla'!",
+        hints=["C + L + A = 'cla' 🔑", "'cla' como en 'claro' o 'clase' 🏫", "C, L, A... ¡CLA! Como 'clase' en el colegio 🏫"],
+        expected_answers=["cla", "la cla", "sílaba cla"],
+        example_questions=["¿Qué dicen C, L y A juntas?"],
+    ),
+
+    # ── PALABRAS TRISÍLABAS — 6 años ─────────────────────────────────────────
+    # Reconocimiento auditivo/visual (sin trazado letra a letra).
+
+    "palabra_pelota": CurriculumTopic(
+        id="palabra_pelota", display_name="La palabra PELOTA", emoji="⚽",
+        category=CurriculumCategory.PALABRAS_AVANZADAS,
+        difficulty=7, min_age=6,
+        prerequisites=["silaba_bra", "silaba_tra"],
+        description_for_student="¡Leemos la palabra 'pelota'!",
+        hints=["¿Con qué juegas en el parque? ⚽", "pe-lo-ta... ¡PE-LO-TA! ⚽", "Tiene tres sílabas: PE, LO, TA. ¿Qué dice? ⚽"],
+        expected_answers=["pelota", "la pelota"],
+        example_questions=["¿Qué pone aquí? ⚽ p-e-l-o-t-a"],
+    ),
+
+    "palabra_tomate": CurriculumTopic(
+        id="palabra_tomate", display_name="La palabra TOMATE", emoji="🍅",
+        category=CurriculumCategory.PALABRAS_AVANZADAS,
+        difficulty=7, min_age=6,
+        prerequisites=["silaba_bra", "silaba_tra"],
+        description_for_student="¡Leemos la palabra 'tomate'!",
+        hints=["¿Qué fruta roja va en la ensalada? 🍅", "to-ma-te... ¡TO-MA-TE! 🍅", "Tiene tres sílabas: TO, MA, TE. ¿Qué dice? 🍅"],
+        expected_answers=["tomate", "el tomate"],
+        example_questions=["¿Qué pone aquí? 🍅 t-o-m-a-t-e"],
+    ),
+
+    "palabra_camion": CurriculumTopic(
+        id="palabra_camion", display_name="La palabra CAMIÓN", emoji="🚛",
+        category=CurriculumCategory.PALABRAS_AVANZADAS,
+        difficulty=7, min_age=6,
+        prerequisites=["silaba_bra", "silaba_tra"],
+        description_for_student="¡Leemos la palabra 'camión'!",
+        hints=["¿Qué vehículo grande lleva cosas? 🚛", "ca-mión... ¡CA-MIÓN! 🚛", "Tiene dos sílabas: CA, MIÓN. ¿Qué dice? 🚛"],
+        expected_answers=["camión", "el camión", "camion"],
+        example_questions=["¿Qué pone aquí? 🚛 c-a-m-i-ó-n"],
+    ),
+
+    "palabra_animal": CurriculumTopic(
+        id="palabra_animal", display_name="La palabra ANIMAL", emoji="🦁",
+        category=CurriculumCategory.PALABRAS_AVANZADAS,
+        difficulty=7, min_age=6,
+        prerequisites=["silaba_inv_al", "silaba_inv_an"],
+        description_for_student="¡Leemos la palabra 'animal'!",
+        hints=["¿Qué son el perro, el gato y el león? 🦁", "a-ni-mal... ¡A-NI-MAL! 🦁", "Tiene tres sílabas: A, NI, MAL. ¿Qué dice? 🦁"],
+        expected_answers=["animal", "el animal"],
+        example_questions=["¿Qué pone aquí? 🦁 a-n-i-m-a-l"],
+    ),
+
+    "palabra_arbol": CurriculumTopic(
+        id="palabra_arbol", display_name="La palabra ÁRBOL", emoji="🌳",
+        category=CurriculumCategory.PALABRAS_AVANZADAS,
+        difficulty=7, min_age=6,
+        prerequisites=["silaba_inv_ar"],
+        description_for_student="¡Leemos la palabra 'árbol'!",
+        hints=["¿Qué planta grande tiene tronco y ramas? 🌳", "ár-bol... ¡ÁR-BOL! 🌳", "Tiene dos sílabas: ÁR, BOL. ¿Qué dice? 🌳"],
+        expected_answers=["árbol", "el árbol", "arbol"],
+        example_questions=["¿Qué pone aquí? 🌳 á-r-b-o-l"],
+    ),
+
+    "palabra_isla": CurriculumTopic(
+        id="palabra_isla", display_name="La palabra ISLA", emoji="🏝️",
+        category=CurriculumCategory.PALABRAS_AVANZADAS,
+        difficulty=7, min_age=6,
+        prerequisites=["silaba_inv_es"],
+        description_for_student="¡Leemos la palabra 'isla'!",
+        hints=["¿Qué tierra está rodeada de agua? 🏝️", "is-la... ¡IS-LA! 🏝️", "Tiene dos sílabas: IS, LA. ¿Qué dice? 🏝️"],
+        expected_answers=["isla", "la isla"],
+        example_questions=["¿Qué pone aquí? 🏝️ i-s-l-a"],
+    ),
+
+    "palabra_espada": CurriculumTopic(
+        id="palabra_espada", display_name="La palabra ESPADA", emoji="⚔️",
+        category=CurriculumCategory.PALABRAS_AVANZADAS,
+        difficulty=7, min_age=6,
+        prerequisites=["silaba_inv_es", "silaba_inv_as"],
+        description_for_student="¡Leemos la palabra 'espada'!",
+        hints=["¿Qué arma larga usan los caballeros? ⚔️", "es-pa-da... ¡ES-PA-DA! ⚔️", "Tiene tres sílabas: ES, PA, DA. ¿Qué dice? ⚔️"],
+        expected_answers=["espada", "la espada"],
+        example_questions=["¿Qué pone aquí? ⚔️ e-s-p-a-d-a"],
+    ),
+
+    # ── FRASES SIMPLES — 6 años ────────────────────────────────────────────────
+    # Reconocimiento y lectura de frases cortas de 2-3 palabras.
+
+    "frase_el_sol_sale": CurriculumTopic(
+        id="frase_el_sol_sale", display_name="Frase: El sol sale", emoji="☀️",
+        category=CurriculumCategory.FRASES,
+        difficulty=8, min_age=6,
+        prerequisites=["palabra_pelota", "palabra_tomate"],
+        description_for_student="¡Leemos una frase entera!",
+        hints=["Tres palabras: EL · SOL · SALE ☀️", "El sol... sale... ¿qué dice la frase? ☀️", "¿Qué hace el sol por la mañana? ☀️"],
+        expected_answers=["el sol sale", "sale el sol"],
+        example_questions=["¿Qué dice esta frase? ☀️ 'El sol sale'"],
+    ),
+
+    "frase_mi_mama_me_mima": CurriculumTopic(
+        id="frase_mi_mama_me_mima", display_name="Frase: Mi mamá me mima", emoji="👩‍👦",
+        category=CurriculumCategory.FRASES,
+        difficulty=8, min_age=6,
+        prerequisites=["palabra_pelota", "palabra_tomate"],
+        description_for_student="¡Leemos una frase corta!",
+        hints=["Cuatro palabras: MI · MAMÁ · ME · MIMA 👩‍👦", "Mi mamá... me mima... ¿qué dice? 👩‍👦", "¿Qué hace tu mamá cuando te cuida mucho? 👩‍👦"],
+        expected_answers=["mi mamá me mima", "mamá me mima"],
+        example_questions=["¿Qué dice esta frase? 👩‍👦 'Mi mamá me mima'"],
+    ),
+
+    "frase_la_luna_sale": CurriculumTopic(
+        id="frase_la_luna_sale", display_name="Frase: La luna sale", emoji="🌙",
+        category=CurriculumCategory.FRASES,
+        difficulty=8, min_age=6,
+        prerequisites=["frase_el_sol_sale"],
+        description_for_student="¡Otra frase! Esta es de noche.",
+        hints=["Tres palabras: LA · LUNA · SALE 🌙", "La luna... sale... ¿qué dice la frase? 🌙", "¿Qué ves en el cielo de noche? 🌙"],
+        expected_answers=["la luna sale", "sale la luna"],
+        example_questions=["¿Qué dice esta frase? 🌙 'La luna sale'"],
+    ),
+
+    "frase_el_pato_nada": CurriculumTopic(
+        id="frase_el_pato_nada", display_name="Frase: El pato nada", emoji="🦆",
+        category=CurriculumCategory.FRASES,
+        difficulty=8, min_age=6,
+        prerequisites=["frase_el_sol_sale"],
+        description_for_student="¡Leemos una frase sobre el pato!",
+        hints=["Tres palabras: EL · PATO · NADA 🦆", "El pato... nada... ¿qué hace el pato? 🦆", "El pato va al agua y... ¿qué hace? 🦆"],
+        expected_answers=["el pato nada", "el pato"],
+        example_questions=["¿Qué dice esta frase? 🦆 'El pato nada'"],
+    ),
 }
+
 
 
 class CurriculumEngine:
     """
     Manages curriculum navigation for a student based on their belief base and age.
 
-    Age-based topic filtering (Decreto 36/2022):
+    Age-based topic filtering (Decreto 36/2022 + extensión nivel 6):
         age=3 → only min_age <= 3 topics (pre-writing strokes)
         age=4 → min_age <= 4 topics: strokes→numbers(d=1)→vowels(d=2)→consonants b-z(d=3)
-        age=5 → all: + consonants h,k,q,w,x(d=3) + syllables(d=4) + words(d=5)
+        age=5 → all of above + consonants h,k,q,w,x(d=3) + syllables(d=4) + bisyllabic words(d=5)
+        age=6 → all of above + inverse syllables, complex syllables (d=6) + trisyllabic words (d=7) + sentences (d=8)
     """
 
     ZDP_MIN_RATE       = 0.20
@@ -1525,11 +1767,15 @@ class CurriculumEngine:
         return result
 
     def get_hint(self, topic_id: str, hint_level: int) -> str:
-        topic = CURRICULUM.get(topic_id)
-        if not topic or not topic.hints:
-            return "¿Qué crees tú? Piénsalo un momento... 🤔"
-        idx = max(0, min(hint_level - 1, len(topic.hints) - 1))
-        return topic.hints[idx]
+        # Standard tracing hints — same for every topic.
+        # The activity is always canvas tracing, so guidance is always the same.
+        hints = [
+            "Sigue los puntos 🔵",
+            "Dale al botón de repetir 🔄",
+            "¡Mira el tutorial otra vez! ▶️",
+        ]
+        idx = max(0, min(hint_level - 1, len(hints) - 1))
+        return hints[idx]
 
     def evaluate_answer(self, topic_id: str, student_answer: str) -> bool:
         topic = CURRICULUM.get(topic_id)

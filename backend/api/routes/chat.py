@@ -58,6 +58,7 @@ async def stream_message(request: ChatRequest, db: Session = Depends(get_db)):
                 student_id=request.student_id,
                 user_message=request.message,
                 session_id=request.session_id,
+                current_screen=request.current_screen,
             ):
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
         except ValueError as e:

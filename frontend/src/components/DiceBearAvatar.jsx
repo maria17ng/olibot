@@ -29,13 +29,15 @@ const BASE_COLORS = [
 ];
 
 const KEYFRAMES = `
-  @keyframes dbFloat   { 0%,100%{transform:translateY(0)}    50%{transform:translateY(-10px)} }
-  @keyframes dbBounce  { 0%,100%{transform:scale(1)}          50%{transform:scale(0.9) translateY(5px)} }
-  @keyframes dbPulse   { 0%,100%{transform:scale(1)}          50%{transform:scale(1.12)} }
-  @keyframes dbWobble  { 0%,100%{transform:rotate(0deg)}      25%{transform:rotate(-6deg)} 75%{transform:rotate(6deg)} }
+  @keyframes dbFloat           { 0%,100%{transform:translateY(0)}    50%{transform:translateY(-10px)} }
+  @keyframes dbBounce          { 0%,100%{transform:scale(1)}          50%{transform:scale(0.9) translateY(5px)} }
+  @keyframes dbPulse           { 0%,100%{transform:scale(1)}          50%{transform:scale(1.12)} }
+  @keyframes dbWobble          { 0%,100%{transform:rotate(0deg)}      25%{transform:rotate(-6deg)} 75%{transform:rotate(6deg)} }
+  @keyframes dbCelebrateSmall  { 0%,100%{transform:scale(1)} 35%{transform:scale(1.38)} 65%{transform:scale(1.18)} }
+  @keyframes dbCelebrateBig    { 0%{transform:scale(1) rotate(0deg)} 20%{transform:scale(1.6) rotate(-18deg)} 45%{transform:scale(1.45) rotate(16deg)} 70%{transform:scale(1.25) rotate(-8deg)} 100%{transform:scale(1) rotate(0deg)} }
 `;
 
-export default function DiceBearAvatar({ seed = "olibot", state = "idle", size = 120 }) {
+export default function DiceBearAvatar({ seed = "olibot", state = "idle", size = 120, celebration = null }) {
   // Pick a deterministic background color from the seed string
   const colorIdx = useMemo(() => {
     let h = 0;
@@ -52,6 +54,8 @@ export default function DiceBearAvatar({ seed = "olibot", state = "idle", size =
   }, [seed, size, colorIdx]);
 
   const animation =
+    celebration === "big"   ? "dbCelebrateBig   1.5s ease-in-out" :
+    celebration === "small" ? "dbCelebrateSmall 0.7s ease-in-out" :
     state === "speaking"  ? "dbBounce 0.45s ease-in-out infinite" :
     state === "listening" ? "dbPulse  1.1s  ease-in-out infinite" :
     state === "thinking"  ? "dbWobble 0.7s  ease-in-out infinite" :

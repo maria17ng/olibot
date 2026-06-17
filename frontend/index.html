@@ -2,7 +2,15 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <style>
+      html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+      #root { height: 100%; }
+      /* ── High contrast mode ─────────────────────────────────────── */
+      html.high-contrast { filter: contrast(1.5) brightness(0.9); background: #000; }
+      html.high-contrast body { background: #000 !important; }
+      html.high-contrast canvas { filter: invert(1) hue-rotate(180deg); }
+    </style>
     <title>OLIBOT — Tu Tutor Inteligente</title>
   </head>
   <body style="margin: 0; background: #f9fbff;">

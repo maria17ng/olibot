@@ -9,7 +9,17 @@ import { useState, useEffect } from "react";
 import { api } from "../services/api";
 import DiceBearAvatar from "./DiceBearAvatar";
 
-const AGE_OPTS = [3, 4, 5];
+const LEVEL_OPTS = [3, 4, 5, 6, "auto"];
+
+// Pastel-colour system — no age references visible to children or parents.
+// DB still stores 3/4/5/6 for levels; "auto" triggers initial evaluation (age 4 default).
+const LEVEL_COLORS = {
+  3:      { bg: "#FFF9C4", border: "#E8C800", dot: "#D4B000", label: "Amarillo",   desc: "Trazos pregráficos (líneas, curvas, zigzag) y reconocimiento auditivo de vocales" },
+  4:      { bg: "#C8F7C5", border: "#4CAF50", dot: "#2E8B2E", label: "Verde",      desc: "Números 1–10, vocales A E I O U (mayúscula y minúscula), consonantes b–z" },
+  5:      { bg: "#C5E8FF", border: "#5AAEE8", dot: "#1B6DC0", label: "Azul",       desc: "Consonantes especiales (h, k, q, w, x), sílabas y palabras bisílabas" },
+  6:      { bg: "#FFD0D0", border: "#E53935", dot: "#B71C1C", label: "Rojo",       desc: "Sílabas inversas (as, es, ar…), sílabas complejas (bra, tra, pla…), palabras trisílabas y frases cortas" },
+  "auto": { bg: "#E8C5FF", border: "#B05AE8", dot: "#7B1BD4", label: "Automático", desc: "OLIBOT hará una pequeña evaluación al inicio para determinar el nivel adecuado. El niño empieza jugando y el sistema asigna el nivel óptimo." },
+};
 
 // Pre-defined seeds for the robot picker grid
 const ROBOT_SEEDS = [
@@ -17,12 +27,16 @@ const ROBOT_SEEDS = [
   "gizmo", "hex", "iris", "jet", "kira", "luna",
 ];
 
-export default function StudentSelector({ onSelectStudent }) {
-  const [students,    setStudents]    = useState([]);
-  const [showCreate,  setShowCreate]  = useState(false);
-  const [newName,     setNewName]     = useState("");
-  const [newAge,      setNewAge]      = useState(4);
-  const [avatarSeed,  setAvatarSeed]  = useState("atlas");
+export default function StudentSelector({ onSelectStudent, onSelectPair }) {
+  const [students,      setStudents]      = useState([]);
+  const [showCreate,    setShowCreate]    = useState(false);
+  const [newName,       setNewName]       = useState("");
+  const [newAge,        setNewAge]        = useState(4);
+  const [avatarSeed,    setAvatarSeed]    = useState("atlas");
+  const [showLevelInfo, setShowLevelInfo] = useState(false);
+  // Pair mode selection
+  const [pairMode,     setPairMode]      = useState(false);
+  const [pairPlayer1,  setPairPlayer1]   = useState(null);
 
   useEffect(() => {
     api.getStudents().then(setStudents).catch(console.error);
@@ -31,7 +45,9 @@ export default function StudentSelector({ onSelectStudent }) {
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!newName.trim()) return;
-    const student = await api.createStudent(newName.trim(), newAge, avatarSeed);
+    // "auto" uses age 4 as default; evaluation pending flag handled by future #8B
+    const ageToSend = newAge === "auto" ? 4 : newAge;
+    const student = await api.createStudent(newName.trim(), ageToSend, avatarSeed);
     setStudents((prev) => [...prev, student]);
     onSelectStudent(student, true); // true = recién creado → mostrar tutorial
   };
@@ -52,6 +68,7 @@ export default function StudentSelector({ onSelectStudent }) {
     setNewName("");
     setAvatarSeed("atlas");
     setNewAge(4);
+    setShowLevelInfo(false);
   };
 
   // The seed used for DiceBear: always the picked robot, the name never overrides it
@@ -83,7 +100,9 @@ export default function StudentSelector({ onSelectStudent }) {
           textAlign: "center",
         }}
       >
-        ¿Quién eres hoy? 🌟
+        {pairMode
+          ? (pairPlayer1 ? `¿Y el segundo jugador? 🌟` : `¿Quién juega primero? 🎮`)
+          : "¿Quién eres hoy? 🌟"}
       </div>
 
       {/* Student cards grid */}
@@ -98,10 +117,22 @@ export default function StudentSelector({ onSelectStudent }) {
       >
         {students.map((s) => {
           const seed  = s.avatar_id && s.avatar_id !== "robot" ? s.avatar_id : s.name;
+          const isP1  = pairPlayer1?.id === s.id;
+          const handleCardClick = () => {
+            if (!pairMode) {
+              onSelectStudent(s);
+              return;
+            }
+            if (!pairPlayer1) {
+              setPairPlayer1(s);
+            } else if (!isP1) {
+              onSelectPair(pairPlayer1, s);
+            }
+          };
           return (
             <div key={s.id} style={{ position: "relative" }}>
               <button
-                onClick={() => onSelectStudent(s)}
+                onClick={handleCardClick}
                 style={{
                   width: "100%",
                   display: "flex",
@@ -109,30 +140,44 @@ export default function StudentSelector({ onSelectStudent }) {
                   alignItems: "center",
                   gap: "8px",
                   padding: "16px 12px",
-                  background: "rgba(255,255,255,0.93)",
-                  border: "3px solid transparent",
+                  background: isP1 ? "rgba(245,158,11,0.18)" : "rgba(255,255,255,0.93)",
+                  border: isP1 ? "3px solid #f59e0b" : "3px solid transparent",
                   borderRadius: "24px",
                   cursor: "pointer",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+                  boxShadow: isP1 ? "0 0 0 4px rgba(245,158,11,0.35), 0 8px 32px rgba(0,0,0,0.15)" : "0 8px 32px rgba(0,0,0,0.15)",
                   transition: "transform 0.15s, border-color 0.15s",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "scale(1.06)";
-                  e.currentTarget.style.borderColor = "#4a90d9";
+                  if (!isP1) e.currentTarget.style.borderColor = "#4a90d9";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "scale(1)";
-                  e.currentTarget.style.borderColor = "transparent";
+                  if (!isP1) e.currentTarget.style.borderColor = "transparent";
                 }}
               >
                 <DiceBearAvatar seed={seed} size={90} state="idle" />
                 <span style={{ fontSize: "18px", fontWeight: "bold", color: "#1e3a5f" }}>
                   {s.name}
                 </span>
-                <span style={{ fontSize: "12px", color: "#6b7280" }}>{s.age} años</span>
+                {/* Level shown as pastel colour dot */}
+                <span style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "13px", color: "#4b5563" }}>
+                  <span style={{
+                    display: "inline-block", width: "12px", height: "12px", borderRadius: "50%",
+                    background: LEVEL_COLORS[s.age]?.dot ?? "#9ca3af",
+                    flexShrink: 0,
+                  }} />
+                  {LEVEL_COLORS[s.age]?.label ?? `Nivel ${s.age}`}
+                </span>
+                {isP1 && (
+                  <span style={{ fontSize: "13px", fontWeight: "bold", color: "#d97706", marginTop: 2 }}>
+                    Jugador 1 ✓
+                  </span>
+                )}
               </button>
 
-              {/* Delete button — top-right corner */}
+              {/* Delete button — hidden in pair-selection mode */}
+              {!pairMode && (
               <button
                 onClick={(e) => handleDelete(e, s)}
                 title={`Borrar a ${s.name}`}
@@ -157,11 +202,14 @@ export default function StudentSelector({ onSelectStudent }) {
               >
                 🗑️
               </button>
+              )}
             </div>
           );
         })}
 
         {/* Add new student */}
+        {/* Add new student — hidden in pair mode */}
+        {!pairMode && (
         <button
           onClick={() => setShowCreate(true)}
           style={{
@@ -185,6 +233,41 @@ export default function StudentSelector({ onSelectStudent }) {
           <span style={{ fontSize: "48px" }}>➕</span>
           <span style={{ fontSize: "15px", fontWeight: "bold" }}>Nuevo niño</span>
         </button>
+        )}
+      </div>
+
+      {/* ── Pair mode controls ────────────────────────────────────────────────── */}
+      <div style={{ marginTop: "24px", display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+        {!pairMode ? (
+          students.length >= 2 && (
+            <button
+              onClick={() => { setPairMode(true); setPairPlayer1(null); }}
+              style={{
+                padding: "12px 28px", borderRadius: "20px", border: "none",
+                background: "rgba(255,255,255,0.22)", color: "white",
+                fontSize: "17px", fontWeight: "bold", cursor: "pointer",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.35)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.22)"; }}
+            >
+              🎮 Jugar en pareja
+            </button>
+          )
+        ) : (
+          <button
+            onClick={() => { setPairMode(false); setPairPlayer1(null); }}
+            style={{
+              padding: "12px 28px", borderRadius: "20px", border: "none",
+              background: "rgba(255,255,255,0.15)", color: "white",
+              fontSize: "17px", cursor: "pointer",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.10)",
+            }}
+          >
+            ✖ Cancelar
+          </button>
+        )}
       </div>
 
       {/* ── Create student modal ─────────────────────────────────────────────── */}
@@ -283,35 +366,76 @@ export default function StudentSelector({ onSelectStudent }) {
                 }}
               />
 
-              {/* Age */}
-              <label
-                style={{ display: "block", fontSize: "13px", color: "#6b7280", marginBottom: "10px", fontWeight: "bold" }}
-              >
-                Edad
-              </label>
-              <div style={{ display: "flex", gap: "10px", marginBottom: "28px", justifyContent: "center" }}>
-                {AGE_OPTS.map((a) => (
-                  <button
-                    key={a}
-                    type="button"
-                    onClick={() => setNewAge(a)}
-                    style={{
-                      width: "58px",
-                      height: "58px",
-                      borderRadius: "50%",
-                      fontSize: "22px",
-                      fontWeight: "bold",
-                      cursor: "pointer",
-                      background: newAge === a ? "#4a90d9" : "white",
-                      color: newAge === a ? "white" : "#374151",
-                      border: newAge === a ? "3px solid #357abd" : "2px solid #e5e7eb",
-                      transition: "all 0.12s",
-                    }}
-                  >
-                    {a}
-                  </button>
-                ))}
+              {/* Level selector */}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
+                <label style={{ fontSize: "13px", color: "#6b7280", fontWeight: "bold" }}>
+                  Nivel
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowLevelInfo(v => !v)}
+                  title="Ver descripción del nivel"
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: "16px", lineHeight: 1, padding: "2px 4px", color: showLevelInfo ? "#4a90d9" : "#9ca3af" }}
+                >
+                  ❓
+                </button>
               </div>
+
+              <div style={{ display: "flex", gap: "10px", marginBottom: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+                {LEVEL_OPTS.map((opt) => {
+                  const lc = LEVEL_COLORS[opt];
+                  const selected = newAge === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setNewAge(opt)}
+                      style={{
+                        padding: "10px 14px",
+                        borderRadius: "16px",
+                        cursor: "pointer",
+                        background: selected ? lc.bg : "white",
+                        border: selected ? `3px solid ${lc.border}` : "2px solid #e5e7eb",
+                        transition: "all 0.12s",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "5px",
+                        minWidth: "70px",
+                        boxShadow: selected ? `0 0 0 3px ${lc.border}33` : "none",
+                      }}
+                    >
+                      {/* Colour circle */}
+                      <span style={{
+                        display: "block", width: "28px", height: "28px", borderRadius: "50%",
+                        background: lc.bg,
+                        border: `3px solid ${lc.dot}`,
+                        boxShadow: selected ? `0 0 6px ${lc.dot}66` : "none",
+                      }} />
+                      <span style={{ fontSize: "11px", fontWeight: "bold", color: selected ? lc.dot : "#6b7280" }}>
+                        {lc.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Info panel — shown when ❓ is active */}
+              {showLevelInfo && (
+                <div style={{
+                  background: LEVEL_COLORS[newAge]?.bg ?? "#f9fafb",
+                  border: `1px solid ${LEVEL_COLORS[newAge]?.border ?? "#e5e7eb"}`,
+                  borderRadius: "12px",
+                  padding: "12px 14px",
+                  fontSize: "13px",
+                  color: LEVEL_COLORS[newAge]?.dot ?? "#374151",
+                  marginBottom: "20px",
+                  lineHeight: 1.55,
+                }}>
+                  <strong>{LEVEL_COLORS[newAge]?.label}:</strong> {LEVEL_COLORS[newAge]?.desc}
+                </div>
+              )}
+              {!showLevelInfo && <div style={{ marginBottom: "16px" }} />}
 
               {/* Action buttons */}
               <div style={{ display: "flex", gap: "10px" }}>

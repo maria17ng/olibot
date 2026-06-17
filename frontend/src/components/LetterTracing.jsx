@@ -30,7 +30,7 @@ export default function LetterTracing({ charData, hintLevel = 3, onComplete, onD
     handlePointerMove,
     handlePointerUp,
     reset,
-  } = useLetterTracing({ charData, hintLevel, onComplete, skipInitialDemo });
+  } = useLetterTracing({ charData, hintLevel, onComplete, skipInitialDemo, minimal });
 
   // Cancel any active stroke when the canvas is disabled mid-draw
   useEffect(() => {
@@ -45,27 +45,6 @@ export default function LetterTracing({ charData, hintLevel = 3, onComplete, onD
     }
     prevPhaseRef.current = phase;
   }, [phase, onDemoEnd]);
-
-  // ── Canvas sizing ─────────────────────────────────────────────────────────
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const resize = () => {
-      let size;
-      if (minimal) {
-        const w = window.innerWidth  - 16;
-        const h = window.innerHeight - 16;
-        size = Math.max(Math.min(w, h, 1200), 200);
-      } else {
-        size = Math.min(canvas.parentElement?.clientWidth ?? 560, 560);
-      }
-      canvas.width  = size;
-      canvas.height = size;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
-  }, [canvasRef, minimal]);
 
   if (!charData) return null;
 
@@ -110,34 +89,7 @@ export default function LetterTracing({ charData, hintLevel = 3, onComplete, onD
         </div>
       )}
 
-      {/* Title label — minimal mode only */}
-      {minimal && title && (
-        <div
-          style={{
-            background: "rgba(30, 58, 95, 0.82)",
-            color: "#fff",
-            padding: "5px 22px",
-            borderRadius: "24px",
-            fontSize: "20px",
-            fontWeight: "bold",
-            letterSpacing: "0.5px",
-            marginBottom: "2px",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.18)",
-            userSelect: "none",
-          }}
-        >
-          {title}
-        </div>
-      )}
-
-      {/* Stroke progress dots — minimal only, multi-stroke */}
-      {minimal && totalStrokes > 1 && (
-        <div style={{ display: "flex", gap: "10px", marginBottom: "2px" }}>
-          {Array.from({ length: totalStrokes }, (_, i) => (
-            <div key={i} style={{ width: "16px", height: "16px", borderRadius: "50%", background: i < currentStrokeIdx ? "#15803d" : i === currentStrokeIdx ? "#4a90d9" : "#e5e7eb", border: i === currentStrokeIdx ? "2px solid #1e40af" : "none" }} />
-          ))}
-        </div>
-      )}
+      {/* Title and stroke progress dots removed */}
 
       {/* Canvas container */}
       <div
@@ -158,56 +110,54 @@ export default function LetterTracing({ charData, hintLevel = 3, onComplete, onD
             opacity: disabled ? 0.55 : 1,
             transition: "opacity 0.2s",
           }}
-          onPointerDown={disabled ? undefined : handlePointerDown}
-          onPointerMove={disabled ? undefined : handlePointerMove}
-          onPointerUp={disabled ? undefined : handlePointerUp}
-          onPointerCancel={disabled ? undefined : handlePointerUp}
+          onPointerDown={disabled || phase === "demo" ? undefined : handlePointerDown}
+          onPointerMove={disabled || phase === "demo" ? undefined : handlePointerMove}
+          onPointerUp={disabled || phase === "demo" ? undefined : handlePointerUp}
+          onPointerCancel={disabled || phase === "demo" ? undefined : handlePointerUp}
         />
 
-        {/* Demo phase: no text overlay — the robot speaks the instructions via TTS */}
+        {/* Demo phase: transparent overlay blocks all touch input */}
+        {phase === "demo" && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "12px",
+              zIndex: 5,
+              touchAction: "none",
+              pointerEvents: "all",
+            }}
+          />
+        )}
 
-        {/* ── Loading / speaking overlay ───────────────────────────────── */}
+        {/* ── Loading overlay ───────────────────────────────────────────────── */}
         {disabled && (
-          isThinking ? (
-            /* OLIBOT procesando: spinner opaco */
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "12px",
+              background: "rgba(255,255,255,0.75)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "10px",
+            }}
+          >
             <div
               style={{
-                position: "absolute",
-                inset: 0,
-                borderRadius: "12px",
-                background: "rgba(255,255,255,0.75)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "10px",
-              }}
-            >
-              <div
-                style={{
-                  width: "44px",
-                  height: "44px",
-                  border: "5px solid #dce8f5",
-                  borderTop: "5px solid #4a90d9",
-                  borderRadius: "50%",
-                  animation: "ltSpin 0.9s linear infinite",
-                }}
-              />
-              <style>{`@keyframes ltSpin { to { transform: rotate(360deg); } }`}</style>
-              <span style={{ fontSize: "13px", color: "#4a5568" }}>OLIBOT está pensando…</span>
-            </div>
-          ) : (
-            /* OLIBOT hablando (tutorial): gris para ver la animación */
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                borderRadius: "12px",
-                background: "rgba(0,0,0,0.15)",
-                cursor: "not-allowed",
+                width: "44px",
+                height: "44px",
+                border: "5px solid #dce8f5",
+                borderTop: "5px solid #4a90d9",
+                borderRadius: "50%",
+                animation: "ltSpin 0.9s linear infinite",
               }}
             />
-          )
+            <style>{`@keyframes ltSpin { to { transform: rotate(360deg); } }`}</style>
+            <span style={{ fontSize: "13px", color: "#4a5568" }}>OLIBOT está pensando…</span>
+          </div>
         )}
 
         {/* ── Result overlay ────────────────────────────────────────────────── */}

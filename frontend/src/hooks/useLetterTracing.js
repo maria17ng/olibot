@@ -12,7 +12,7 @@
  *   2 → puntos numerados (sin letra base)
  *   1 → solo punto de inicio y fin de cada trazo
  */
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useCallback, useEffect, useLayoutEffect } from "react";
 
 // ── Evaluación ───────────────────────────────────────────────────────────────
 const HIT_RADIUS_RATIO = 0.10;
@@ -25,6 +25,7 @@ const DEMO_MS_PER_WP   = 350;   // ms per waypoint in demo
 const DEMO_MIN_MS      = 1400;  // minimum stroke demo duration
 const DEMO_PAUSE_MS    = 500;   // pause between strokes
 const DEMO_REPEATS     = 2;     // total number of times the demo plays before tracing
+const DRAW_MARGIN      = 0.08;  // blank padding around the letter on each side (fraction of canvas)
 
 function dist(a, b) {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
@@ -34,9 +35,10 @@ function getCanvasPoint(canvas, e) {
   const rect = canvas.getBoundingClientRect();
   const clientX = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
   const clientY = e.clientY ?? e.touches?.[0]?.clientY ?? 0;
+  const M = DRAW_MARGIN;
   return {
-    x: (clientX - rect.left) / rect.width,
-    y: (clientY - rect.top)  / rect.height,
+    x: ((clientX - rect.left) / rect.width  - M) / (1 - 2 * M),
+    y: ((clientY - rect.top)  / rect.height - M) / (1 - 2 * M),
   };
 }
 
@@ -91,7 +93,7 @@ function evaluateStroke(drawnPath, waypoints, hitRadius) {
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInitialDemo = false }) {
+export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInitialDemo = false, minimal = false }) {
   const canvasRef      = useRef(null);
   const drawingRef     = useRef(false);
   const currentPath    = useRef([]);
@@ -126,9 +128,14 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
     const canvas = canvasRef.current;
     if (!canvas || !charData) return;
     const ctx = canvas.getContext("2d");
-    const W = canvas.width;
-    const H = canvas.height;
-    const hitR = Math.min(W, H) * HIT_RADIUS_RATIO;
+    const W  = canvas.width;
+    const H  = canvas.height;
+    const M  = DRAW_MARGIN;
+    const SW = W * (1 - 2 * M);        // drawable width after margin
+    const SH = H * (1 - 2 * M);        // drawable height after margin
+    const cxp = (x) => M * W + x * SW; // letter x (0-1) → canvas px
+    const cyp = (y) => M * H + y * SH; // letter y (0-1) → canvas px
+    const hitR = Math.min(SW, SH) * HIT_RADIUS_RATIO;
 
     ctx.clearRect(0, 0, W, H);
 
@@ -136,19 +143,19 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
     ctx.fillStyle = "#fafafa";
     ctx.fillRect(0, 0, W, H);
 
-    // 2. Ghost letter guide (hintLevel 2 y 3 — muestra el fondo gris en nivel medio y fácil)
-    if (hintLevel >= 2) {
+    // 2. Ghost letter guide (todos los niveles — muestra el fondo gris siempre)
+    if (hintLevel >= 1) {
       ctx.save();
       ctx.globalAlpha = 0.12;
       ctx.strokeStyle = "#374151";
-      ctx.lineWidth = Math.min(W, H) * 0.22;
+      ctx.lineWidth = Math.min(SW, SH) * 0.22;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       for (const stroke of (charData.demoStrokes ?? charData.strokes)) {
         if (!stroke.points.length) continue;
         ctx.beginPath();
-        ctx.moveTo(stroke.points[0].x * W, stroke.points[0].y * H);
-        for (const p of stroke.points.slice(1)) ctx.lineTo(p.x * W, p.y * H);
+        ctx.moveTo(cxp(stroke.points[0].x), cyp(stroke.points[0].y));
+        for (const p of stroke.points.slice(1)) ctx.lineTo(cxp(p.x), cyp(p.y));
         ctx.stroke();
       }
       ctx.restore();
@@ -160,8 +167,8 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
       const active = sIdx === currentStrokeIdx;
 
       stroke.points.forEach((wp, wIdx) => {
-        const px = wp.x * W;
-        const py = wp.y * H;
+        const px = cxp(wp.x);
+        const py = cyp(wp.y);
 
         const showDot =
           hintLevel >= 2 ||
@@ -194,10 +201,10 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
               ? Math.atan2(stroke.points[1].y - stroke.points[0].y,
                            stroke.points[1].x - stroke.points[0].x) * 180 / Math.PI
               : 0);
-        const arrowLen = Math.min(W, H) * 0.13;
+        const arrowLen = Math.min(SW, SH) * 0.13;
         const rad = (arrowAngle * Math.PI) / 180;
-        const ax = p0.x * W;
-        const ay = p0.y * H;
+        const ax = cxp(p0.x);
+        const ay = cyp(p0.y);
         const tx = ax + Math.cos(rad) * arrowLen;
         const ty = ay + Math.sin(rad) * arrowLen;
 
@@ -229,13 +236,13 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
     if (path.length >= 2) {
       ctx.save();
       ctx.strokeStyle = "#2563eb";
-      ctx.lineWidth = Math.min(W, H) * 0.04;
+      ctx.lineWidth = Math.min(SW, SH) * 0.04;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.globalAlpha = 0.85;
       ctx.beginPath();
-      ctx.moveTo(path[0].x * W, path[0].y * H);
-      for (const p of path.slice(1)) ctx.lineTo(p.x * W, p.y * H);
+      ctx.moveTo(cxp(path[0].x), cyp(path[0].y));
+      for (const p of path.slice(1)) ctx.lineTo(cxp(p.x), cyp(p.y));
       ctx.stroke();
       ctx.restore();
     }
@@ -244,11 +251,11 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
     for (let si = 0; si < currentStrokeIdx && si < charData.strokes.length; si++) {
       const wp0 = charData.strokes[si].points[0];
       ctx.save();
-      ctx.font = `${Math.max(12, Math.min(W, H) * 0.08)}px sans-serif`;
+      ctx.font = `${Math.max(12, Math.min(SW, SH) * 0.08)}px sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.globalAlpha = 0.7;
-      ctx.fillText("✓", wp0.x * W, wp0.y * H - Math.min(W, H) * 0.06);
+      ctx.fillText("✓", cxp(wp0.x), cyp(wp0.y) - Math.min(SW, SH) * 0.06);
       ctx.restore();
     }
 
@@ -259,32 +266,32 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
       if (dp.length >= 2) {
         ctx.save();
         ctx.strokeStyle = "rgba(239,68,68,0.55)";
-        ctx.lineWidth = Math.min(W, H) * 0.045;
+        ctx.lineWidth = Math.min(SW, SH) * 0.045;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         ctx.beginPath();
-        ctx.moveTo(dp[0].x * W, dp[0].y * H);
-        for (const p of dp.slice(1)) ctx.lineTo(p.x * W, p.y * H);
+        ctx.moveTo(cxp(dp[0].x), cyp(dp[0].y));
+        for (const p of dp.slice(1)) ctx.lineTo(cxp(p.x), cyp(p.y));
         ctx.stroke();
         ctx.restore();
       }
 
-      const cx = dc.x * W;
-      const cy = dc.y * H;
-      const r  = Math.min(W, H) * 0.055;
+      const dcX = cxp(dc.x);
+      const dcY = cyp(dc.y);
+      const r   = Math.min(SW, SH) * 0.055;
       ctx.save();
       ctx.shadowBlur = 22;
       ctx.shadowColor = "rgba(239,68,68,0.75)";
       ctx.fillStyle = "#ef4444";
       ctx.globalAlpha = 0.93;
       ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.arc(dcX, dcY, r, 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowBlur = 0;
       ctx.fillStyle = "white";
       ctx.globalAlpha = 0.75;
       ctx.beginPath();
-      ctx.arc(cx, cy, r * 0.38, 0, Math.PI * 2);
+      ctx.arc(dcX, dcY, r * 0.38, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
@@ -292,6 +299,28 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
 
   // Keep redrawRef current so RAF tick always uses latest version
   useEffect(() => { redrawRef.current = redraw; }, [redraw]);
+
+  // ── Canvas sizing — must run AFTER redrawRef is updated so we can redraw ──
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const resize = () => {
+      let size;
+      if (minimal) {
+        const w = window.innerWidth  - 16;
+        const h = window.innerHeight - 16;
+        size = Math.max(Math.min(w, h, 1200), 200);
+      } else {
+        size = Math.min(canvas.parentElement?.clientWidth ?? 560, 560);
+      }
+      canvas.width  = size;
+      canvas.height = size;
+      redrawRef.current?.(); // redraw after canvas is cleared by dimension change
+    };
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, [canvasRef, minimal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const scheduleRedraw = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -301,7 +330,7 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
     });
   }, [redraw]);
 
-  useEffect(() => { redraw(); }, [redraw]);
+  useLayoutEffect(() => { redraw(); }, [redraw]);
 
   // ── Reset when charData changes ───────────────────────────────────────────
   // IMPORTANT: must be declared BEFORE the demo RAF effect so React runs it first.
@@ -481,6 +510,13 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
     if (!drawingRef.current || !charData) return;
     e.preventDefault();
     drawingRef.current = false;
+
+    // Cancel any pending RAF from handlePointerMove so it doesn't fire after
+    // setCurrentStrokeIdx triggers a re-render and overwrite the correct state.
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
 
     const canvas = canvasRef.current;
     const hitRadius = canvas

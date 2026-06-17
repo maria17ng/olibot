@@ -32,6 +32,22 @@ function _strokesToHard(strokes) {
   });
 }
 
+// Genera strokesEasy automático interpolando un punto a mitad entre cada par.
+// Usado como fallback cuando un carácter no tiene strokesEasy explícito.
+function _strokesToEasy(strokes) {
+  return strokes.map(s => {
+    const pts = s.points;
+    if (pts.length <= 1) return s;
+    const out = [];
+    for (let i = 0; i < pts.length - 1; i++) {
+      out.push(pts[i]);
+      out.push({ x: (pts[i].x + pts[i + 1].x) / 2, y: (pts[i].y + pts[i + 1].y) / 2 });
+    }
+    out.push(pts[pts.length - 1]);
+    return { points: out };
+  });
+}
+
 // ── Datos ──────────────────────────────────────────────────────────────────
 
 export const LETTER_DATA = {
@@ -886,8 +902,9 @@ export const LETTER_DATA = {
 //                     (en formas cerradas se añade el punto central)
 
 function _getStrokesForLevel(char, level) {
-  if (level === 0) return char.strokesEasy ?? char.strokes;
-  if (level === 2) return _strokesToHard(char.strokes);
+  if (level === 0) return char.strokesEasy ?? _strokesToEasy(char.strokes);
+  // Level 2 (hard): guide dots are reduced to start+end by the hook (hintLevel=1),
+  // but strokes must stay complete so evaluation expects the real letter shape.
   return char.strokes;
 }
 
@@ -981,10 +998,5 @@ export function getCharDataByKey(key, level = 1) {
     tutorial: char.tutorial,
     strokes: _getStrokesForLevel(char, level),
   };
-  // En nivel difícil los trazos solo tienen [inicio, fin].
-  // demoStrokes guarda los trazos completos para la animación del tutorial.
-  if (level === 2) {
-    result.demoStrokes = char.strokes;
-  }
   return result;
 }

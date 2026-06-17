@@ -1,0 +1,710 @@
+%% ============================================================
+%%  OLIBOT — Presentación para Dirección de Centro Escolar
+%%  Objetivo: obtener autorización para evaluación con alumnos
+%%  Compilar: pdflatex presentacion_colegio.tex  (x2)
+%% ============================================================
+\documentclass[aspectratio=169, 11pt]{beamer}
+
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage{fontawesome5}
+\usepackage{array}
+\usepackage{colortbl}
+
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, fit, backgrounds, shadows}
+
+%% ── Paleta amigable ──────────────────────────────────────────
+\definecolor{verde}   {RGB}{34,  139,  86}
+\definecolor{azul}    {RGB}{30,   90, 160}
+\definecolor{naranja} {RGB}{230, 120,  30}
+\definecolor{crema}   {RGB}{252, 248, 240}
+\definecolor{grisclaro}{RGB}{245,245,245}
+\definecolor{verdeOsc}{RGB}{20, 100, 60}
+
+%% ── Tema ─────────────────────────────────────────────────────
+\usetheme{Boadilla}
+\usecolortheme[named=verde]{structure}
+
+\setbeamercolor{title}             {fg=white,  bg=verde}
+\setbeamercolor{frametitle}        {fg=white,  bg=verde}
+\setbeamercolor{block title}       {fg=white,  bg=azul}
+\setbeamercolor{block body}        {bg=azul!7}
+\setbeamercolor{block title alerted}{fg=white, bg=naranja}
+\setbeamercolor{block body alerted} {bg=naranja!8}
+\setbeamercolor{block title example}{fg=white, bg=verdeOsc}
+\setbeamercolor{block body example} {bg=verde!8}
+\setbeamercolor{itemize item}      {fg=verde}
+\setbeamercolor{itemize subitem}   {fg=azul}
+\setbeamercolor{enumerate item}    {fg=verde}
+\setbeamercolor{footline}          {fg=white,  bg=verde!80}
+\setbeamercolor{palette primary}   {fg=white,  bg=verde}
+\setbeamercolor{palette secondary} {fg=white,  bg=verde!80}
+\setbeamercolor{palette tertiary}  {fg=white,  bg=verde!60}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{itemize subitem}[triangle]
+\setbeamerfont{frametitle}{size=\large, series=\bfseries}
+
+%% Barra de pie personalizada
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.40\paperwidth, ht=2.4ex, dp=1ex, leftskip=6pt]{palette primary}%
+      \usebeamerfont{author in head/foot}\insertshortauthor
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.45\paperwidth, ht=2.4ex, dp=1ex, center]{palette secondary}%
+      \usebeamerfont{title in head/foot}\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.15\paperwidth, ht=2.4ex, dp=1ex, rightskip=6pt, right]{palette tertiary}%
+      \usebeamerfont{date in head/foot}\insertframenumber\,/\,\inserttotalframenumber
+    \end{beamercolorbox}%
+  }%
+}
+
+%% ── Macros ───────────────────────────────────────────────────
+\newcommand{\icono}[1]{\textcolor{verde}{\faIcon{#1}}}
+\newcommand{\destacado}[1]{\textbf{\textcolor{azul}{#1}}}
+\newcommand{\tick}{\textcolor{verde}{\faIcon{check-circle}}}
+\newcommand{\punto}[1]{\medskip\noindent\textcolor{verde}{\faIcon{circle}}\;#1}
+\newcommand{\titulo}{\bfseries\color{azul}}
+
+%% ── Metadatos ────────────────────────────────────────────────
+\title[OLIBOT — Asistente Digital Infantil]{%
+  \textbf{OLIBOT}\\[6pt]
+  \large Un asistente digital que apoya\\[2pt]
+  el aprendizaje de la lecto\-escritura\\[2pt]
+  en Educación Infantil}
+\author[María Emilia Núñez Guerrero]{%
+  María Emilia Núñez Guerrero\\[2pt]
+  \small Máster en Inteligencia Artificial — Universidad Carlos III de Madrid}
+\institute{}
+\date{Junio 2026}
+
+%% ============================================================
+\begin{document}
+%% ============================================================
+
+%% ─── 1. PORTADA ─────────────────────────────────────────────
+\begin{frame}
+  \begin{tikzpicture}[remember picture, overlay]
+    \fill[verde!15] (current page.south west) rectangle (current page.north east);
+    \fill[verde]    (current page.north west) rectangle
+                    ([yshift=-1.8cm]current page.north east);
+    \node[white, font=\bfseries\huge, anchor=west]
+      at ([xshift=0.8cm, yshift=-0.9cm]current page.north west)
+      {OLIBOT};
+    \node[white, font=\normalsize, anchor=east]
+      at ([xshift=-0.8cm, yshift=-0.9cm]current page.north east)
+      {Junio 2026};
+  \end{tikzpicture}
+
+  \vspace{1.6cm}
+  \begin{center}
+    {\Huge\bfseries\color{verde} OLIBOT}\\[6pt]
+    {\large\color{azul} Un asistente digital para aprender\\
+    las primeras letras y números}\\[18pt]
+    \begin{tikzpicture}
+      \node[fill=verde, rounded corners=8pt, inner sep=10pt, text=white,
+            font=\bfseries\large] {
+        Propuesta de evaluación en el aula};
+    \end{tikzpicture}\\[14pt]
+    {\normalsize María Emilia Núñez Guerrero}\\
+    {\small TFM — Universidad Carlos III de Madrid}
+  \end{center}
+\end{frame}
+
+%% ─── 2. ÍNDICE ───────────────────────────────────────────────
+\begin{frame}{¿De qué vamos a hablar?}
+  \tableofcontents
+\end{frame}
+
+%% ============================================================
+\section{El contexto educativo actual}
+%% ============================================================
+
+%% ─── 3. NORMATIVA CM ────────────────────────────────────────
+\begin{frame}{El currículo de Infantil en la Comunidad de Madrid}
+  \begin{columns}[T]
+    \begin{column}{.54\textwidth}
+      \begin{block}{\icono{book-open}\; Decreto 36/2022 de la CM}
+        \small
+        El currículo de 2.º ciclo de Educación Infantil (3--6 años)
+        establece que la \destacado{iniciación a la lectoescritura}
+        es un eje central del área\\
+        \textit{«Comunicación y Representación de la Realidad»}:
+        \begin{itemize}
+          \item Grafomotricidad y trazado de letras desde los 3 años.
+          \item Conciencia fonológica y asociación grafema–fonema.
+          \item Aproximación al número y sus representaciones.
+          \item Enfoque \textbf{sistemático y progresivo} por edades.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{.42\textwidth}
+      \begin{alertblock}{\icono{exclamation-triangle}\; El reto del aula}
+        \small
+        \begin{itemize}
+          \item Ratios de \textbf{25 alumnos/docente}.
+          \item Ritmos de aprendizaje \textbf{muy distintos}.
+          \item Escaso tiempo para atención \textbf{individualizada}.
+          \item El juego y la motivación son \textbf{imprescindibles} a estas edades.
+        \end{itemize}
+      \end{alertblock}
+      \vspace{4pt}
+      \begin{exampleblock}{\icono{lightbulb}\; La pregunta}
+        \small\centering
+        ¿Puede la tecnología \textbf{complementar} al docente respetando el currículo?
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ─── 4. DIGITAL HOY ─────────────────────────────────────────
+\begin{frame}{Los niños de hoy y la tecnología}
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      \begin{block}{\icono{child}\; Nativos digitales}
+        \footnotesize
+        Los niños de 3--5 años interactúan con dispositivos
+        táctiles y de voz a diario.\\[2pt]
+        Incorporar la tecnología de forma \destacado{controlada y pedagógica}:
+        \begin{itemize}
+          \item Reduce la brecha con su entorno familiar.
+          \item Aumenta la motivación intrínseca.
+          \item Permite practicar a su propio ritmo.
+        \end{itemize}
+      \end{block}
+      \begin{block}{\icono{shield-alt}\; Diferencia clave}
+        \footnotesize
+        OLIBOT \textbf{no es entretenimiento}: es una herramienta educativa con objetivos curriculares, sin publicidad ni datos comerciales.
+      \end{block}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{tikzpicture}[font=\footnotesize]
+        % Comparativa Apps vs OLIBOT
+        \node[draw=naranja, fill=naranja!10, rounded corners=5pt,
+              text width=4.0cm, inner sep=6pt, align=left] (apps)
+          {{\color{naranja}\bfseries Apps típicas}\\[4pt]
+           \textcolor{gray!80}{\small\faIcon{times-circle}} Contenido fijo\\
+           \textcolor{gray!80}{\small\faIcon{times-circle}} No se adapta al niño\\
+           \textcolor{gray!80}{\small\faIcon{times-circle}} Sin alineación curricular\\
+           \textcolor{gray!80}{\small\faIcon{times-circle}} Refuerzo instantáneo adictivo};
+        \node[draw=verde, fill=verde!10, rounded corners=5pt,
+              text width=4.0cm, inner sep=6pt, align=left,
+              below=0.35cm of apps] (olibot)
+          {{\color{verde}\bfseries OLIBOT}\\[4pt]
+           \textcolor{verde}{\small\faIcon{check-circle}} Adaptativo por edad y nivel\\
+           \textcolor{verde}{\small\faIcon{check-circle}} Sigue el currículo CM\\
+           \textcolor{verde}{\small\faIcon{check-circle}} Interacción por voz\\
+           \textcolor{verde}{\small\faIcon{check-circle}} Sin publicidad ni datos personales};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ============================================================
+\section{¿Qué es OLIBOT?}
+%% ============================================================
+
+%% ─── 5. QUÉ ES ───────────────────────────────────────────────
+\begin{frame}{OLIBOT en pocas palabras}
+  \begin{columns}[T]
+    \begin{column}{.50\textwidth}
+      \begin{exampleblock}{\icono{robot}\; Qué es}
+        \small
+        Un \destacado{asistente educativo digital} que habla con el niño por voz, propone actividades de lectoescritura y se adapta a su ritmo.\\[3pt]
+        Funciona en cualquier \textbf{tablet} (sin instalación).
+      \end{exampleblock}
+      \vspace{3pt}
+      \begin{block}{\icono{users}\; Para quién}
+        \footnotesize
+        \begin{itemize}
+          \item \textbf{3 años}: grafomotricidad y vocales
+          \item \textbf{4 años}: vocales + primeras consonantes
+          \item \textbf{5 años}: consonantes, sílabas y palabras
+        \end{itemize}
+        El nivel se selecciona al inicio; la dificultad se ajusta automáticamente.
+      \end{block}
+    \end{column}
+    \begin{column}{.46\textwidth}
+      \begin{tikzpicture}[font=\footnotesize,
+        fase/.style={draw=azul, fill=azul!8, rounded corners=4pt,
+                     minimum width=3.8cm, minimum height=0.6cm,
+                     inner sep=4pt, align=center},
+        arr/.style={-Stealth, thick, color=verde}]
+
+        \node[fase] (A) {\icono{comment-dots} El niño habla con OLIBOT};
+        \node[fase, below=0.3cm of A] (B) {\icono{brain} OLIBOT elige la actividad};
+        \node[fase, below=0.3cm of B] (C) {\icono{pencil-alt} El niño traza / responde};
+        \node[fase, below=0.3cm of C] (D) {\icono{star} OLIBOT celebra y adapta};
+        \node[fase, below=0.3cm of D] (E) {\icono{arrow-right} Avanza al siguiente reto};
+
+        \draw[arr] (A) -- (B);
+        \draw[arr] (B) -- (C);
+        \draw[arr] (C) -- (D);
+        \draw[arr] (D) -- (E);
+        \draw[arr] (E.east) -- ++(0.3,0) |- (A.east);
+
+        \node[font=\tiny, color=gray, anchor=west]
+          at ([xshift=0.4cm, yshift=0.1cm]A.east) {loop adaptativo};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ─── 6. ACTIVIDADES ─────────────────────────────────────────
+\begin{frame}{¿Qué hace el niño durante la sesión?}
+
+  \begin{columns}[T]
+    \begin{column}{.32\textwidth}
+      \begin{block}{\centering\icono{pencil-alt}\; Trazado de letras}
+        \small\centering
+        El niño sigue los puntos guía en la pantalla táctil.\\[4pt]
+        Tres niveles de ayuda: con guía completa, con puntos clave, y libre.\\[4pt]
+        \textbf{Demostración automática} antes de que el niño intente.
+      \end{block}
+    \end{column}
+    \begin{column}{.32\textwidth}
+      \begin{exampleblock}{\centering\icono{microphone}\; Interacción por voz}
+        \small\centering
+        El niño escucha las instrucciones de OLIBOT y responde hablando.\\[4pt]
+        No requiere saber leer ni escribir para interactuar.\\[4pt]
+        Compatible con la voz \textbf{en español de España}.
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{.32\textwidth}
+      \begin{alertblock}{\centering\icono{palette}\; Colorear y dibujar}
+        \small\centering
+        Como actividad de descanso cognitivo o premio, el programa ofrece fichas de colorear digitales.\\[4pt]
+        Mantiene la \textbf{motivación} durante toda la sesión.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{10pt}
+  \begin{center}
+    \begin{tikzpicture}
+      \node[fill=verde!15, rounded corners=6pt, inner sep=8pt,
+            text width=12cm, align=center, font=\small] {
+        \icono{info-circle}\;
+        \textbf{Sesiones de 15--20 minutos.}
+        El docente permanece en el aula en todo momento.
+        El programa \textbf{no sustituye} a la maestra: la \textbf{complementa}.
+      };
+    \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+%% ============================================================
+\section{Enfoque pedagógico}
+%% ============================================================
+
+%% ─── 7. PEDAGOGÍA ───────────────────────────────────────────
+\begin{frame}{Principios pedagógicos de OLIBOT}
+
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      \begin{block}{\icono{layer-group}\; Scaffolding (Vygotsky)}
+        \footnotesize
+        Ayudas graduadas ante dificultades:
+        \begin{enumerate}
+          \item \textit{«¿Quieres intentarlo otra vez?»}
+          \item \textit{«Fíjate en el punto de inicio…»}
+          \item Demostración completa del trazo
+        \end{enumerate}
+        Nunca da la respuesta sin que el niño lo intente.
+      \end{block}
+      \begin{block}{\icono{user-check}\; Perfil individual}
+        \footnotesize
+        Cada niño tiene su \textbf{nombre y progreso} guardado. El sistema recuerda qué letras necesita reforzar.
+      \end{block}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{exampleblock}{\icono{shield-alt}\; Seguridad para menores}
+        \footnotesize
+        \begin{itemize}
+          \item Solo responde sobre las actividades (contenido filtrado).
+          \item Sin acceso a internet ni grabación de audio.
+          \item Lenguaje siempre positivo.
+        \end{itemize}
+      \end{exampleblock}
+      \begin{exampleblock}{\icono{star}\; Motivación intrínseca}
+        \footnotesize
+        \begin{itemize}
+          \item Celebraciones y refuerzo positivo.
+          \item Avatar animado que «siente» el progreso.
+          \item Insignias al superar bloques de contenido.
+          \item Progresión visible para el niño.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ============================================================
+\section{Plan de evaluación}
+%% ============================================================
+
+%% ─── 8. QUÉ QUEREMOS MEDIR ──────────────────────────────────
+\begin{frame}{¿Qué queremos evaluar?}
+
+  \begin{center}
+  \begin{tikzpicture}[font=\small,
+    metrica/.style={draw=azul, fill=azul!8, rounded corners=6pt,
+                    inner sep=8pt, text width=4.0cm, align=left,
+                    drop shadow={opacity=0.15}},
+    titulo/.style={font=\bfseries\color{azul}}]
+
+    % Fila 1
+    \node[metrica] (M1) {
+      {\titulo\icono{clock}\; Atención sostenida}\\[3pt]
+      Tiempo de interacción activa con OLIBOT medido por sesión y por alumno.};
+
+    \node[metrica, right=0.4cm of M1] (M2) {
+      {\titulo\icono{chart-bar}\; Rendimiento comparado}\\[3pt]
+      Actividades superadas \textbf{con} OLIBOT frente a fichas en papel equivalentes (grupo control).};
+
+    \node[metrica, right=0.4cm of M2] (M3) {
+      {\titulo\icono{hand-paper}\; Intervención del adulto}\\[3pt]
+      N.º de veces que el docente o investigadora intervienen para ayudar al niño.};
+
+    % Fila 2
+    \node[metrica, below=0.4cm of M1] (M4) {
+      {\titulo\icono{smile}\; Satisfacción del usuario}\\[3pt]
+      Encuesta post-sesión con \textbf{caras} (\faIcon{smile}/\faIcon{frown}) y observación de actitud.};
+
+    \node[metrica, right=0.4cm of M4] (M5) {
+      {\titulo\icono{graduation-cap}\; Velocidad de progresión}\\[3pt]
+      Letras/sílabas nuevas superadas por sesión vs.\ línea base de la tutora.};
+
+    \node[metrica, right=0.4cm of M5] (M6) {
+      {\titulo\icono{redo}\; Engagement voluntario}\\[3pt]
+      N.º de veces que el niño pide «otra vez» o intenta un trazo de nuevo sin pedírselo.};
+
+  \end{tikzpicture}
+  \end{center}
+
+  \vspace{4pt}
+  \begin{center}
+    \small\textcolor{gray}{%
+    Los datos se recogen de forma anónima, sin identificación personal del alumno.}
+  \end{center}
+\end{frame}
+
+%% ─── 9. DISEÑO EVALUACIÓN ───────────────────────────────────
+\begin{frame}{Diseño de la evaluación}
+
+  \begin{columns}[T]
+    \begin{column}{.50\textwidth}
+      \begin{block}{\icono{calendar-alt}\; Cronograma propuesto}
+        \footnotesize
+        \begin{tabular}{@{}ll@{}}
+          \toprule
+          \textbf{Fase} & \textbf{Duración} \\
+          \midrule
+          Sesión de presentación al equipo  & 1 sesión \\
+          Evaluación con alumnos            & 3--5 sesiones \\
+          \quad — Grupo usando OLIBOT        & 15--20 min/sesión \\
+          \quad — Grupo control (papel)      & misma duración \\
+          Recogida de feedback docente       & 1 sesión \\
+          Entrega de informe al centro       & 1 semana después \\
+          \bottomrule
+        \end{tabular}
+      \end{block}
+      \begin{alertblock}{\icono{exclamation-circle}\; Importante}
+        \footnotesize
+        El docente \textbf{siempre estará presente} y puede interrumpir la sesión en cualquier momento.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{.46\textwidth}
+      \begin{exampleblock}{\icono{users}\; Muestra}
+        \footnotesize
+        \begin{itemize}
+          \item Alumnos de \textbf{4 o 5 años}.
+          \item Grupo reducido de \textbf{4--8 niños}.
+          \item División aleatoria: OLIBOT vs.\ control.
+        \end{itemize}
+      \end{exampleblock}
+      \begin{exampleblock}{\icono{tools}\; Material necesario}
+        \footnotesize
+        \begin{itemize}
+          \item \textbf{1 tablet} con Chrome o Safari.
+          \item \textbf{WiFi} o punto de acceso propio.
+          \item Espacio tranquilo en el aula.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ============================================================
+\section{Garantías y compromisos}
+%% ============================================================
+
+%% ─── 10. GARANTÍAS ──────────────────────────────────────────
+\begin{frame}{Lo que garantizamos}
+
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      \begin{block}{\icono{user-shield}\; Privacidad y protección de datos}
+        \small
+        \begin{itemize}
+          \item \textbf{Sin nombres ni datos personales}: los perfiles usan apodos o iniciales.
+          \item \textbf{Sin grabaciones de audio}: el reconocimiento de voz se procesa localmente.
+          \item Cumplimiento de la \textbf{LOPDGDD} y normativa de protección de menores.
+          \item Los datos de uso se anonimizarán antes de cualquier análisis.
+        \end{itemize}
+      \end{block}
+      \vspace{4pt}
+      \begin{block}{\icono{university}\; Contexto académico}
+        \small
+        Este trabajo es parte de un \textbf{TFM} de la Universidad Carlos III de Madrid. Los resultados se usarán exclusivamente con fines de investigación académica, \textbf{sin ningún uso comercial}.
+      \end{block}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{exampleblock}{\icono{hands-helping}\; Lo que recibe el centro}
+        \small
+        \begin{itemize}
+          \item[\tick] Acceso gratuito a OLIBOT durante la evaluación.
+          \item[\tick] \textbf{Informe} del progreso por alumno (anónimo).
+          \item[\tick] Informe docente con sugerencias pedagógicas.
+          \item[\tick] Sin compromiso de uso posterior.
+          \item[\tick] Uso gratuito continuado si lo desean.
+        \end{itemize}
+      \end{exampleblock}
+      \begin{center}
+        \begin{tikzpicture}
+          \node[fill=verde, rounded corners=6pt, inner sep=8pt,
+                text=white, font=\bfseries] {%
+            \icono{envelope}\; Firmamos carta de compromiso si lo desean};
+        \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ─── 11. LO QUE PEDIMOS ─────────────────────────────────────
+\begin{frame}{Lo que necesitamos de vosotros}
+
+  \begin{center}
+  \begin{tikzpicture}[font=\small,
+    item/.style={draw=verde, fill=verde!8, rounded corners=6pt,
+                 inner sep=7pt, text width=2.4cm, align=center,
+                 minimum height=2.3cm, drop shadow={opacity=0.12}}]
+
+    \node[item] (P1) {
+      \Large\icono{calendar-check}\\[4pt]
+      \small\textbf{3--5 sesiones}\\[1pt]
+      \footnotesize 15--20\,min por sesión};
+
+    \node[item, right=0.4cm of P1] (P2) {
+      \Large\icono{chalkboard-teacher}\\[4pt]
+      \small\textbf{Tutora\\presente}\\[1pt]
+      \footnotesize observa y garantiza el bienestar};
+
+    \node[item, right=0.4cm of P2] (P3) {
+      \Large\icono{wifi}\\[4pt]
+      \small\textbf{Conexión WiFi}\\[1pt]
+      \footnotesize o punto de acceso propio};
+
+    \node[item, right=0.4cm of P3] (P4) {
+      \Large\icono{file-signature}\\[4pt]
+      \small\textbf{Autorización}\\[1pt]
+      \footnotesize familias y dirección (modelo estándar)};
+
+    \node[item, right=0.4cm of P4] (P5) {
+      \Large\icono{comment-alt}\\[4pt]
+      \small\textbf{Feedback}\\[1pt]
+      \footnotesize cuestionario breve al docente};
+
+  \end{tikzpicture}
+  \end{center}
+
+  \vspace{0.2cm}
+  \begin{center}
+    \begin{tikzpicture}
+      \node[fill=azul!10, draw=azul, rounded corners=5pt, inner sep=6pt,
+            text width=12.5cm, align=center, font=\footnotesize] {
+        \textbf{En ningún caso interrumpiremos el horario lectivo regular.}
+        Las sesiones se realizarán en los momentos que la tutora considere más oportunos
+        (rincones, trabajo en grupos, tiempo libre guiado…)
+      };
+    \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+%% ============================================================
+\section{Conclusión y demostración}
+%% ============================================================
+
+%% ─── 12. RESUMEN BENEFICIOS ─────────────────────────────────
+\begin{frame}{¿Por qué vale la pena probar OLIBOT?}
+
+  \begin{columns}[T]
+    \begin{column}{.54\textwidth}
+      \begin{exampleblock}{\icono{check-double}\; Beneficios directos para el aula}
+        \normalsize
+        \begin{itemize}
+          \item El docente \textbf{gana tiempo} para atender a quienes más lo necesitan mientras OLIBOT acompaña a otro grupo.
+          \item Cada niño avanza \textbf{a su ritmo} sin presión ni comparación.
+          \item Refuerza exactamente \textbf{lo que se trabaja en clase}.
+          \item Genera datos objetivos que el docente puede usar para su \textbf{evaluación continua}.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{.42\textwidth}
+      \begin{tikzpicture}[font=\small]
+        \node[draw=verde, fill=verde!8, rounded corners=6pt,
+              inner sep=10pt, text width=4.5cm, align=center] (cita) {
+          \large\itshape\color{azul}
+          «La tecnología bien usada no reemplaza al docente:\\
+          \textbf{multiplica su impacto}»\\[6pt]
+          \footnotesize\color{gray}
+          Adaptado de Salman Khan,\\
+          \textit{The One World Schoolhouse}, 2012
+        };
+      \end{tikzpicture}
+      \vspace{8pt}
+      \begin{block}{\icono{eye}\; Veámoslo en vivo}
+        \small
+        A continuación realizamos una \textbf{demostración} de exactamente lo que vería un alumno en su primera sesión.\\[4pt]
+        La demo dura \textbf{5 minutos}.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ─── 13. DIAPOSITIVA DE DEMO ────────────────────────────────
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture, overlay]
+    \fill[verde] (current page.south west) rectangle (current page.north east);
+
+    \node[white, font=\bfseries\fontsize{48}{52}\selectfont]
+      at ([yshift=1.2cm]current page.center) {DEMO EN VIVO};
+
+    \node[white, font=\Large]
+      at (current page.center) {\icono{tablet-alt}\;\; Se inicia OLIBOT…};
+
+    \node[fill=white, rounded corners=8pt, inner sep=12pt,
+          font=\normalsize\color{verde}\bfseries,
+          text width=7cm, align=center]
+      at ([yshift=-2.2cm]current page.center)
+      {\faIcon{info-circle}\; Recordatorio para la demo:\\[4pt]
+       \footnotesize\color{azul}
+       1. Seleccionar nombre y edad del niño\\
+       2. Mostrar la demo automática del trazo\\
+       3. Demostrar interacción por voz\\
+       4. Mostrar la adaptación de nivel};
+  \end{tikzpicture}
+\end{frame}
+
+%% ─── 14. CIERRE ─────────────────────────────────────────────
+\begin{frame}{Próximos pasos}
+
+  \begin{columns}[T]
+    \begin{column}{.50\textwidth}
+      \begin{block}{\icono{list-ol}\; Si decide participar…}
+        \normalsize
+        \begin{enumerate}
+          \item \textbf{Hoy}: comentar la propuesta con el equipo docente.
+          \item \textbf{Esta semana}: firmar carta de colaboración + autorización familiar.
+          \item \textbf{Próximas semanas}: acordar fechas de sesiones.
+          \item \textbf{Tras las sesiones}: recibirá el informe completo.
+        \end{enumerate}
+      \end{block}
+    \end{column}
+    \begin{column}{.46\textwidth}
+      \begin{exampleblock}{\icono{address-card}\; Contacto}
+        \normalsize
+        \textbf{María Emilia Núñez Guerrero}\\[4pt]
+        \icono{envelope}\; \texttt{menemezgu@alumnos.uc3m.es}\\[4pt]
+        \icono{university}\; Departamento de Informática\\
+        Universidad Carlos III de Madrid\\[8pt]
+        \small\textcolor{gray}{Supervisado por:\\
+        Dr.\ Javier Ignacio Carbó Rubiera}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{14pt}
+  \begin{center}
+    \begin{tikzpicture}
+      \node[fill=verde, rounded corners=8pt, inner sep=14pt,
+            text=white, font=\bfseries\Large] {
+        \faIcon{heart}\;\; ¡Muchas gracias por su tiempo y confianza!};
+    \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+%% ============================================================
+%% APÉNDICE (no se muestra en demo, disponible si hay preguntas)
+%% ============================================================
+\appendix
+
+\begin{frame}{Preguntas frecuentes — Privacidad}
+  \small
+  \begin{block}{¿Se graba la voz de los niños?}
+    No. El reconocimiento de voz usa la API del propio navegador del dispositivo.
+    Los datos de audio \textbf{no se almacenan} en ningún servidor.
+  \end{block}
+  \vspace{4pt}
+  \begin{block}{¿Qué datos se recogen exactamente?}
+    Únicamente: número de intentos por actividad, nivel de pistas solicitadas y tiempo de sesión.
+    \textbf{Ningún dato permite identificar individualmente al alumno} (se usan apodos o iniciales elegidos por el docente).
+  \end{block}
+  \vspace{4pt}
+  \begin{block}{¿Necesita el niño usuario o contraseña?}
+    No. El docente selecciona el perfil del niño antes de que se siente ante la tablet.
+    El niño no necesita ningún acceso digital previo.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Alineación curricular detallada}
+  \small
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      \begin{exampleblock}{3 años — Pre-grafomotricidad}
+        \begin{itemize}
+          \item Trazos verticales, horizontales y curvos
+          \item Conciencia fonológica oral
+          \item Reconocimiento de vocales A, E
+        \end{itemize}
+      \end{exampleblock}
+      \vspace{4pt}
+      \begin{exampleblock}{4 años — Vocales y primeras consonantes}
+        \begin{itemize}
+          \item Todas las vocales (A, E, I, O, U)
+          \item Consonantes m, l, s, p, t
+          \item Números del 1 al 5
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{exampleblock}{5 años — Sílabas y palabras}
+        \begin{itemize}
+          \item Consonantes d, n, r, f, b, c, g
+          \item Sílabas directas (ma, me, mi, mo, mu)
+          \item Primeras palabras (mamá, papá, sol)
+          \item Números del 1 al 10
+        \end{itemize}
+      \end{exampleblock}
+      \vspace{4pt}
+      \begin{block}{Referencia normativa}
+        \footnotesize
+        Decreto 36/2022, de 9 de mayo (CM).\\
+        Área: «Comunicación y Representación de la Realidad».\\
+        Criterios de evaluación 4.1, 4.2, 4.3.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\end{document}

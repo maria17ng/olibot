@@ -1,0 +1,9 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{Antes de entrar}{2}{}%
+\contentsline {section}{\numberline {1}Bienvenida e introducción (Diap. 1--2)}{2}{}%
+\contentsline {section}{\numberline {2}El contexto educativo (Diap. 3--4)}{2}{}%
+\contentsline {section}{\numberline {3}¿Qué es OLIBOT? (Diap. 5--7)}{3}{}%
+\contentsline {section}{\numberline {4}Plan de evaluación (Diap. 8--9)}{4}{}%
+\contentsline {section}{\numberline {5}Garantías y compromisos (Diap. 10--11)}{5}{}%
+\contentsline {section}{\numberline {6}Cierre y demostración (Diap. 12--14)}{6}{}%
+\contentsline {section}{Resumen de tiempos}{7}{}%

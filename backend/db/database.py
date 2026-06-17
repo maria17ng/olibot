@@ -46,3 +46,4 @@ def init_db():
             conn.commit()
         except Exception:
             pass  # Column already exists
+        # emotional_checkpoints table is created by create_all above; no manual migration needed

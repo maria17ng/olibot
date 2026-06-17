@@ -529,6 +529,13 @@ export function subjectFromText(text) {
   return null;
 }
 
+// ── Animal/non-animal classification ─────────────────────────────────────────
+const _NON_ANIMAL_SUBJECTS = new Set(["flor", "arbol", "casa", "sol", "estrella", "corazon", "nube", "pelota", "helado"]);
+/** Returns true if subject is an animal (not a non-animal like flor, sol, casa…) */
+export function isAnimalSubject(subject) {
+  return subject != null && !_NON_ANIMAL_SUBJECTS.has(subject);
+}
+
 function _pickFromManifest(subject, manifest) {
   if (!manifest || !manifest.length) return null;
 

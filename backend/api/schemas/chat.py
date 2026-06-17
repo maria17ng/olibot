@@ -9,6 +9,7 @@ class ChatRequest(BaseModel):
     student_id: int
     message: str = Field(..., min_length=1, max_length=1000)
     session_id: int | None = None  # If None, a new session is started
+    current_screen: str | None = None  # "tracing"|"drawing"|"recognition"|"emotion_picker"|"activity_picker"
 
 
 class MessageOut(BaseModel):

@@ -27,6 +27,7 @@ from backend.api.schemas.report import (
     SessionSummary,
     BDIExplanation,
     AgeGroupReport,
+    MessageRecord,
 )
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -349,5 +350,47 @@ def _build_age_groups(
             advance_message=advance_message,
             topics=sorted(topics, key=lambda t: (-int(t.mastered), -t.success_rate)),
         ))
+
+    return result
+
+@router.get("/{student_id}/messages", response_model=list[MessageRecord])
+def get_student_messages(
+    student_id: int,
+    session_id: int | None = None,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+):
+    """
+    Returns the full conversation history for a student.
+    Optionally filtered to a single session via ?session_id=N.
+    Ordered chronologically (oldest first), capped at `limit` messages.
+    """
+    student_repo = StudentRepository(db)
+    session_repo = SessionRepository(db)
+
+    if not student_repo.get_by_id(student_id):
+        raise HTTPException(status_code=404, detail=f"Student {student_id} not found")
+
+    if session_id is not None:
+        raw = session_repo.get_session_messages(session_id)
+    else:
+        sessions = session_repo.get_sessions_for_student(student_id)
+        raw = []
+        for s in sessions:
+            raw.extend(session_repo.get_session_messages(s.id))
+        raw.sort(key=lambda m: m.timestamp)
+        raw = raw[-limit:]
+
+    return [
+        MessageRecord(
+            message_id=m.id,
+            role=m.role,
+            content=m.content,
+            detected_intent=m.detected_intent,
+            shield_triggered=bool(m.shield_triggered),
+            timestamp=m.timestamp,
+        )
+        for m in raw
+    ]
 
     return result

@@ -1164,3 +1164,416 @@
 2026-06-07 18:07:23 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
 2026-06-07 18:07:23 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
 2026-06-07 18:07:23 [olibot.pipeline] INFO: → RESP (0.3s) shield=False  '¡Vamos allá! Soy OLIBOT, tu robot tutor. ¿Empezamos? 🚀'
+2026-06-07 18:16:32 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=17  topic=numero_1
+2026-06-07 18:16:35 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-07 18:16:35 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-07 18:16:35 [olibot.pipeline] INFO: → RESP (3.5s) shield=False  '¡Muy bien! Hoy aprenderemos cosas nuevas 🎉'
+2026-06-08 22:19:23 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=18  topic=numero_1
+2026-06-08 22:19:32 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-08 22:19:32 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-08 22:19:32 [olibot.pipeline] INFO: → RESP (9.2s) shield=False  '¡Muy bien! Hoy aprenderemos cosas nuevas 🎉'
+2026-06-08 22:27:16 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=19  topic=trazo_linea_h
+2026-06-08 22:27:16 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=20  topic=trazo_linea_h
+2026-06-08 22:27:18 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-08 22:27:18 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-08 22:27:18 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-08 22:27:18 [olibot.pipeline] INFO: → RESP (1.8s) shield=False  '¡Vamos! 👋'
+2026-06-08 22:27:26 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-08 22:27:26 [olibot.pipeline] INFO: → RESP (9.7s) shield=False  '¡Genial! 🤖'
+2026-06-08 22:28:04 [olibot.pipeline] INFO: ← msg='He trazado el trazo LINEA_H y me ha salido bien en todos los niveles (100% de acierto)'  student=6  session=20  topic=trazo_linea_h
+2026-06-08 22:32:36 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=21  topic=trazo_linea_v
+2026-06-08 22:32:36 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=22  topic=trazo_linea_v
+2026-06-08 22:32:36 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-08 22:32:37 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-08 22:32:37 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-08 22:32:37 [olibot.pipeline] INFO: → RESP (1.0s) shield=False  '¡Vamos! 👋'
+2026-06-08 22:32:45 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-08 22:32:45 [olibot.pipeline] INFO: → RESP (9.1s) shield=False  '¡Vamos! 👋'
+2026-06-08 22:33:13 [olibot.pipeline] INFO: ← msg='Los niños'  student=1  session=21  topic=trazo_linea_v
+2026-06-08 22:33:13 [olibot.pipeline] INFO: → NLU: intent=express_emotion  conf=1.00  entities={}
+2026-06-08 22:33:13 [olibot.pipeline] INFO: → BDI: action=acknowledge_emotion  is_correct=None  next_topic=None
+2026-06-08 22:33:13 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Ánimo! 🌟'
+2026-06-08 22:33:40 [olibot.pipeline] INFO: ← msg='Probando'  student=1  session=21  topic=trazo_linea_v
+2026-06-08 22:34:06 [olibot.pipeline] INFO: → NLU: intent=attempt_answer  conf=0.80  entities={'answer': 'Probando'}
+2026-06-08 22:34:06 [olibot.pipeline] INFO: → BDI: action=evaluate_and_encourage  is_correct=False  next_topic=None
+2026-06-08 22:34:06 [olibot.pipeline] INFO: → RESP (26.2s) shield=False  '¡Tú puedes! 💪'
+2026-06-08 22:34:18 [olibot.pipeline] INFO: ← msg='Círculos'  student=1  session=21  topic=trazo_linea_v
+2026-06-08 22:34:20 [olibot.pipeline] INFO: → NLU: intent=request_specific_topic  conf=1.00  entities={'requested_topic_id': 'trazo_circulo'}
+2026-06-08 22:34:20 [olibot.pipeline] INFO: → BDI: action=accept_topic_change  is_correct=None  next_topic=None
+2026-06-08 22:34:21 [olibot.pipeline] INFO: → RESP (2.2s) shield=False  'Traza una línea. 🖌️'
+2026-06-08 22:34:27 [olibot.pipeline] INFO: ← msg='Muy bien'  student=1  session=21  topic=trazo_linea_v
+2026-06-08 22:34:28 [olibot.pipeline] INFO: → NLU: intent=express_emotion  conf=1.00  entities={}
+2026-06-08 22:34:29 [olibot.pipeline] INFO: → BDI: action=acknowledge_emotion  is_correct=None  next_topic=None
+2026-06-08 22:34:29 [olibot.pipeline] INFO: → RESP (1.2s) shield=False  '¡Tú puedes! 💪'
+2026-06-08 22:34:34 [olibot.pipeline] INFO: ← msg='No quiero hacer esto'  student=1  session=21  topic=trazo_linea_v
+2026-06-08 22:34:34 [olibot.pipeline] INFO: → NLU: intent=free_drawing  conf=0.86  entities={}
+2026-06-08 22:34:34 [olibot.pipeline] INFO: → BDI: action=start_free_drawing  is_correct=None  next_topic=None
+2026-06-08 22:34:35 [olibot.pipeline] INFO: → RESP (1.0s) shield=False  'Vamos a dibujar un perro! 🐶'
+2026-06-08 22:36:26 [olibot.pipeline] INFO: ← msg='Tenía memoria'  student=1  session=23  topic=trazo_linea_v
+2026-06-08 22:36:27 [olibot.pipeline] INFO: → NLU: intent=express_emotion  conf=1.00  entities={}
+2026-06-08 22:36:27 [olibot.pipeline] INFO: → BDI: action=acknowledge_emotion  is_correct=None  next_topic=None
+2026-06-08 22:36:27 [olibot.pipeline] INFO: → RESP (1.2s) shield=False  '¡Ánimo! 🌟'
+2026-06-08 22:36:37 [olibot.pipeline] INFO: ← msg='He trazado el trazo LINEA_V y me ha salido bien en todos los niveles (100% de acierto)'  student=1  session=24  topic=trazo_linea_v
+2026-06-08 22:36:39 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': 'LINEA_V', 'passed': True, 'score': 100}
+2026-06-08 22:36:39 [olibot.pipeline] INFO: → BDI: action=mastery_achieved  is_correct=True  next_topic=trazo_curva
+2026-06-08 22:36:39 [olibot.pipeline] INFO: → RESP (1.7s) shield=False  '¡Sí! ⭐'
+2026-06-08 22:36:45 [olibot.pipeline] INFO: ← msg='Sí'  student=1  session=25  topic=trazo_curva
+2026-06-08 22:36:46 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-08 22:36:46 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-08 22:36:46 [olibot.pipeline] INFO: → RESP (1.1s) shield=False  '¡Genial! 🤖'
+2026-06-08 22:36:53 [olibot.pipeline] INFO: ← msg='Bueno entonces ese iPad no va'  student=1  session=25  topic=trazo_curva
+2026-06-08 22:36:53 [olibot.pipeline] INFO: → NLU: intent=ask_for_hint  conf=0.79  entities={}
+2026-06-08 22:36:53 [olibot.pipeline] INFO: → BDI: action=give_hint  is_correct=None  next_topic=None
+2026-06-08 22:36:53 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Mira el punto azul! 🔵'
+2026-06-08 22:37:00 [olibot.pipeline] INFO: ← msg='Azul'  student=1  session=25  topic=trazo_curva
+2026-06-08 22:37:01 [olibot.pipeline] INFO: → NLU: intent=attempt_answer  conf=0.80  entities={'answer': 'Azul'}
+2026-06-08 22:37:01 [olibot.pipeline] INFO: → BDI: action=evaluate_and_encourage  is_correct=False  next_topic=None
+2026-06-08 22:37:01 [olibot.pipeline] INFO: → RESP (1.1s) shield=False  '¡Otra vez! 💪'
+2026-06-09 16:35:20 [olibot.pipeline] INFO: ← msg='hola'  student=7  session=26  topic=numero_1
+2026-06-09 16:35:20 [olibot.pipeline] INFO: ← msg='hola'  student=7  session=27  topic=numero_1
+2026-06-09 16:35:29 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 16:35:29 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 16:35:29 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 16:35:29 [olibot.pipeline] INFO: → RESP (9.7s) shield=False  '¡Perfecto! ¿Estás listo para practicar? 🌟'
+2026-06-09 16:35:31 [olibot.pipeline] INFO: ← msg='hola'  student=7  session=28  topic=numero_1
+2026-06-09 16:35:31 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 16:35:31 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 16:35:31 [olibot.pipeline] INFO: → RESP (11.8s) shield=False  '¡Perfecto! ¿Estás listo para practicar? 🌟'
+2026-06-09 16:35:39 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 16:35:39 [olibot.pipeline] INFO: → RESP (8.2s) shield=False  '¡Muy bien! Hoy aprenderemos cosas nuevas 🎉'
+2026-06-09 16:36:54 [olibot.pipeline] INFO: ← msg='Te interesa saber'  student=7  session=28  topic=numero_1
+2026-06-09 16:37:02 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 16:37:02 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 16:37:02 [olibot.pipeline] INFO: → RESP (7.7s) shield=False  '¡Vamos allá! Soy OLIBOT, tu robot tutor. ¿Empezamos? 🚀'
+2026-06-09 16:37:15 [olibot.pipeline] INFO: ← msg='Has'  student=7  session=28  topic=numero_1
+2026-06-09 16:37:16 [olibot.pipeline] INFO: → NLU: intent=unknown  conf=0.50  entities={}
+2026-06-09 16:37:16 [olibot.pipeline] INFO: → BDI: action=redirect  is_correct=None  next_topic=None
+2026-06-09 16:37:17 [olibot.pipeline] INFO: → RESP (2.1s) shield=False  '¡Genial! La "H" de has. ¿Qué más letras hay en la palabra has?'
+2026-06-09 16:37:51 [olibot.pipeline] INFO: ← msg='Quieres que ponga'  student=7  session=28  topic=numero_1
+2026-06-09 16:37:51 [olibot.pipeline] INFO: → NLU: intent=ask_for_hint  conf=0.72  entities={}
+2026-06-09 16:37:51 [olibot.pipeline] INFO: → BDI: action=give_hint  is_correct=None  next_topic=None
+2026-06-09 16:37:51 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  'Cuenta los objetos que hay 💡 ¿Cuántos son?'
+2026-06-09 16:38:05 [olibot.pipeline] INFO: ← msg='Conseguí'  student=7  session=28  topic=numero_1
+2026-06-09 16:38:06 [olibot.pipeline] INFO: → NLU: intent=express_emotion  conf=1.00  entities={}
+2026-06-09 16:38:06 [olibot.pipeline] INFO: → BDI: action=acknowledge_emotion  is_correct=None  next_topic=None
+2026-06-09 16:38:06 [olibot.pipeline] INFO: → RESP (1.2s) shield=False  '¡No pasa nada! Es normal equivocarse. ¡Inténtalo otra vez! 💪'
+2026-06-09 16:39:43 [olibot.pipeline] INFO: ← msg='Puta madre'  student=7  session=28  topic=numero_1
+2026-06-09 16:39:44 [olibot.pipeline] INFO: → NLU: intent=unknown  conf=0.00  entities={}
+2026-06-09 16:39:44 [olibot.pipeline] INFO: → BDI: action=redirect  is_correct=None  next_topic=None
+2026-06-09 16:39:45 [olibot.pipeline] INFO: → RESP (1.9s) shield=False  '¡Eso es un nombre de persona! La "M" de madre, ¿qué letra está al principio? 🤔'
+2026-06-09 16:40:12 [olibot.pipeline] INFO: ← msg='Qué'  student=7  session=29  topic=vocal_a
+2026-06-09 16:40:14 [olibot.pipeline] INFO: → NLU: intent=unknown  conf=0.50  entities={}
+2026-06-09 16:40:14 [olibot.pipeline] INFO: → BDI: action=redirect  is_correct=None  next_topic=None
+2026-06-09 16:40:15 [olibot.pipeline] INFO: → RESP (2.2s) shield=False  '¡Genial! ¿Quieres aprender a trazar las vocales? 🎨 ¡Vamos a empezar con algo nue'
+2026-06-09 16:40:25 [olibot.pipeline] INFO: ← msg='Sí'  student=7  session=29  topic=vocal_a
+2026-06-09 16:40:26 [olibot.pipeline] INFO: → NLU: intent=greet  conf=0.90  entities={}
+2026-06-09 16:40:26 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 16:40:26 [olibot.pipeline] INFO: → RESP (1.2s) shield=False  '¡Vamos allá! Soy OLIBOT, tu robot tutor. ¿Empezamos? 🚀'
+2026-06-09 16:41:20 [olibot.pipeline] INFO: ← msg='Bueno tontos'  student=7  session=29  topic=vocal_a
+2026-06-09 16:41:21 [olibot.pipeline] INFO: → NLU: intent=greet  conf=0.80  entities={}
+2026-06-09 16:41:21 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 16:41:21 [olibot.pipeline] INFO: → RESP (0.9s) shield=False  '¡Muy bien! Hoy aprenderemos cosas nuevas 🎉'
+2026-06-09 16:41:47 [olibot.pipeline] INFO: ← msg='He trazado la letra A y me ha salido bien en todos los niveles (100% de acierto)'  student=7  session=29  topic=vocal_a
+2026-06-09 16:41:49 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': 'A', 'passed': True, 'score': 100}
+2026-06-09 16:41:49 [olibot.pipeline] INFO: → BDI: action=mastery_achieved  is_correct=True  next_topic=numero_1
+2026-06-09 16:41:49 [olibot.pipeline] INFO: → RESP (1.9s) shield=False  '¡Perfecto! ¡Has trazado la letra! 🌟 ¿Cómo se llama?'
+2026-06-09 16:42:25 [olibot.pipeline] INFO: ← msg='Ya tienes la minúscula'  student=7  session=32  topic=vocal_a_min
+2026-06-09 16:42:27 [olibot.pipeline] INFO: → NLU: intent=request_specific_topic  conf=1.00  entities={'requested_topic_id': 'vocal_a_min'}
+2026-06-09 16:42:27 [olibot.pipeline] INFO: → BDI: action=accept_topic_change  is_correct=None  next_topic=vocal_a_min
+2026-06-09 16:42:27 [olibot.pipeline] INFO: → RESP (1.9s) shield=False  '¡Genial! La M de mamá. ¿Qué más empieza por M? 🤔'
+2026-06-09 16:42:39 [olibot.pipeline] INFO: ← msg='De Estados Unidos'  student=7  session=32  topic=vocal_a_min
+2026-06-09 16:42:40 [olibot.pipeline] INFO: → NLU: intent=express_emotion  conf=0.98  entities={}
+2026-06-09 16:42:40 [olibot.pipeline] INFO: → BDI: action=acknowledge_emotion  is_correct=None  next_topic=None
+2026-06-09 16:42:40 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Muy bien! ¡Tú puedes! 💪 ¿Seguimos?'
+2026-06-09 16:43:05 [olibot.pipeline] INFO: ← msg='Se ve bien'  student=7  session=32  topic=vocal_a_min
+2026-06-09 16:43:06 [olibot.pipeline] INFO: → NLU: intent=express_emotion  conf=1.00  entities={}
+2026-06-09 16:43:07 [olibot.pipeline] INFO: → BDI: action=acknowledge_emotion  is_correct=None  next_topic=None
+2026-06-09 16:43:07 [olibot.pipeline] INFO: → RESP (1.3s) shield=False  '¡Muy bien! ¡Tú puedes! 💪 ¿Seguimos?'
+2026-06-09 17:58:34 [olibot.pipeline] INFO: ← msg='hola'  student=7  session=33  topic=numero_1
+2026-06-09 17:58:43 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 17:58:43 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 17:58:43 [olibot.pipeline] INFO: → RESP (9.3s) shield=False  '¡Muy bien! Hoy aprenderemos cosas nuevas 🎉'
+2026-06-09 22:43:30 [olibot.pipeline] INFO: ← msg='hola'  student=8  session=34  topic=numero_1
+2026-06-09 22:43:31 [olibot.pipeline] INFO: ← msg='hola'  student=8  session=35  topic=numero_1
+2026-06-09 22:43:32 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 22:43:32 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 22:43:32 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 22:43:32 [olibot.pipeline] INFO: → RESP (1.7s) shield=False  '¡Perfecto! ¿Estás listo para practicar? 🌟'
+2026-06-09 22:43:37 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 22:43:37 [olibot.pipeline] INFO: → RESP (6.7s) shield=False  '¡Muy bien! Hoy aprenderemos cosas nuevas 🎉'
+2026-06-09 22:51:50 [olibot.pipeline] INFO: ← msg='hola'  student=7  session=36  topic=numero_1
+2026-06-09 22:51:51 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 22:51:51 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 22:51:51 [olibot.pipeline] INFO: → RESP (1.6s) shield=False  '¡Vamos allá! Soy OLIBOT, tu robot tutor. ¿Empezamos? 🚀'
+2026-06-09 22:52:06 [olibot.pipeline] INFO: ← msg='hola'  student=8  session=37  topic=numero_1
+2026-06-09 22:52:06 [olibot.pipeline] INFO: ← msg='hola'  student=8  session=38  topic=numero_1
+2026-06-09 22:52:06 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 22:52:06 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 22:52:06 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 22:52:06 [olibot.pipeline] INFO: → RESP (0.3s) shield=False  '¡Perfecto! ¿Estás listo para practicar? 🌟'
+2026-06-09 22:52:11 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 22:52:11 [olibot.pipeline] INFO: → RESP (5.2s) shield=False  '¡Vamos allá! Soy OLIBOT, tu robot tutor. ¿Empezamos? 🚀'
+2026-06-09 22:54:12 [olibot.pipeline] INFO: ← msg='hola'  student=8  session=39  topic=numero_1
+2026-06-09 22:54:13 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 22:54:13 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 22:54:13 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Muy bien! Hoy aprenderemos cosas nuevas 🎉'
+2026-06-09 22:55:07 [olibot.pipeline] INFO: ← msg='hola'  student=8  session=40  topic=numero_1
+2026-06-09 22:55:07 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 22:55:07 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 22:55:07 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Muy bien! Hoy aprenderemos cosas nuevas 🎉'
+2026-06-09 23:00:53 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=26  topic=trazo_linea_h
+2026-06-09 23:00:55 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:00:55 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:00:55 [olibot.pipeline] INFO: → RESP (1.5s) shield=False  '¡Vamos a practicar juntos! 🌈'
+2026-06-09 23:01:36 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=26  topic=numero_1
+2026-06-09 23:01:36 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:01:36 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:01:36 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Vamos allá! Soy OLIBOT, tu robot tutor. ¿Empezamos? 🚀'
+2026-06-09 23:07:02 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=27  topic=numero_1
+2026-06-09 23:07:04 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:07:04 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:07:04 [olibot.pipeline] INFO: → RESP (1.6s) shield=False  '¡Perfecto! ¿Estás listo para practicar? 🌟'
+2026-06-09 23:07:30 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=28  topic=numero_1
+2026-06-09 23:07:30 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:07:30 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:07:30 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Muy bien! Hoy aprenderemos cosas nuevas 🎉'
+2026-06-09 23:07:52 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=28  topic=numero_1
+2026-06-09 23:07:52 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:07:52 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:07:52 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Perfecto! ¿Estás listo para practicar? 🌟'
+2026-06-09 23:08:53 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=26  topic=numero_1
+2026-06-09 23:08:53 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:08:53 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:08:53 [olibot.pipeline] INFO: → RESP (0.3s) shield=False  '¡Muy bien! Hoy aprenderemos cosas nuevas 🎉'
+2026-06-09 23:09:21 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=26  topic=numero_1
+2026-06-09 23:09:21 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:09:21 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:09:21 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Vamos allá! Soy OLIBOT, tu robot tutor. ¿Empezamos? 🚀'
+2026-06-09 23:14:22 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=27  topic=numero_1
+2026-06-09 23:14:26 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:14:26 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:14:26 [olibot.pipeline] INFO: → RESP (4.1s) shield=False  '¡Muy bien! Hoy aprenderemos cosas nuevas 🎉'
+2026-06-09 23:21:26 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=28  topic=numero_1
+2026-06-09 23:21:27 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:21:28 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:21:28 [olibot.pipeline] INFO: → RESP (1.7s) shield=False  '¡Vamos allá! Soy OLIBOT, tu robot tutor. ¿Empezamos? 🚀'
+2026-06-09 23:21:46 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=29  topic=numero_1
+2026-06-09 23:21:46 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:21:46 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:21:46 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Muy bien! Hoy aprenderemos cosas nuevas 🎉'
+2026-06-09 23:22:26 [olibot.pipeline] INFO: ← msg='Ya los tengo'  student=5  session=29  topic=numero_1
+2026-06-09 23:22:27 [olibot.pipeline] INFO: → NLU: intent=ask_for_hint  conf=0.81  entities={}
+2026-06-09 23:22:27 [olibot.pipeline] INFO: → BDI: action=give_hint  is_correct=None  next_topic=None
+2026-06-09 23:22:27 [olibot.pipeline] INFO: → RESP (0.3s) shield=False  '¿Cuántos dedos levantarías para ese número? ✋'
+2026-06-09 23:28:46 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=30  topic=numero_1
+2026-06-09 23:28:47 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:28:48 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:29:06 [olibot.pipeline] INFO: → RESP (19.7s) shield=False  '¡Hola Oli! ¡Genial que estés aquí hoy! Hoy vamos a jugar con los números, ¿quier'
+2026-06-09 23:34:31 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=32  topic=numero_1
+2026-06-09 23:34:32 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:34:32 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:34:36 [olibot.pipeline] INFO: → RESP (5.3s) shield=False  '¡Hola Oli! ¡Genial estar contigo hoy! Queremos jugar con números. ¿Quieres apren'
+2026-06-09 23:41:55 [olibot.pipeline] INFO: ← msg='Gracias'  student=5  session=32  topic=numero_1
+2026-06-09 23:42:00 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:42:00 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:42:01 [olibot.pipeline] INFO: → RESP (6.3s) shield=False  '¡No hay de qué! ¿Ves la imagen del número en la pantalla? ¿Puedes trazarlo? 😊'
+2026-06-09 23:43:08 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=33  topic=numero_1
+2026-06-09 23:43:08 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-09 23:43:08 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-09 23:43:09 [olibot.pipeline] INFO: → RESP (1.4s) shield=False  '¡Hola Oli! 🤗 ¡Genial que estés aquí hoy! Queremos aprender algo divertido sobre '
+2026-06-10 00:39:36 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=34  topic=numero_1
+2026-06-10 00:39:37 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-10 00:39:37 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-10 00:39:40 [olibot.pipeline] INFO: → RESP (4.6s) shield=False  '¡Hola Oli! 😊 Hoy vamos a aprender sobre... ¡los números! ¿Quieres empezar a expl'
+2026-06-10 00:40:05 [olibot.pipeline] INFO: ← msg='Hola Olivia soy el botón de la'  student=5  session=35  topic=vocal_e
+2026-06-10 00:40:05 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-10 00:40:05 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-10 00:40:06 [olibot.pipeline] INFO: → RESP (1.7s) shield=False  '¡Hola Oli! Soy OLIBOT, tu robot tutor 😊. Hoy vamos a jugar con las vocales. ¿Qui'
+2026-06-10 00:40:20 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=36  topic=numero_1
+2026-06-10 00:40:20 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-10 00:40:21 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-10 00:40:21 [olibot.pipeline] INFO: → RESP (0.8s) shield=False  '¡Hola Oli! 🤗 Me alegra que estés aquí. Hoy vamos a aprender sobre... ¡NUMEROS! ¿'
+2026-06-10 08:29:48 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=38  topic=trazo_linea_h
+2026-06-10 08:29:49 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-10 08:29:49 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-10 08:29:52 [olibot.pipeline] INFO: → RESP (4.8s) shield=False  '¡Hola Elena! 😊 ¡Genial que estés aquí! ¿Quieres trazar algo divertido hoy? 🎨'
+2026-06-10 09:56:59 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=38  topic=numero_1
+2026-06-10 09:57:01 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-10 09:57:01 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-10 09:57:05 [olibot.pipeline] INFO: → RESP (5.3s) shield=False  '¡Hola Oli! 😊 Hoy vamos a aprender sobre algo muy divertido: ¡los números! ¿Quier'
+2026-06-10 09:57:07 [olibot.pipeline] INFO: ← msg='Este es el tú ves lo que ha hecho el niño cuántos mensajes'  student=6  session=38  topic=numero_1
+2026-06-10 09:57:08 [olibot.pipeline] INFO: → NLU: intent=off_topic  conf=1.00  entities={}
+2026-06-10 09:57:08 [olibot.pipeline] INFO: → BDI: action=redirect  is_correct=None  next_topic=None
+2026-06-10 09:57:09 [olibot.pipeline] INFO: → RESP (2.1s) shield=False  'Genial, pero ahora queremos hablar del número 1. ¿Qué cosas puedes pensar en que'
+2026-06-10 09:57:49 [olibot.pipeline] INFO: ← msg='Acceder a verlo vale luego aquí es para mayores tú puedes acceder a otros actividades o sea las del bloqueo es que todavía no has desbloqueado'  student=6  session=38  topic=numero_1
+2026-06-10 09:57:50 [olibot.pipeline] INFO: → NLU: intent=off_topic  conf=1.00  entities={}
+2026-06-10 09:57:50 [olibot.pipeline] INFO: → BDI: action=redirect  is_correct=None  next_topic=None
+2026-06-10 09:57:51 [olibot.pipeline] INFO: → RESP (2.5s) shield=False  'Lo siento, Oli. ¡Vamos a dejar eso! Queremos aprender sobre números. ¿Qué objeto'
+2026-06-10 09:58:06 [olibot.pipeline] INFO: ← msg='Línea roja'  student=6  session=38  topic=numero_1
+2026-06-10 09:58:08 [olibot.pipeline] INFO: → NLU: intent=placement_answer  conf=1.00  entities={'answer': 'Línea roja'}
+2026-06-10 09:58:08 [olibot.pipeline] INFO: → BDI: action=placement_test_continue  is_correct=None  next_topic=None
+2026-06-10 09:58:09 [olibot.pipeline] INFO: → RESP (3.2s) shield=False  '¡No necesitamos colores rojos para aprender sobre el número 1! 😊 Vamos a buscar '
+2026-06-10 09:58:35 [olibot.pipeline] INFO: ← msg='Tienes que ser capaz de hacerlo tres veces seguidas bien porque así es como determinado el niño sabe hacerlo siempre tiene este fondo gris porque o sea una cosa es que no haya ningún punto y otra cosa es como quizás un papel en blanco'  student=6  session=38  topic=numero_1
+2026-06-10 09:58:35 [olibot.pipeline] INFO: → NLU: intent=request_topic_change  conf=0.73  entities={}
+2026-06-10 09:58:35 [olibot.pipeline] INFO: → BDI: action=offer_alternatives  is_correct=None  next_topic=None
+2026-06-10 09:58:36 [olibot.pipeline] INFO: → RESP (1.5s) shield=False  '¡Vamos a olvidar eso, Oli! 🙅\u200d♂️ Queremos aprender sobre números. ¡Dibuja un solo'
+2026-06-10 09:58:44 [olibot.pipeline] INFO: ← msg='Para que no sea demasiado'  student=6  session=38  topic=numero_1
+2026-06-10 09:58:44 [olibot.pipeline] INFO: → NLU: intent=ask_for_hint  conf=0.78  entities={}
+2026-06-10 09:58:44 [olibot.pipeline] INFO: → BDI: action=give_hint  is_correct=None  next_topic=None
+2026-06-10 09:58:44 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¿Cuántos dedos levantarías para ese número? ✋'
+2026-06-10 09:59:10 [olibot.pipeline] INFO: ← msg='Eso puedes acceder al dibujo quiero dibujar'  student=6  session=38  topic=numero_1
+2026-06-10 09:59:11 [olibot.pipeline] INFO: → NLU: intent=free_drawing  conf=0.89  entities={}
+2026-06-10 09:59:11 [olibot.pipeline] INFO: → BDI: action=start_free_drawing  is_correct=None  next_topic=None
+2026-06-10 09:59:12 [olibot.pipeline] INFO: → RESP (1.5s) shield=False  '¡Genial, Oli! Dibuja un objeto en la pantalla, pero recuerda, solo uno. ¿Puedes '
+2026-06-10 09:59:39 [olibot.pipeline] INFO: ← msg='Perdona emojis'  student=6  session=38  topic=numero_1
+2026-06-10 09:59:40 [olibot.pipeline] INFO: → NLU: intent=express_emotion  conf=1.00  entities={}
+2026-06-10 09:59:41 [olibot.pipeline] INFO: → BDI: action=acknowledge_emotion  is_correct=None  next_topic=None
+2026-06-10 09:59:41 [olibot.pipeline] INFO: → RESP (1.3s) shield=False  '¡No pasa nada! Es normal equivocarse. ¡Inténtalo otra vez! 💪'
+2026-06-10 09:59:52 [olibot.pipeline] INFO: ← msg='Están acostumbrados a que es mejor que haya más su pantalla grande'  student=6  session=38  topic=numero_1
+2026-06-10 09:59:53 [olibot.pipeline] INFO: → NLU: intent=unknown  conf=0.50  entities={}
+2026-06-10 09:59:53 [olibot.pipeline] INFO: → BDI: action=redirect  is_correct=None  next_topic=None
+2026-06-10 09:59:54 [olibot.pipeline] INFO: → RESP (2.2s) shield=False  '¡Olvida eso, Oli! Queremos aprender sobre números. ¿Qué objetos en la casa tiene'
+2026-06-10 10:25:43 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=39  topic=numero_1
+2026-06-10 10:25:45 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-10 10:25:45 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-10 10:25:49 [olibot.pipeline] INFO: → RESP (5.4s) shield=False  '¡Hola Oli! 🤗 ¡Qué bien que estés aquí hoy! ¿Quieres aprender sobre números 1? ¿V'
+2026-06-10 10:27:10 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=40  topic=numero_1
+2026-06-10 10:27:10 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-10 10:27:11 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-10 10:27:11 [olibot.pipeline] INFO: → RESP (0.8s) shield=False  '¡Hola Oli! Hoy vamos a aprender números. ¿Quieres empezar con el número 1?'
+2026-06-14 17:43:47 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=38  topic=trazo_linea_h
+2026-06-14 17:43:49 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 17:43:49 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 17:44:49 [olibot.pipeline] INFO: → RESP (62.0s) shield=False  '¡Hola Lola! 😊 Hoy vamos a dibujar líneas como un trazo azul largo y recto. ¿Quie'
+2026-06-14 17:46:07 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=38  topic=trazo_linea_h
+2026-06-14 17:46:08 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 17:46:08 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 17:46:29 [olibot.pipeline] INFO: → RESP (22.3s) shield=False  '¡Hola Lola! Hoy vamos a trazar líneas ¡Genial! ¿Quieres empezar? 🎉'
+2026-06-14 17:52:07 [olibot.pipeline] INFO: ← msg='1990 con lo cual yo estoy vestido tiene muchísimos años lo diseñó ella y se lo mandó hacer a una modista'  student=6  session=38  topic=trazo_linea_h
+2026-06-14 17:53:09 [olibot.pipeline] INFO: → NLU: intent=unknown  conf=0.00  entities={}
+2026-06-14 17:53:09 [olibot.pipeline] INFO: → BDI: action=redirect  is_correct=None  next_topic=None
+2026-06-14 18:01:06 [olibot.pipeline] INFO: ← msg='hola'  student=8  session=39  topic=trazo_linea_h
+2026-06-14 18:01:07 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:01:07 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:01:59 [olibot.pipeline] INFO: → RESP (53.5s) shield=False  '¡Hola Lola! 😊 ¿Quieres aprender a hacer una línea de arriba abajo? 🐘'
+2026-06-14 18:13:17 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=38  topic=numero_1
+2026-06-14 18:13:17 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:13:17 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:13:37 [olibot.pipeline] INFO: → RESP (20.1s) shield=False  '¡Hola Lola! Hoy vamos a explorar el mundo de los números. ¿Quieres empezar a apr'
+2026-06-14 18:14:36 [olibot.pipeline] INFO: ← msg='es esto'  student=6  session=38  topic=numero_1
+2026-06-14 18:14:37 [olibot.pipeline] INFO: → NLU: intent=express_emotion  conf=0.79  entities={}
+2026-06-14 18:14:37 [olibot.pipeline] INFO: → BDI: action=acknowledge_emotion  is_correct=None  next_topic=None
+2026-06-14 18:14:37 [olibot.pipeline] INFO: → RESP (0.1s) shield=False  '¡Ánimo! Cada vez lo haces mejor 🌟'
+2026-06-14 18:19:13 [olibot.pipeline] INFO: ← msg='no'  student=6  session=38  topic=numero_1
+2026-06-14 18:19:15 [olibot.pipeline] INFO: → NLU: intent=ask_for_hint  conf=0.80  entities={}
+2026-06-14 18:19:15 [olibot.pipeline] INFO: → BDI: action=give_hint  is_correct=None  next_topic=None
+2026-06-14 18:19:15 [olibot.pipeline] INFO: → RESP (1.5s) shield=False  'Piensa: ¿qué número tiene esa forma? 💡'
+2026-06-14 18:20:33 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=39  topic=numero_1
+2026-06-14 18:20:33 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:20:33 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:20:52 [olibot.pipeline] INFO: → RESP (19.9s) shield=False  '¡Hola Lola! 😊 ¡Estupendo verla hoy! Quiero jugar con números contigo, ¿quieres e'
+2026-06-14 18:23:20 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=40  topic=numero_1
+2026-06-14 18:23:21 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:23:21 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:23:31 [olibot.pipeline] INFO: → RESP (11.0s) shield=False  '¡Hola Lola! Hoy vamos a aprender sobre los números. ¿Quieres empezar contigo? 🎉'
+2026-06-14 18:27:44 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=41  topic=numero_1
+2026-06-14 18:27:45 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:27:45 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:27:50 [olibot.pipeline] INFO: → RESP (6.1s) shield=False  '¡Hola Lola! 😊 Hoy vamos a aprender sobre... ¡NUMEROS! 📚 ¿Quieres empezar?'
+2026-06-14 18:28:46 [olibot.pipeline] INFO: ← msg='no puedo dibujar'  student=6  session=41  topic=numero_1
+2026-06-14 18:28:46 [olibot.pipeline] INFO: → NLU: intent=free_drawing  conf=0.80  entities={}
+2026-06-14 18:28:46 [olibot.pipeline] INFO: → BDI: action=start_free_drawing  is_correct=None  next_topic=None
+2026-06-14 18:29:01 [olibot.pipeline] INFO: → RESP (15.5s) shield=False  '¡No te preocupes! Podemos hacer un dibujo juntos. ¿Quieres dibujar un perro, una'
+2026-06-14 18:33:26 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=42  topic=numero_1
+2026-06-14 18:33:28 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:33:28 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:33:39 [olibot.pipeline] INFO: → RESP (12.6s) shield=False  '¡Hola Lola! Hoy vamos a aprender algo muy divertido... ¡NUMERO 1! ¿Quieres empez'
+2026-06-14 18:39:12 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=43  topic=numero_1
+2026-06-14 18:39:13 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:39:13 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:39:28 [olibot.pipeline] INFO: → RESP (16.0s) shield=False  '¡Hola Lola! 🤗 ¿Quieres aprender sobre los números conmigo hoy? ¿Empezamos a cont'
+2026-06-14 18:40:01 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=44  topic=numero_1
+2026-06-14 18:40:02 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:40:02 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:40:09 [olibot.pipeline] INFO: → RESP (7.9s) shield=False  '¡Hola Lola! Hoy vamos a jugar con... 🎉 ¡NUMEROS! ¿Quieres empezar a aprender el '
+2026-06-14 18:41:11 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=45  topic=numero_1
+2026-06-14 18:41:11 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:41:11 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:41:32 [olibot.pipeline] INFO: → RESP (21.5s) shield=False  '¡Hola Lola! Me alegra verte hoy. ¡Queremos aprender sobre números! ¿Quieres empe'
+2026-06-14 18:41:42 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=38  topic=numero_1
+2026-06-14 18:41:43 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:41:44 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:43:20 [olibot.pipeline] INFO: → RESP (98.6s) shield=False  '¡Hola Oli! Me alegra verte hoy! 🤖 Quiero enseñarte algo nuevo y divertido sobre '
+2026-06-14 18:46:07 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=39  topic=numero_1
+2026-06-14 18:46:08 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:46:08 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:46:16 [olibot.pipeline] INFO: → RESP (8.9s) shield=False  '¡Hola Oli! Me alegra verte hoy 😊. Quiero enseñarte algo muy divertido sobre los '
+2026-06-14 18:47:50 [olibot.pipeline] INFO: ← msg='hola hola hola hola hola hola hola hola hola hola'  student=5  session=39  topic=numero_1
+2026-06-14 18:47:50 [olibot.pipeline] INFO: → NLU: intent=greet  conf=0.93  entities={}
+2026-06-14 18:47:50 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:47:59 [olibot.pipeline] INFO: → RESP (8.7s) shield=False  '¡Genial, Oli! ¡Muy entusiasta hoy! 🤩 Quiero que sepas que en español hay muchos '
+2026-06-14 18:53:23 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=40  topic=numero_1
+2026-06-14 18:53:24 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:53:24 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:53:48 [olibot.pipeline] INFO: → RESP (24.8s) shield=False  '¡Hola Oli! Me alegra verte hoy 😊. ¡Vamos a aprender sobre los números! ¿Quieres '
+2026-06-14 18:53:51 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=41  topic=numero_1
+2026-06-14 18:53:51 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 18:53:51 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 18:54:00 [olibot.pipeline] INFO: → RESP (9.4s) shield=False  '¡Hola Oli! 🤗 Me alegra verte hoy. ¿Quieres empezar a jugar con los números? ¡Vam'
+2026-06-14 19:05:59 [olibot.pipeline] INFO: ← msg='hola hola me escuchas'  student=5  session=41  topic=numero_1
+2026-06-14 19:06:00 [olibot.pipeline] INFO: → NLU: intent=greet  conf=0.78  entities={}
+2026-06-14 19:06:00 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 19:06:24 [olibot.pipeline] INFO: → RESP (24.7s) shield=False  '¡Sí, sí! Me escuchas muy bien. ¿Qué es lo primero que se ve cuando miras este nú'
+2026-06-14 19:21:09 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=42  topic=trazo_linea_h
+2026-06-14 19:21:10 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-14 19:21:10 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-14 19:21:27 [olibot.pipeline] INFO: → RESP (18.1s) shield=False  '¡Hola Pedro! 😊 ¿Quieres trazar una línea? 🎨'
+2026-06-15 16:33:18 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=43  topic=trazo_linea_h
+2026-06-15 16:33:19 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-15 16:33:19 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-15 16:33:42 [olibot.pipeline] INFO: → RESP (24.0s) shield=False  '¡Hola Pedro! 🐒💕 ¡Queremos aprender sobre líneas hoy! 😊 ¿Quieres empezar?'
+2026-06-15 16:39:10 [olibot.pipeline] INFO: ← msg='hola'  student=6  session=44  topic=trazo_linea_h
+2026-06-15 16:39:11 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-15 16:39:11 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-15 16:39:30 [olibot.pipeline] INFO: → RESP (20.3s) shield=False  '¡Hola Pedro! 🐒 ¡Vamos a hacer líneas azules hoy! ¿Quieres empezar?'
+2026-06-15 16:50:43 [olibot.pipeline] INFO: ← msg='hola'  student=7  session=45  topic=numero_1
+2026-06-15 16:50:44 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-15 16:50:44 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-15 16:51:10 [olibot.pipeline] INFO: → RESP (26.5s) shield=False  '¡Hola Pepe! ¡Genial que estés aquí! Hoy vamos a aprender sobre... ¡los números! '
+2026-06-15 16:51:49 [olibot.pipeline] INFO: ← msg='hola'  student=7  session=46  topic=numero_1
+2026-06-15 16:51:51 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-15 16:51:51 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-15 16:52:01 [olibot.pipeline] INFO: → RESP (11.7s) shield=False  '¡Hola Pepe! 😊 ¡Estupendo estar contigo hoy! Hoy vamos a aprender algo nuevo sobr'
+2026-06-15 16:55:32 [olibot.pipeline] INFO: ← msg='quiero flecha'  student=7  session=46  topic=numero_1
+2026-06-15 16:56:01 [olibot.pipeline] INFO: → NLU: intent=request_specific_topic  conf=0.95  entities={'requested_topic_id': 'trazo_angulo'}
+2026-06-15 16:56:01 [olibot.pipeline] INFO: → BDI: action=accept_topic_change  is_correct=None  next_topic=trazo_angulo
+2026-06-15 16:56:32 [olibot.pipeline] INFO: → RESP (60.0s) shield=False  '¡Genial! Una flecha arriba, una flecha abajo... ¡Vamos a escribir un 1 grande! ¿'
+2026-06-15 17:20:53 [olibot.pipeline] INFO: ← msg='hola'  student=7  session=48  topic=numero_1
+2026-06-15 17:20:53 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-15 17:20:53 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-15 17:21:22 [olibot.pipeline] INFO: → RESP (29.1s) shield=False  '¡Hola Pepe! ¡Buenos días! Hoy vamos a aprender un tema muy divertido: los número'
+2026-06-15 17:23:48 [olibot.pipeline] INFO: ← msg='hola'  student=7  session=49  topic=numero_1
+2026-06-15 17:23:48 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-15 17:23:48 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-15 17:23:56 [olibot.pipeline] INFO: → RESP (8.1s) shield=False  '¡Hola Pepe! 😊 ¿Quieres aprender sobre el número 1? ¡Es un número muy especial!'
+2026-06-15 17:24:17 [olibot.pipeline] INFO: ← msg='He trazado la letra 1 y me ha salido bien en todos los niveles (100% de acierto)'  student=7  session=49  topic=numero_1
+2026-06-15 17:24:53 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=0.98  entities={'letter': 'numero_1', 'passed': True, 'score': 100}
+2026-06-15 17:24:53 [olibot.pipeline] INFO: → BDI: action=celebrate_tracing  is_correct=True  next_topic=numero_2
+2026-06-17 10:36:30 [olibot.pipeline] INFO: ← msg='hola'  student=7  session=50  topic=numero_1
+2026-06-17 10:36:30 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-17 10:36:31 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-17 10:36:54 [olibot.pipeline] INFO: → RESP (24.4s) shield=False  '¡Hola Pepe! ¿Qué tal hoy? ¡Queremos hacer algo divertido con números! ¿Quieres e'
+2026-06-17 10:36:59 [olibot.pipeline] INFO: ← msg='qué tal hoy queremos hacer algo divertido con números'  student=7  session=50  topic=numero_1
+2026-06-17 10:36:59 [olibot.pipeline] INFO: → NLU: intent=ask_for_hint  conf=0.77  entities={}
+2026-06-17 10:36:59 [olibot.pipeline] INFO: → BDI: action=give_hint  is_correct=None  next_topic=None
+2026-06-17 10:36:59 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¿Cuántos dedos levantarías para ese número? ✋'
+2026-06-17 10:37:02 [olibot.pipeline] INFO: ← msg='los levantarías para ese número'  student=7  session=50  topic=numero_1
+2026-06-17 10:37:15 [olibot.pipeline] INFO: ← msg='hola'  student=7  session=51  topic=numero_1
+2026-06-17 10:37:21 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-17 10:37:21 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-17 10:37:25 [olibot.pipeline] INFO: → NLU: intent=unknown  conf=0.50  entities={}
+2026-06-17 10:37:25 [olibot.pipeline] INFO: → BDI: action=redirect  is_correct=None  next_topic=None
+2026-06-17 18:50:13 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=1  topic=numero_1
+2026-06-17 18:50:14 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-17 18:50:14 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-17 18:50:48 [olibot.pipeline] INFO: → RESP (34.8s) shield=False  '¡Hola Rojo! 😊 ¡Qué alegría verlo hoy! ¿Quieres aprender sobre números hoy?'

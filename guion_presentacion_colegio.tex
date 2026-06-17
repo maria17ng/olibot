@@ -1,0 +1,420 @@
+%% ============================================================
+%%  OLIBOT — Guión del ponente (presentación dirección escolar)
+%%  Compilar: pdflatex guion_presentacion_colegio.tex
+%% ============================================================
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{mdframed}
+\usepackage{microtype}
+\usepackage{parskip}
+\usepackage{fontawesome5}
+
+\geometry{left=2.2cm, right=2.2cm, top=2.5cm, bottom=2.5cm}
+
+\definecolor{verde}   {RGB}{34,  139,  86}
+\definecolor{azul}    {RGB}{30,   90, 160}
+\definecolor{naranja} {RGB}{230, 120,  30}
+\definecolor{gris}    {RGB}{100, 100, 100}
+
+%% Entornos
+\newmdenv[
+  linecolor=verde, linewidth=1.5pt,
+  backgroundcolor=verde!6,
+  innerleftmargin=10pt, innerrightmargin=10pt,
+  innertopmargin=6pt, innerbottommargin=6pt,
+  skipabove=6pt, skipbelow=4pt
+]{decir}
+
+\newmdenv[
+  linecolor=naranja, linewidth=1pt,
+  topline=false, bottomline=false, rightline=false,
+  backgroundcolor=naranja!5,
+  innerleftmargin=10pt, innerrightmargin=10pt,
+  innertopmargin=5pt, innerbottommargin=5pt,
+  skipabove=4pt, skipbelow=4pt
+]{nota}
+
+\newcommand{\diapositiva}[2]{%
+  \vspace{8pt}
+  \noindent{\color{azul}\rule{\linewidth}{1.5pt}}\\
+  \noindent{\large\bfseries\color{azul} Diapositiva #1 — #2}
+  \vspace{4pt}\\
+}
+
+\newcommand{\tiempo}[1]{%
+  {\footnotesize\color{gris}\faIcon{clock}\; \textit{Tiempo estimado: #1}}
+  \smallskip\\
+}
+
+\title{%
+  {\large OLIBOT — Propuesta de evaluación}\\[4pt]
+  {\LARGE\bfseries Guión del Ponente}\\[4pt]
+  {\normalsize Para presentación a la dirección del centro escolar}
+}
+\author{María Emilia Núñez Guerrero}
+\date{Junio 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+%% ============================================================
+\section*{Antes de entrar}
+\addcontentsline{toc}{section}{Antes de entrar}
+%% ============================================================
+
+\begin{nota}
+\textbf{Preparación previa (5 min antes):}
+\begin{itemize}[nosep]
+  \item Abrir la tablet con OLIBOT cargado y listo en la pantalla de selección de estudiante.
+  \item Tener el proyector conectado con las diapositivas en la primera.
+  \item Cerrar cualquier otra pestaña del navegador.
+  \item Asegurarse de que el audio del dispositivo funciona correctamente para la demo.
+  \item Respirar, sonreír. El objetivo es crear una conversación, no vender un producto.
+\end{itemize}
+\end{nota}
+
+%% ============================================================
+\section{Bienvenida e introducción (Diap. 1--2)}
+%% ============================================================
+
+\diapositiva{1}{Portada}
+\tiempo{1 minuto}
+
+\begin{decir}
+«Buenos días / tardes. Mi nombre es María Emilia Núñez Guerrero, soy estudiante del Máster
+en Inteligencia Artificial de la Universidad Carlos III de Madrid.
+
+Hoy vengo a presentarles OLIBOT, un asistente educativo digital que estoy desarrollando
+como Trabajo de Fin de Máster, y que me gustaría tener la oportunidad de evaluar
+con los alumnos de su centro.
+
+La presentación es breve — unos veinte minutos — y al final haremos una demostración
+en directo para que puedan ver exactamente con qué interactuarían los niños.»
+\end{decir}
+
+\diapositiva{2}{Índice}
+\tiempo{30 segundos}
+
+\begin{decir}
+«Les voy a contar cuatro cosas: el porqué de este proyecto, qué es y qué hace OLIBOT,
+cómo planteo la evaluación, y qué garantías ofrezco al centro. Y para cerrar, la demostración.»
+\end{decir}
+
+%% ============================================================
+\section{El contexto educativo (Diap. 3--4)}
+%% ============================================================
+
+\diapositiva{3}{El currículo de Infantil en la Comunidad de Madrid}
+\tiempo{2 minutos}
+
+\begin{decir}
+«El currículo de Educación Infantil de la Comunidad de Madrid, el Decreto 36/2022,
+establece que la iniciación a la lectoescritura es un eje central desde los tres años:
+grafomotricidad, conciencia fonológica, reconocimiento de letras y números.
+
+Y, al mismo tiempo, todos sabemos que en el aula de Infantil hay hasta 25 niños con
+ritmos de aprendizaje muy distintos. Atender individualmente a cada uno mientras
+se lleva una clase completa es, sencillamente, muy difícil.
+
+La pregunta que me hice fue: ¿puede la tecnología ayudar a los docentes a dar
+esa atención más personalizada, respetando lo que marca el currículo?»
+\end{decir}
+
+\begin{nota}
+Si la directora interrumpe con una pregunta aquí sobre el currículo, es una
+\textbf{buena señal}: está comprometida. Responder con calma y volver al hilo.
+\end{nota}
+
+\diapositiva{4}{Los niños de hoy y la tecnología}
+\tiempo{1 minuto 30 segundos}
+
+\begin{decir}
+«Los niños de tres a cinco años ya interactúan con tablets y asistentes de voz
+en casa a diario. El reto no es si usar la tecnología — ya la usan — sino cómo usarla
+con sentido educativo.
+
+Lo que diferencia a OLIBOT de una aplicación de juegos cualquiera es que no tiene
+publicidad, no recopila datos personales, y cada actividad está diseñada para alcanzar
+un objetivo curricular concreto. No es entretenimiento: es práctica guiada.»
+\end{decir}
+
+%% ============================================================
+\section{¿Qué es OLIBOT? (Diap. 5--7)}
+%% ============================================================
+
+\diapositiva{5}{OLIBOT en pocas palabras}
+\tiempo{2 minutos}
+
+\begin{decir}
+«OLIBOT es un asistente que habla con el niño por voz. No hace falta saber leer
+ni escribir para interactuar con él — que es precisamente el contexto de Infantil.
+
+Al comenzar, el docente selecciona el perfil del niño: su nombre y su edad. A partir de ahí,
+OLIBOT propone la actividad adecuada para ese nivel — vocales para los de tres años,
+consonantes y sílabas para los de cinco — y va ajustando la dificultad según cómo le vaya.
+
+Funciona en cualquier tablet con Chrome o Safari. No requiere instalación, no hay
+cuenta de usuario, no hay contraseña.»
+\end{decir}
+
+\begin{nota}
+Señalar el diagrama de la derecha: «Este ciclo es lo que experimenta el niño en cada
+actividad: habla, OLIBOT elige, el niño traza o responde, OLIBOT celebra, avanza al
+siguiente reto. Y vuelve a empezar.»
+\end{nota}
+
+\diapositiva{6}{¿Qué hace el niño durante la sesión?}
+\tiempo{1 minuto 30 segundos}
+
+\begin{decir}
+«Hay tres tipos de actividades. La principal es el trazado de letras en pantalla táctil:
+OLIBOT primero demuestra cómo se traza la letra — el niño ve un cursor rojo que recorre
+el trazo — y luego es el niño quien lo intenta con el dedo.
+
+Toda la interacción es por voz: OLIBOT habla, el niño escucha y responde hablando o
+trazando. Y de vez en cuando, como descanso, hay fichas de colorear digitales.
+
+Las sesiones duran entre quince y veinte minutos. La maestra permanece en el aula
+en todo momento.»
+\end{decir}
+
+\diapositiva{7}{Principios pedagógicos}
+\tiempo{2 minutos}
+
+\begin{decir}
+«El diseño pedagógico se basa en el concepto de andamiaje de Vygotsky: cuando el niño
+tiene dificultades, OLIBOT no le da la respuesta directamente. Primero le anima a
+intentarlo de nuevo; si sigue sin lograrlo, le da una pista específica; y solo si es necesario,
+le hace la demostración completa. Siempre en positivo, nunca con reproches.
+
+Cada niño tiene su perfil guardado, así que si un día le cuesta la letra M, al día siguiente
+OLIBOT la vuelve a proponer para reforzarla.
+
+En cuanto a seguridad: el programa solo responde sobre las actividades.
+No puede hablar de nada ajeno a la lección. No graba el audio del niño.
+No accede a internet durante la sesión.»
+\end{decir}
+
+%% ============================================================
+\section{Plan de evaluación (Diap. 8--9)}
+%% ============================================================
+
+\diapositiva{8}{¿Qué queremos evaluar?}
+\tiempo{2 minutos}
+
+\begin{decir}
+«El objetivo de la evaluación es medir si OLIBOT realmente ayuda. Para eso he definido
+seis indicadores:
+
+Primero, el \textbf{tiempo de atención sostenida}: cuánto tiempo permanece el niño
+activamente implicado con la herramienta.
+
+Segundo, el \textbf{rendimiento comparado}: comparar cuántas actividades supera el
+grupo que usa OLIBOT frente al grupo que hace las mismas fichas en papel.
+
+Tercero, la \textbf{intervención del adulto}: contar las veces que la maestra o yo
+necesitamos intervenir para ayudar al niño.
+
+Cuarto, la \textbf{satisfacción subjetiva}: al terminar, le mostramos al niño una
+cara feliz y una triste y nos dice cómo se ha sentido.
+
+Quinto, la \textbf{velocidad de progresión}: cuántas letras o sílabas nuevas supera
+cada niño por sesión.
+
+Y sexto, el \textbf{engagement voluntario}: cuántas veces el niño pide repetir
+una actividad sin que se lo pidamos.»
+\end{decir}
+
+\begin{nota}
+\textbf{Punto clave a enfatizar:} todos estos datos se recogen de forma anónima.
+No hay ningún dato que permita identificar individualmente a un alumno.
+\end{nota}
+
+\diapositiva{9}{Diseño de la evaluación}
+\tiempo{1 minuto 30 segundos}
+
+\begin{decir}
+«Propongo entre tres y cinco sesiones de quince a veinte minutos con un grupo
+reducido de cuatro a ocho alumnos de cuatro o cinco años, divididos en dos subgrupos:
+uno usa OLIBOT y el otro hace la misma actividad en papel. Las sesiones se realizan
+en el momento que la tutora considere más oportuno — rincones, trabajo por grupos,
+o tiempo libre guiado. En ningún caso interrumpiremos la dinámica de clase.
+
+Material necesario: una sola tablet y conexión WiFi. Si no hay WiFi disponible,
+nosotros aportamos el punto de acceso.
+
+Al finalizar, les entrego un informe completo en una semana.»
+\end{decir}
+
+%% ============================================================
+\section{Garantías y compromisos (Diap. 10--11)}
+%% ============================================================
+
+\diapositiva{10}{Lo que garantizamos}
+\tiempo{1 minuto 30 segundos}
+
+\begin{decir}
+«Quiero ser muy clara en lo que respecta a la privacidad. Los perfiles de los niños
+usan apodos o iniciales — sin nombres completos, sin fotos. El reconocimiento de voz
+se procesa en el propio dispositivo: no se envía audio a ningún servidor externo.
+
+Este trabajo es exclusivamente académico — parte de mi TFM de la Universidad Carlos III.
+No hay ninguna empresa detrás, no hay uso comercial de los resultados.
+
+A cambio de su colaboración, el centro recibe:
+un informe anónimo del progreso de cada alumno,
+un informe para el equipo docente con sugerencias,
+y la posibilidad de seguir usando OLIBOT de forma completamente gratuita.
+
+Si lo desean, firmamos una carta de compromiso formal antes de comenzar.»
+\end{decir}
+
+\diapositiva{11}{Lo que necesitamos de vosotros}
+\tiempo{1 minuto}
+
+\begin{decir}
+«En concreto, solo les pido cinco cosas:
+tres a cinco sesiones en horario escolar,
+la presencia de la tutora durante las sesiones,
+acceso WiFi o aceptar que ponga yo un punto de acceso,
+la autorización de la dirección y de las familias — les facilitaré un modelo estándar —
+y un cuestionario breve al docente al terminar.
+
+Nada más. No modifica la dinámica del aula. La tutora puede en cualquier momento
+decirme que paremos.»
+\end{decir}
+
+%% ============================================================
+\section{Cierre y demostración (Diap. 12--14)}
+%% ============================================================
+
+\diapositiva{12}{¿Por qué vale la pena probar OLIBOT?}
+\tiempo{1 minuto}
+
+\begin{decir}
+«Para cerrar la parte teórica: ¿qué gana el aula?
+
+Mientras OLIBOT acompaña a un grupo de dos o tres niños, la maestra tiene tiempo
+para atender individualmente a quienes más lo necesitan.
+Cada niño avanza a su ritmo, sin presión ni comparaciones.
+Las actividades refuerzan exactamente lo que se trabaja en clase.
+Y los datos del programa pueden servir de apoyo a la evaluación continua del docente.
+
+La tecnología, bien usada, no reemplaza a la maestra: multiplica su impacto.»
+\end{decir}
+
+\begin{nota}
+\textbf{Pausa.} Mirar a la directora. Si hay algún gesto de duda, preguntar:
+«¿Tiene alguna pregunta antes de ver la demostración?»
+\end{nota}
+
+\diapositiva{13}{DEMO EN VIVO}
+\tiempo{5 minutos}
+
+\begin{decir}
+«¿Les parece bien si lo vemos en directo? Les voy a mostrar exactamente lo que
+vería un niño en su primera sesión con OLIBOT.»
+\end{decir}
+
+\begin{nota}
+\textbf{Checklist de la demo (en este orden):}
+\begin{enumerate}[nosep]
+  \item Tomar la tablet. Abrir OLIBOT en el navegador.
+  \item Crear un perfil de niño: por ejemplo «Oli», 4 años.
+  \item Mostrar la bienvenida y cómo OLIBOT saluda por voz.
+  \item Esperar a que aparezca la actividad de trazado (vocal A o E).
+  \item \textbf{Mostrar la demo automática}: «Fijaos, primero OLIBOT hace
+        la demostración del trazo con ese cursor rojo.»
+  \item Trazar la letra con el dedo para mostrar la interacción táctil.
+  \item Demostrar la interacción por voz: hablar con OLIBOT.
+  \item Si hay tiempo: mostrar el nivel fácil (con guía completa)
+        vs. nivel difícil (solo los puntos de inicio y fin).
+\end{enumerate}
+
+\textbf{Frases útiles durante la demo:}\\
+«Aquí ven la demostración automática — el niño siempre ve primero cómo se hace.»\\
+«Si el niño se equivoca varias veces, OLIBOT aumenta la guía.»\\
+«El docente puede ver el progreso aquí, en este panel lateral.»
+\end{nota}
+
+\diapositiva{14}{Próximos pasos}
+\tiempo{1 minuto}
+
+\begin{decir}
+«Si les parece bien, les propongo estos pasos:
+
+Hoy mismo pueden comentarlo con el equipo docente.
+Esta semana podemos firmar la carta de colaboración y preparar
+las autorizaciones para las familias, que yo les facilito.
+En las próximas semanas acordamos las fechas de sesiones.
+Y tras las sesiones, una semana después, recibirán el informe completo.
+
+¿Tienen alguna pregunta?»
+\end{decir}
+
+\begin{nota}
+\textbf{Si dicen que necesitan consultarlo:}\\
+«Por supuesto, no hay prisa. ¿Puedo dejarles mi contacto y un pequeño
+resumen por escrito?» → dejar tarjeta o anotar email.
+
+\textbf{Si preguntan por la privacidad:}\\
+«Los datos de los niños se almacenan únicamente como número de intentos
+y tiempo de sesión, sin audio y sin nombre. Les puedo mostrar exactamente
+qué registra el sistema si lo desean.»
+
+\textbf{Si preguntan si el programa «hace todo el trabajo del docente»:}\\
+«No, en absoluto. OLIBOT no evalúa, no observa al niño en su globalidad,
+no detecta dificultades emocionales. La tutora sigue siendo imprescindible.
+OLIBOT es como un cuaderno de práctica interactivo, no un sustituto.»
+
+\textbf{Si preguntan por el coste:}\\
+«Para el centro es completamente gratuito. Este es un proyecto académico,
+no comercial.»
+\end{nota}
+
+%% ============================================================
+\section*{Resumen de tiempos}
+\addcontentsline{toc}{section}{Resumen de tiempos}
+%% ============================================================
+
+\vspace{8pt}
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  \textbf{Bloque} & \textbf{Diapositivas} & \textbf{Tiempo} \\
+  \midrule
+  Bienvenida e índice    & 1--2  & 1,5 min \\
+  Contexto educativo     & 3--4  & 3,5 min \\
+  Qué es OLIBOT          & 5--7  & 5,5 min \\
+  Plan de evaluación     & 8--9  & 3,5 min \\
+  Garantías y compromisos & 10--11 & 2,5 min \\
+  Cierre                 & 12    & 1 min   \\
+  Demo en vivo           & 13    & 5 min   \\
+  Próximos pasos y dudas & 14    & 2,5 min \\
+  \midrule
+  \textbf{Total} & & \textbf{$\approx$ 25 min} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{12pt}
+\begin{nota}
+\textbf{Consejo general:}\\
+El tono debe ser cercano y honesto. Si algo no funciona en la demo, decirlo con
+naturalidad: «La tecnología tiene estos momentos — así que en las sesiones reales
+siempre estoy presente para resolver cualquier incidencia.»\\[4pt]
+El objetivo no es impresionar con tecnología: es \textbf{transmitir confianza}.
+\end{nota}
+
+\end{document}

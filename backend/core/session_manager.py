@@ -264,6 +264,7 @@ class SessionManager:
         student_id: int,
         user_message: str,
         session_id: int | None = None,
+        current_screen: str | None = None,
     ):
         """
         Streaming variant of process_message.
@@ -330,12 +331,23 @@ class SessionManager:
         conversation_history = self._build_history(session.id)
         conversation_history.append({"role": "user", "content": user_message})
 
+        # Prepend screen context to instruction so LLM stays in scope
+        _SCREEN_HINTS = {
+            "drawing":          "[CONTEXTO: El niño está EN LA PANTALLA DE DIBUJO LIBRE. NO menciones letras ni trazos. Habla solo sobre dibujar y pintar.] ",
+            "recognition":      "[CONTEXTO: El niño está EN EL EJERCICIO DE RECONOCIMIENTO (elige la letra correcta). Anímate brevemente, no expliques el ejercicio.] ",
+            "emotion_picker":   "[CONTEXTO: Se está mostrando la encuesta de ánimo. NO respondas sobre el contenido académico.] ",
+            "activity_picker":  "[CONTEXTO: Se está mostrando el selector de actividad. NO respondas sobre el contenido académico.] ",
+            "assessment_mode":  "[EVALUACIÓN INICIAL] El maestro/a ha solicitado evaluar el nivel del niño. Realiza una evaluación breve y animada: presenta 2 tareas cortas (ej. reconocer una vocal, reconocer un número o trazar una línea sencilla). Según las respuestas, al final sugiere al docente qué nivel es más adecuado: Amarillo (trazos pregráficos), Verde (vocales y números) o Azul (consonantes y sílabas). Habla siempre al niño de forma entusiasta. ",
+        }
+        screen_prefix = _SCREEN_HINTS.get(current_screen or "", "")
+        augmented_instruction = screen_prefix + bdi_decision.instruction
+
         full_response = ""
         async for token in self.nlg.generate_response_stream(
             student=student,
             topic=session.topic,
             conversation_history=conversation_history,
-            agent_instruction=bdi_decision.instruction,
+            agent_instruction=augmented_instruction,
             cache_hint=_build_cache_hint(intent.name, current_topic, bdi_decision.is_correct),
         ):
             full_response += token

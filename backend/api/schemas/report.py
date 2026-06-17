@@ -16,6 +16,16 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+class MessageRecord(BaseModel):
+    """A single message exchanged between child and OLIBOT in a session."""
+    message_id: int
+    role: str            # "user" | "agent"
+    content: str
+    detected_intent: str | None
+    shield_triggered: bool
+    timestamp: datetime
+
+
 class TopicMasteryReport(BaseModel):
     """Progress data for a single curriculum topic."""
     topic_id: str

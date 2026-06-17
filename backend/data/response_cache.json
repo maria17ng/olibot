@@ -1,60 +1,224 @@
 {
   "_comment": "Pre-written NLG responses for common (intent:topic_category:age:is_correct) combinations.",
   "_key_format": "intent:category:age_group[:correct]   — category matches CurriculumCategory.value",
-
-  "greet:any:3": ["¡Bien! 🌟", "¡Vamos! 👋", "¡Genial! 🤖"],
-  "greet:any:4": ["¡Soy OLIBOT! 🤖 ¿Empezamos? 🌟", "¡Venga, vamos a aprender! 🚀", "¡Vamos a practicar juntos! 🌈"],
-  "greet:any:5": ["¡Vamos allá! Soy OLIBOT, tu robot tutor. ¿Empezamos? 🚀", "¡Perfecto! ¿Estás listo para practicar? 🌟", "¡Muy bien! Hoy aprenderemos cosas nuevas 🎉"],
-
-  "attempt_answer:pregrafomotricidad:3:true": ["¡Bien! 🌟", "¡Sí! 🎉", "¡Muy bien! ⭐"],
-  "attempt_answer:pregrafomotricidad:4:true": ["¡Muy bien! ¿Lo hacemos otra vez? 🌟", "¡Genial! ¡Eres un artista! 🎨", "¡Perfecto! ¡Otra vez! ⭐"],
-  "attempt_answer:pregrafomotricidad:5:true": ["¡Muy bien! ¡Ya dominas este trazo! 🌟", "¡Perfecto! Tu trazo es muy bueno 🎨", "¡Excelente! ¡Sigues mejorando! ⭐"],
-  "attempt_answer:pregrafomotricidad:3:false": ["¡Casi! 💪", "¡Otra vez! 💪", "¡Tú puedes! 💪"],
-  "attempt_answer:pregrafomotricidad:4:false": ["¡Casi! ¿Lo intentamos otra vez? 💪", "¡Ánimo! Empieza por el punto azul 🔵", "¡Casi! Sigue la línea despacio 💪"],
-  "attempt_answer:pregrafomotricidad:5:false": ["¡Casi! Recuerda empezar por el punto azul 🔵 ¿Lo intentamos?", "¡Ánimo! Sigue los puntos con cuidado 💪", "¡Casi! Inténtalo más despacio 💪"],
-
-  "attempt_answer:lectoescritura:3:true": ["¡Sí! 🌟", "¡Bien! ⭐", "¡Muy bien! 🎉"],
-  "attempt_answer:lectoescritura:4:true": ["¡Muy bien! ¡Esa es la letra! 🌟", "¡Correcto! ¡Lo sabías! ⭐", "¡Genial! ¡La has reconocido! 🎉"],
-  "attempt_answer:lectoescritura:5:true": ["¡Correcto! ¡Muy bien! 🌟 ¿Qué palabra empieza por esa letra?", "¡Exacto! ¡Lo has dicho perfectamente! ⭐", "¡Perfecto! ¡Ya conoces esa letra! 🎉"],
-  "attempt_answer:lectoescritura:3:false": ["¡Casi! 💪", "¡Otra vez! 🌟", "¡Tú puedes! 💪"],
-  "attempt_answer:lectoescritura:4:false": ["¡Casi! Escucha cómo suena... 🎵 ¿Lo intentas?", "¡Ánimo! ¿Cómo suena esta letra?", "¡Casi! Piénsalo un momento 💪"],
-  "attempt_answer:lectoescritura:5:false": ["¡Casi! ¿Cómo se llama esta letra? 💪", "¡Inténtalo! Fíjate bien en la forma ✏️", "¡Ánimo! Piensa en una palabra que empiece así 💡"],
-
-  "attempt_answer:numeracion:3:true": ["¡Sí! 🌟", "¡Bien! ⭐", "¡Muy bien! 🎉"],
-  "attempt_answer:numeracion:4:true": ["¡Correcto! ¡Ese número! 🌟", "¡Muy bien! ¡Lo has dicho! ⭐", "¡Genial! ¡El número correcto! 🎉"],
-  "attempt_answer:numeracion:5:true": ["¡Correcto! ¿Cuántos dedos son? 🌟", "¡Exacto! ¡Muy bien! ⭐", "¡Perfecto! ¡Ya sabes ese número! 🎉"],
-  "attempt_answer:numeracion:3:false": ["¡Casi! 💪", "¡Otra vez! 💪", "¡Tú puedes! 💪"],
-  "attempt_answer:numeracion:4:false": ["¡Casi! Cuenta los puntos 💪", "¡Ánimo! ¿Cuántos son? 💪", "¡Casi! Mira bien el número 💪"],
-  "attempt_answer:numeracion:5:false": ["¡Casi! ¿Cuántas cosas hay? 💡", "¡Ánimo! Cuenta despacio 💪", "¡Inténtalo! ¿Qué número es? 💡"],
-
-  "attempt_answer:silabas:5:true": ["¡Muy bien! ¡Has dicho la sílaba! 🌟", "¡Correcto! ¡Lo has pronunciado genial! ⭐", "¡Fantástico! ¡Ya conoces esa sílaba! 🎉"],
-  "attempt_answer:silabas:5:false": ["¡Casi! Repite despacio: ¿cómo suena? 💪", "¡Ánimo! Inténtalo otra vez 💪", "¡Casi! Escucha bien y repite 🎵"],
-
-  "tracing_complete:pregrafomotricidad:3:true": ["¡Bien! 🌟", "¡Sí! ⭐", "¡Muy bien! 🎉"],
-  "tracing_complete:pregrafomotricidad:4:true": ["¡Has trazado muy bien! ¿Lo hacemos otra vez? 🌟", "¡Genial! ¡Qué trazo tan bonito! 🎨", "¡Perfecto! ¡Eres un artista! ⭐"],
-  "tracing_complete:pregrafomotricidad:5:true": ["¡Perfecto! ¡Tu trazo es muy bonito! 🌟", "¡Excelente! ¡Ya dominas ese trazo! 🎨", "¡Muy bien! ¡Sigues mejorando! ⭐"],
-  "tracing_complete:pregrafomotricidad:3:false": ["¡Casi! 💪", "¡Otra vez! 💪", "¡Tú puedes! 💪"],
-  "tracing_complete:pregrafomotricidad:4:false": ["¡Casi! Empieza por el punto azul 🔵 ¿Lo intentamos?", "¡Ánimo! Sigue la línea despacio 💪", "¡Casi! Tú puedes hacerlo 💪"],
-  "tracing_complete:pregrafomotricidad:5:false": ["¡Casi! Recuerda seguir los puntos en orden 💡 ¿Lo intentamos?", "¡Ánimo! Inténtalo más despacio 💪", "¡Casi! Fíjate bien en la dirección de la flecha ➡️"],
-
-  "tracing_complete:lectoescritura:4:true": ["¡Has trazado la letra muy bien! 🌟 ¿Sabes cómo se llama?", "¡Muy bien! ¡Qué letra tan bonita! ⭐", "¡Perfecto! ¿Qué sonido hace esa letra? 🎵"],
-  "tracing_complete:lectoescritura:5:true": ["¡Perfecto! ¡Has trazado la letra! 🌟 ¿Cómo se llama?", "¡Excelente trazo! ¿Qué palabras empiezan por esa letra? 🌟", "¡Muy bien! ¡Ya sabes trazar esa letra! ⭐"],
-  "tracing_complete:lectoescritura:4:false": ["¡Casi! Empieza por el punto azul 🔵 y sigue el trazo 💪", "¡Ánimo! Inténtalo otra vez 💪", "¡Casi! Sigue los puntos despacio 💪"],
-  "tracing_complete:lectoescritura:5:false": ["¡Casi! Sigue los puntos en orden 💪", "¡Ánimo! Traza más despacio ✏️", "¡Casi! Fíjate en la dirección de la flecha ➡️"],
-
-  "ask_for_hint:pregrafomotricidad:3": ["¡Mira el punto azul! 🔵", "¡Empieza aquí! 👆", "¡Sigue la línea! ➡️"],
-  "ask_for_hint:pregrafomotricidad:4": ["Empieza por el punto azul 🔵 ¡y sigue la línea!", "¡Sigue los puntitos! 💡", "Empieza arriba y baja poco a poco 💡"],
-  "ask_for_hint:pregrafomotricidad:5": ["Empieza por el punto azul 🔵 y sigue en la dirección de la flecha ➡️", "¡Sigue los puntos en orden! El primero está en el inicio ⬆️", "Traza despacio siguiendo la línea de guía 💡"],
-  "ask_for_hint:lectoescritura:4": ["¡Escucha! ¿Qué letra es? 🎵", "¡Piénsalo! ¿Cómo suena? 💡", "Fíjate en la forma... ¿la reconoces? 💡"],
-  "ask_for_hint:lectoescritura:5": ["¿Cómo se llama esta letra? Fíjate en su forma 💡", "Piensa en una palabra que empiece por esta letra 💡", "¿La recuerdas? Fíjate bien en su forma 🔤"],
-  "ask_for_hint:numeracion:4": ["Cuenta los puntos 💡 ¿Cuántos son?", "¡Mira bien! ¿Qué número es? 💡", "Cuenta despacito: uno, dos... 💡"],
-  "ask_for_hint:numeracion:5": ["Cuenta los objetos que hay 💡 ¿Cuántos son?", "Piensa: ¿qué número tiene esa forma? 💡", "¿Cuántos dedos levantarías para ese número? ✋"],
-  "ask_for_hint:silabas:5": ["¿Cómo suena esa sílaba? 💡", "Piénsalo: ¿cómo se pronuncia? 🎵", "Escucha bien y repite la sílaba 💡"],
-  "ask_for_hint:any:3": ["¡Mira aquí! 👆", "¡Prueba! 💡", "¡Tú puedes! 💪"],
-  "ask_for_hint:any:4": ["Piénsalo un momento 💡 ¿Lo intentas?", "¡Mira bien! ¿Qué ves? 💡", "¡Ánimo! ¿Lo intentas otra vez? 💪"],
-  "ask_for_hint:any:5": ["Piensa despacio 💡 ¿Cuál crees que es?", "Fíjate bien en lo que ves 💡", "¿Lo recuerdas de otra vez? 💡"],
-
-  "express_emotion:any:3": ["¡Tú puedes! 💪", "¡Ánimo! 🌟", "¡Bien! 💪"],
-  "express_emotion:any:4": ["¡Ánimo! ¡Tú puedes! 💪 ¿Lo intentamos?", "¡No pasa nada! ¡Inténtalo otra vez! 🌟", "¡Muy bien! ¡Sigue así! 💪"],
-  "express_emotion:any:5": ["¡No pasa nada! Es normal equivocarse. ¡Inténtalo otra vez! 💪", "¡Ánimo! Cada vez lo haces mejor 🌟", "¡Muy bien! ¡Tú puedes! 💪 ¿Seguimos?"]
+  "attempt_answer:pregrafomotricidad:3:true": [
+    "¡Bien! 🌟",
+    "¡Sí! 🎉",
+    "¡Muy bien! ⭐"
+  ],
+  "attempt_answer:pregrafomotricidad:4:true": [
+    "¡Muy bien! ¿Lo hacemos otra vez? 🌟",
+    "¡Genial! ¡Eres un artista! 🎨",
+    "¡Perfecto! ¡Otra vez! ⭐"
+  ],
+  "attempt_answer:pregrafomotricidad:5:true": [
+    "¡Muy bien! ¡Ya dominas este trazo! 🌟",
+    "¡Perfecto! Tu trazo es muy bueno 🎨",
+    "¡Excelente! ¡Sigues mejorando! ⭐"
+  ],
+  "attempt_answer:pregrafomotricidad:3:false": [
+    "¡Casi! 💪",
+    "¡Otra vez! 💪",
+    "¡Tú puedes! 💪"
+  ],
+  "attempt_answer:pregrafomotricidad:4:false": [
+    "¡Casi! ¿Lo intentamos otra vez? 💪",
+    "¡Ánimo! Empieza por el punto azul 🔵",
+    "¡Casi! Sigue la línea despacio 💪"
+  ],
+  "attempt_answer:pregrafomotricidad:5:false": [
+    "¡Casi! Recuerda empezar por el punto azul 🔵 ¿Lo intentamos?",
+    "¡Ánimo! Sigue los puntos con cuidado 💪",
+    "¡Casi! Inténtalo más despacio 💪"
+  ],
+  "attempt_answer:lectoescritura:3:true": [
+    "¡Sí! 🌟",
+    "¡Bien! ⭐",
+    "¡Muy bien! 🎉"
+  ],
+  "attempt_answer:lectoescritura:4:true": [
+    "¡Muy bien! ¡Esa es la letra! 🌟",
+    "¡Correcto! ¡Lo sabías! ⭐",
+    "¡Genial! ¡La has reconocido! 🎉"
+  ],
+  "attempt_answer:lectoescritura:5:true": [
+    "¡Correcto! ¡Muy bien! 🌟 ¿Qué palabra empieza por esa letra?",
+    "¡Exacto! ¡Lo has dicho perfectamente! ⭐",
+    "¡Perfecto! ¡Ya conoces esa letra! 🎉"
+  ],
+  "attempt_answer:lectoescritura:3:false": [
+    "¡Casi! 💪",
+    "¡Otra vez! 🌟",
+    "¡Tú puedes! 💪"
+  ],
+  "attempt_answer:lectoescritura:4:false": [
+    "¡Casi! Escucha cómo suena... 🎵 ¿Lo intentas?",
+    "¡Ánimo! ¿Cómo suena esta letra?",
+    "¡Casi! Piénsalo un momento 💪"
+  ],
+  "attempt_answer:lectoescritura:5:false": [
+    "¡Casi! ¿Cómo se llama esta letra? 💪",
+    "¡Inténtalo! Fíjate bien en la forma ✏️",
+    "¡Ánimo! Piensa en una palabra que empiece así 💡"
+  ],
+  "attempt_answer:numeracion:3:true": [
+    "¡Sí! 🌟",
+    "¡Bien! ⭐",
+    "¡Muy bien! 🎉"
+  ],
+  "attempt_answer:numeracion:4:true": [
+    "¡Correcto! ¡Ese número! 🌟",
+    "¡Muy bien! ¡Lo has dicho! ⭐",
+    "¡Genial! ¡El número correcto! 🎉"
+  ],
+  "attempt_answer:numeracion:5:true": [
+    "¡Correcto! ¿Cuántos dedos son? 🌟",
+    "¡Exacto! ¡Muy bien! ⭐",
+    "¡Perfecto! ¡Ya sabes ese número! 🎉"
+  ],
+  "attempt_answer:numeracion:3:false": [
+    "¡Casi! 💪",
+    "¡Otra vez! 💪",
+    "¡Tú puedes! 💪"
+  ],
+  "attempt_answer:numeracion:4:false": [
+    "¡Casi! Cuenta los puntos 💪",
+    "¡Ánimo! ¿Cuántos son? 💪",
+    "¡Casi! Mira bien el número 💪"
+  ],
+  "attempt_answer:numeracion:5:false": [
+    "¡Casi! ¿Cuántas cosas hay? 💡",
+    "¡Ánimo! Cuenta despacio 💪",
+    "¡Inténtalo! ¿Qué número es? 💡"
+  ],
+  "attempt_answer:silabas:5:true": [
+    "¡Muy bien! ¡Has dicho la sílaba! 🌟",
+    "¡Correcto! ¡Lo has pronunciado genial! ⭐",
+    "¡Fantástico! ¡Ya conoces esa sílaba! 🎉"
+  ],
+  "attempt_answer:silabas:5:false": [
+    "¡Casi! Repite despacio: ¿cómo suena? 💪",
+    "¡Ánimo! Inténtalo otra vez 💪",
+    "¡Casi! Escucha bien y repite 🎵"
+  ],
+  "tracing_complete:pregrafomotricidad:3:true": [
+    "¡Bien! 🌟",
+    "¡Sí! ⭐",
+    "¡Muy bien! 🎉"
+  ],
+  "tracing_complete:pregrafomotricidad:4:true": [
+    "¡Has trazado muy bien! ¿Lo hacemos otra vez? 🌟",
+    "¡Genial! ¡Qué trazo tan bonito! 🎨",
+    "¡Perfecto! ¡Eres un artista! ⭐"
+  ],
+  "tracing_complete:pregrafomotricidad:5:true": [
+    "¡Perfecto! ¡Tu trazo es muy bonito! 🌟",
+    "¡Excelente! ¡Ya dominas ese trazo! 🎨",
+    "¡Muy bien! ¡Sigues mejorando! ⭐"
+  ],
+  "tracing_complete:pregrafomotricidad:3:false": [
+    "¡Casi! 💪",
+    "¡Otra vez! 💪",
+    "¡Tú puedes! 💪"
+  ],
+  "tracing_complete:pregrafomotricidad:4:false": [
+    "¡Casi! Empieza por el punto azul 🔵 ¿Lo intentamos?",
+    "¡Ánimo! Sigue la línea despacio 💪",
+    "¡Casi! Tú puedes hacerlo 💪"
+  ],
+  "tracing_complete:pregrafomotricidad:5:false": [
+    "¡Casi! Recuerda seguir los puntos en orden 💡 ¿Lo intentamos?",
+    "¡Ánimo! Inténtalo más despacio 💪",
+    "¡Casi! Fíjate bien en la dirección de la flecha ➡️"
+  ],
+  "tracing_complete:lectoescritura:4:true": [
+    "¡Has trazado la letra muy bien! 🌟 ¿Sabes cómo se llama?",
+    "¡Muy bien! ¡Qué letra tan bonita! ⭐",
+    "¡Perfecto! ¿Qué sonido hace esa letra? 🎵"
+  ],
+  "tracing_complete:lectoescritura:5:true": [
+    "¡Perfecto! ¡Has trazado la letra! 🌟 ¿Cómo se llama?",
+    "¡Excelente trazo! ¿Qué palabras empiezan por esa letra? 🌟",
+    "¡Muy bien! ¡Ya sabes trazar esa letra! ⭐"
+  ],
+  "tracing_complete:lectoescritura:4:false": [
+    "¡Casi! Empieza por el punto azul 🔵 y sigue el trazo 💪",
+    "¡Ánimo! Inténtalo otra vez 💪",
+    "¡Casi! Sigue los puntos despacio 💪"
+  ],
+  "tracing_complete:lectoescritura:5:false": [
+    "¡Casi! Sigue los puntos en orden 💪",
+    "¡Ánimo! Traza más despacio ✏️",
+    "¡Casi! Fíjate en la dirección de la flecha ➡️"
+  ],
+  "ask_for_hint:pregrafomotricidad:3": [
+    "¡Mira el punto azul! 🔵",
+    "¡Empieza aquí! 👆",
+    "¡Sigue la línea! ➡️"
+  ],
+  "ask_for_hint:pregrafomotricidad:4": [
+    "Empieza por el punto azul 🔵 ¡y sigue la línea!",
+    "¡Sigue los puntitos! 💡",
+    "Empieza arriba y baja poco a poco 💡"
+  ],
+  "ask_for_hint:pregrafomotricidad:5": [
+    "Empieza por el punto azul 🔵 y sigue en la dirección de la flecha ➡️",
+    "¡Sigue los puntos en orden! El primero está en el inicio ⬆️",
+    "Traza despacio siguiendo la línea de guía 💡"
+  ],
+  "ask_for_hint:lectoescritura:4": [
+    "¡Escucha! ¿Qué letra es? 🎵",
+    "¡Piénsalo! ¿Cómo suena? 💡",
+    "Fíjate en la forma... ¿la reconoces? 💡"
+  ],
+  "ask_for_hint:lectoescritura:5": [
+    "¿Cómo se llama esta letra? Fíjate en su forma 💡",
+    "Piensa en una palabra que empiece por esta letra 💡",
+    "¿La recuerdas? Fíjate bien en su forma 🔤"
+  ],
+  "ask_for_hint:numeracion:4": [
+    "Cuenta los puntos 💡 ¿Cuántos son?",
+    "¡Mira bien! ¿Qué número es? 💡",
+    "Cuenta despacito: uno, dos... 💡"
+  ],
+  "ask_for_hint:numeracion:5": [
+    "Cuenta los objetos que hay 💡 ¿Cuántos son?",
+    "Piensa: ¿qué número tiene esa forma? 💡",
+    "¿Cuántos dedos levantarías para ese número? ✋"
+  ],
+  "ask_for_hint:silabas:5": [
+    "¿Cómo suena esa sílaba? 💡",
+    "Piénsalo: ¿cómo se pronuncia? 🎵",
+    "Escucha bien y repite la sílaba 💡"
+  ],
+  "ask_for_hint:any:3": [
+    "¡Mira aquí! 👆",
+    "¡Prueba! 💡",
+    "¡Tú puedes! 💪"
+  ],
+  "ask_for_hint:any:4": [
+    "Piénsalo un momento 💡 ¿Lo intentas?",
+    "¡Mira bien! ¿Qué ves? 💡",
+    "¡Ánimo! ¿Lo intentas otra vez? 💪"
+  ],
+  "ask_for_hint:any:5": [
+    "Piensa despacio 💡 ¿Cuál crees que es?",
+    "Fíjate bien en lo que ves 💡",
+    "¿Lo recuerdas de otra vez? 💡"
+  ],
+  "express_emotion:any:3": [
+    "¡Tú puedes! 💪",
+    "¡Ánimo! 🌟",
+    "¡Bien! 💪"
+  ],
+  "express_emotion:any:4": [
+    "¡Ánimo! ¡Tú puedes! 💪 ¿Lo intentamos?",
+    "¡No pasa nada! ¡Inténtalo otra vez! 🌟",
+    "¡Muy bien! ¡Sigue así! 💪"
+  ],
+  "express_emotion:any:5": [
+    "¡No pasa nada! Es normal equivocarse. ¡Inténtalo otra vez! 💪",
+    "¡Ánimo! Cada vez lo haces mejor 🌟",
+    "¡Muy bien! ¡Tú puedes! 💪 ¿Seguimos?"
+  ]
 }

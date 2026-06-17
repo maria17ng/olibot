@@ -1,7 +1,7 @@
 /**
  * OLIBOT API client — wraps all backend REST calls.
  */
-const BASE_URL = "http://localhost:5050/api/v1";
+const BASE_URL = `http://${window.location.hostname}:5050/api/v1`;
 
 export const api = {
   // ---- Students ----
@@ -27,11 +27,11 @@ export const api = {
   },
 
   // ---- Chat ----
-  async * sendMessageStream(studentId, message, sessionId = null) {
+  async * sendMessageStream(studentId, message, sessionId = null, currentScreen = null) {
     const res = await fetch(`${BASE_URL}/chat/stream`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ student_id: studentId, message, session_id: sessionId }),
+      body: JSON.stringify({ student_id: studentId, message, session_id: sessionId, current_screen: currentScreen }),
     });
     if (!res.ok) throw new Error("Stream request failed");
 
@@ -104,7 +104,25 @@ export const api = {
     return res.json();
   },
 
+  async getStudentMessages(studentId, sessionId = null, limit = 100) {
+    const params = new URLSearchParams({ limit });
+    if (sessionId != null) params.append("session_id", sessionId);
+    const res = await fetch(`${BASE_URL}/reports/${studentId}/messages?${params}`);
+    if (!res.ok) throw new Error("Failed to fetch messages");
+    return res.json();
+  },
+
   // ---- Student update ----
+  async updateStudentBeliefs(studentId, beliefs) {
+    const res = await fetch(`${BASE_URL}/students/${studentId}/beliefs`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ beliefs }),
+    });
+    if (!res.ok) throw new Error("Failed to update beliefs");
+    return res.json();
+  },
+
   async updateStudentAge(studentId, newAge) {
     const res = await fetch(`${BASE_URL}/students/${studentId}`, {
       method: "PATCH",
@@ -112,6 +130,32 @@ export const api = {
       body: JSON.stringify({ age: newAge }),
     });
     if (!res.ok) throw new Error("Failed to update student age");
+    return res.json();
+  },
+
+  // ---- Initial assessment (#8B) ----
+  async requestAssessment(studentId) {
+    const res = await fetch(`${BASE_URL}/students/${studentId}/request-assessment`, { method: "POST" });
+    if (!res.ok) throw new Error("Failed to request assessment");
+    return res.json();
+  },
+
+  // ---- Emotional checkpoints (#20) ----
+  async createEmotionalCheckpoint(studentId, context, emotion = null) {
+    const body = { context };
+    if (emotion) body.emotion = emotion;
+    const res = await fetch(`${BASE_URL}/students/${studentId}/emotional-checkpoints`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error("Failed to save emotional checkpoint");
+    return res.json();
+  },
+
+  async getEmotionalCheckpoints(studentId, limit = 200) {
+    const res = await fetch(`${BASE_URL}/students/${studentId}/emotional-checkpoints?limit=${limit}`);
+    if (!res.ok) throw new Error("Failed to fetch emotional checkpoints");
     return res.json();
   },
 };

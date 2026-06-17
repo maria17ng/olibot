@@ -18,36 +18,40 @@ import { useState, useRef, useCallback } from "react";
 const STT_LANG        = "es-ES";
 const TTS_LANG        = "es-ES";
 const TTS_RATE        = 0.85;
-const TTS_PITCH       = 1.45;   // high pitch → sounds female even on neutral voices
+const TTS_PITCH       = 1.10;   // slight pitch lift; relies on actual female voice
 const TTS_COOLDOWN_MS = 1100;
 
 // ── Voice selection (module-level cache, populated on voiceschanged) ──────────
 
 let _preferredVoice = null;   // null = not yet resolved; undefined = no match found
 
-const FEMALE_NAME_RE = /female|mujer|mónica|monica|elena|penélope|penelope|paulina|luciana|isabel|andrea|carmen|pilar|soledad|maria|laura|rosa|helena/i;
+// Female voice names across Windows / macOS / iOS / Android / Chrome
+const FEMALE_NAME_RE = /female|mujer|mónica|monica|helena|conchita|lucía|lucia|elena|penélope|penelope|isabel|carmen|pilar|soledad|maria|laura|rosa|andrea|aitana/i;
 
 function _pickVoice() {
   const voices = window.speechSynthesis?.getVoices() ?? [];
   if (!voices.length) return undefined;
 
-  const es = voices.filter(v => v.lang?.startsWith("es"));
+  // Strict Spain Spanish voices (es-ES)
+  const esES = voices.filter(v => v.lang === "es-ES");
+  // All Spanish voices as fallback
+  const esAll = voices.filter(v => v.lang?.startsWith("es"));
 
   return (
-    // 1. "Google español 1 (Natural)" — best quality, sounds female in Chrome
-    es.find(v => /natural/i.test(v.name) && v.lang === "es-ES") ||
-    // 2. Any es-ES Natural voice
-    es.find(v => /natural/i.test(v.name)) ||
-    // 3. Explicit gender property (deprecated but works in some browsers)
-    es.find(v => (v).gender === "female") ||
-    // 4. Named female voices (Windows / macOS / mobile)
-    es.find(v => FEMALE_NAME_RE.test(v.name)) ||
-    // 5. Chrome OS español voices
-    es.find(v => /chrome os/i.test(v.name) && v.lang === "es-ES") ||
-    // 6. Standard Google español
-    es.find(v => /google/i.test(v.name) && v.lang === "es-ES") ||
-    es.find(v => v.lang === "es-ES") ||
-    es[0] ||
+    // 1. Named female in es-ES: Microsoft Helena, Mónica, Conchita, Google Lucía…
+    esES.find(v => FEMALE_NAME_RE.test(v.name)) ||
+    // 2. Named female in any Spanish variant
+    esAll.find(v => FEMALE_NAME_RE.test(v.name)) ||
+    // 3. Natural-sounding es-ES (Google Natural on Chrome OS / Android)
+    esES.find(v => /natural/i.test(v.name)) ||
+    // 4. Explicit gender=female in es-ES
+    esES.find(v => (v).gender === "female") ||
+    // 5. Any Google es-ES voice (prefer Spain over LATAM)
+    esES.find(v => /google/i.test(v.name)) ||
+    // 6. Any es-ES voice
+    esES[0] ||
+    // 7. Last resort: any Spanish voice
+    esAll[0] ||
     undefined
   );
 }
@@ -81,7 +85,7 @@ function cleanForTTS(text) {
     .trim();
 }
 
-export function useSpeech({ onTranscript, onSilence }) {
+export function useSpeech({ onTranscript, onSilence, ttsRate }) {
   const [listening,         setListening]         = useState(false);
   const [speaking,          setSpeaking]           = useState(false);
   const [interimTranscript, setInterimTranscript]  = useState("");
@@ -89,6 +93,8 @@ export function useSpeech({ onTranscript, onSilence }) {
   const recognitionRef        = useRef(null);
   const ttsCooldownUntilRef   = useRef(0);    // absolute timestamp: mic blocked until this time
   const startListeningRef     = useRef(null); // kept current to avoid stale closures in setTimeout
+  const ttsRateRef            = useRef(ttsRate ?? TTS_RATE); // always-current rate (age-aware)
+  ttsRateRef.current = ttsRate ?? TTS_RATE;
 
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -185,7 +191,7 @@ export function useSpeech({ onTranscript, onSilence }) {
 
     const utterance   = new SpeechSynthesisUtterance(clean);
     utterance.lang    = TTS_LANG;
-    utterance.rate    = TTS_RATE;
+    utterance.rate    = ttsRateRef.current;
     utterance.pitch   = TTS_PITCH;
     const voice = getPreferredVoice();
     if (voice) utterance.voice = voice;
@@ -215,7 +221,7 @@ export function useSpeech({ onTranscript, onSilence }) {
 
     const utterance   = new SpeechSynthesisUtterance(clean);
     utterance.lang    = TTS_LANG;
-    utterance.rate    = TTS_RATE;
+    utterance.rate    = ttsRateRef.current;
     utterance.pitch   = TTS_PITCH;
     const voice = getPreferredVoice();
     if (voice) utterance.voice = voice;

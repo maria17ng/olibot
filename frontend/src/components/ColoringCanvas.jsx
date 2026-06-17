@@ -10,7 +10,7 @@
  *   variant.imageFile → IMAGE MODE
  *   variant.svg       → SVG MODE
  */
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { COLORING_DATA, getColoringVariant, loadColoringManifest, ALL_SUBJECTS, normalize } from "../data/coloringData";
 
 const COLORS = [
@@ -138,7 +138,7 @@ function guessEmoji(name) {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export default function ColoringCanvas({ subject, onBack, inline = false, disabled = false }) {
+export default function ColoringCanvas({ subject, onBack, inline = false, disabled = false, onPickerOpen }) {
   const canvasRef         = useRef(null);
   const drawingRef        = useRef(false);
   const lastPosRef        = useRef(null);
@@ -154,7 +154,24 @@ export default function ColoringCanvas({ subject, onBack, inline = false, disabl
   const [showPicker,    setShowPicker]    = useState(false);
   const [svgUrl,        setSvgUrl]        = useState("");
   const [pickerItems,   setPickerItems]   = useState(ALL_SUBJECTS);
+  const [pickerPage,    setPickerPage]    = useState(0);
+  const [pickerPulse,   setPickerPulse]   = useState(true); // pulses for 5s on mount
   const manifestRef = useRef(null);
+
+  // Clear pulse after 5s
+  useEffect(() => {
+    const tid = setTimeout(() => setPickerPulse(false), 5000);
+    return () => clearTimeout(tid);
+  }, []);
+
+  // Shuffle picker items each time the modal opens so children see fresh choices
+  const shuffledPickerItems = useMemo(() => {
+    if (!showPicker) return [];
+    return [...pickerItems].sort(() => Math.random() - 0.5);
+  }, [showPicker]); // eslint-disable-line react-hooks/exhaustive-deps — intentional shuffle on open
+
+  // Reset page when picker opens
+  useEffect(() => { if (showPicker) setPickerPage(0); }, [showPicker]);
 
   // Load manifest; upgrade to image mode and build merged picker list
   useEffect(() => {
@@ -444,6 +461,13 @@ export default function ColoringCanvas({ subject, onBack, inline = false, disabl
     setShowPicker(false);
   }, [subject, clearCanvas]);
 
+  // Open picker and notify parent (for OLIBOT voice)
+  const openPicker = useCallback(() => {
+    setShowPicker(true);
+    setPickerPulse(false);
+    onPickerOpen?.();
+  }, [onPickerOpen]);
+
   // ── Shared canvas event props ─────────────────────────────────────────────
   const canvasEvents = isImageMode
     ? {
@@ -522,35 +546,48 @@ export default function ColoringCanvas({ subject, onBack, inline = false, disabl
   );
 
   // ── Subject picker modal ─────────────────────────────────────────────────
-  const SubjectPicker = () => showPicker ? (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }}
-      onClick={() => setShowPicker(false)}>
-      <div style={{ background: "white", borderRadius: "20px", padding: "20px", maxWidth: "420px", width: "92vw", maxHeight: "75vh", overflowY: "auto" }}
-        onClick={e => e.stopPropagation()}>
-        <div style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "14px", textAlign: "center" }}>¿Qué quieres dibujar?</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
-          {pickerItems.map((item) => {
-            const isActive = variant?.id?.startsWith(`m:${item.label}`) || item.key === subject;
-            return (
-              <button key={item.key} onClick={() => changeVariant(item)}
-                style={{ padding: "12px 8px", borderRadius: "14px", border: isActive ? "3px solid #4a90d9" : "2px solid #e0e0e0", background: isActive ? "#e8f0fb" : "white", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: isActive ? "bold" : "normal", overflow: "hidden" }}>
-                {item._entry
-                  ? <img src={item.imageFile} alt={item.label} style={{ width: "52px", height: "52px", objectFit: "cover", borderRadius: "8px" }} loading="lazy" />
-                  : <span style={{ fontSize: "28px" }}>{item.emoji}</span>
-                }
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%", textAlign: "center" }}>{item.label}</span>
-              </button>
-            );
-          })}
+  const ITEMS_PER_PAGE = 12;
+  const SubjectPicker = () => {
+    if (!showPicker) return null;
+    const pageItems = shuffledPickerItems.slice(pickerPage * ITEMS_PER_PAGE, (pickerPage + 1) * ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(shuffledPickerItems.length / ITEMS_PER_PAGE);
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }}
+        onClick={() => setShowPicker(false)}>
+        <div style={{ background: "white", borderRadius: "24px", padding: "18px 16px 16px", maxWidth: "440px", width: "95vw" }}
+          onClick={e => e.stopPropagation()}>
+          {/* No static title — OLIBOT speaks when picker opens */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+            {pageItems.map((item) => {
+              const isActive = variant?.id?.startsWith(`m:${item.label}`) || item.key === subject;
+              return (
+                <button key={item.key} onClick={() => changeVariant(item)}
+                  style={{ padding: "12px 6px", borderRadius: "18px", border: isActive ? "3px solid #4a90d9" : "2px solid #e5e7eb", background: isActive ? "#e8f0fb" : "white", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0", overflow: "hidden" }}>
+                  {item._entry
+                    ? <img src={item.imageFile} alt={item.label} style={{ width: "68px", height: "68px", objectFit: "cover", borderRadius: "10px" }} loading="lazy" />
+                    : <span style={{ fontSize: "68px", lineHeight: 1 }}>{item.emoji}</span>
+                  }
+                </button>
+              );
+            })}
+          </div>
+          {totalPages > 1 && (
+            <button
+              onClick={() => setPickerPage(p => (p + 1) % totalPages)}
+              style={{ width: "100%", marginTop: "14px", padding: "14px", borderRadius: "16px", border: "2px solid #e5e7eb", background: "#f9fafb", cursor: "pointer", fontSize: "28px" }}
+            >
+              🔄
+            </button>
+          )}
         </div>
       </div>
-    </div>
-  ) : null;
+    );
+  };
 
   // ── 🎨 Button to open picker ─────────────────────────────────────────────
   const PickerButton = ({ compact = false }) => (
     <button
-      onClick={() => setShowPicker(true)}
+      onClick={openPicker}
       title="Elegir dibujo"
       style={{
         padding: compact ? "0" : "8px 16px",
@@ -567,10 +604,47 @@ export default function ColoringCanvas({ subject, onBack, inline = false, disabl
     </button>
   );
 
+  // Prominent inline picker pill — fixed at top-right of screen.
+  const InlinePickerPill = () => (
+    <>
+      {/* Pulse keyframes injected only when pulsing */}
+      {pickerPulse && (
+        <style>{`
+          @keyframes pickerPop {
+            0%,100% { transform: scale(1); box-shadow: 0 4px 14px rgba(245,158,11,0.25); }
+            50% { transform: scale(1.18); box-shadow: 0 0 0 8px rgba(245,158,11,0.20), 0 6px 18px rgba(245,158,11,0.40); }
+          }
+        `}</style>
+      )}
+      <button
+        onClick={openPicker}
+        style={{
+          position: "fixed",
+          top: "12px",
+          right: "12px",
+          zIndex: 50,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          width: "88px", height: "88px",
+          borderRadius: "50%",
+          border: "3px solid #f59e0b",
+          background: "white",
+          fontSize: "48px",
+          cursor: "pointer",
+          animation: pickerPulse ? "pickerPop 0.9s ease-in-out infinite" : "none",
+          flexShrink: 0,
+        }}
+      >
+        🎨
+      </button>
+    </>
+  );
+
   // ── INLINE mode ──────────────────────────────────────────────────────────
   if (inline) {
     return (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+          {/* Picker pill — position: fixed inside, floats at top-right of viewport */}
+        <InlinePickerPill />
         <div style={{ position: "relative", touchAction: "none", flexShrink: 0 }}>
           <canvas ref={canvasRef}
             style={{ display: "block", borderRadius: "16px", border: "2px solid rgba(0,0,0,0.12)", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}
@@ -590,12 +664,10 @@ export default function ColoringCanvas({ subject, onBack, inline = false, disabl
               <span style={{ fontSize: "40px", opacity: 0.7 }}>🔊</span>
             </div>
           )}
+
         </div>
-        {/* Palette + 🎨 picker button in same row */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <Palette compact />
-          <PickerButton compact />
-        </div>
+        {/* Compact palette row */}
+        <Palette compact />
         <SubjectPicker />
       </div>
     );

@@ -17,8 +17,9 @@ const EMOTIONS = [
   { key: "tired",   emoji: "😴", label: "Cansado" },
 ];
 
-// Delay before first highlight (let OLIBOT finish asking), then cycle every 1.8 s
-const CYCLE_START    = 1600;
+// Delay before first highlight (let OLIBOT finish asking "¿Cómo estás ahora mismo?"
+// before the first emoji label is spoken, otherwise the question gets cut off). — #14
+const CYCLE_START    = 2600;
 const CYCLE_INTERVAL = 1800;
 
 export default function EmotionPicker({ onSelect, onHighlight }) {

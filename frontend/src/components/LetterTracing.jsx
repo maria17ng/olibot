@@ -17,7 +17,7 @@
 import { useEffect, useRef } from "react";
 import { useLetterTracing } from "../hooks/useLetterTracing";
 
-export default function LetterTracing({ charData, hintLevel = 3, onComplete, onDemoEnd, skipInitialDemo = false, disabled = false, isThinking = false, minimal = false, title = "" }) {
+export default function LetterTracing({ charData, hintLevel = 3, onComplete, onDemoEnd, skipInitialDemo = false, holdDemo = false, disabled = false, isThinking = false, minimal = false, title = "" }) {
   const {
     canvasRef,
     currentStrokeIdx,
@@ -30,7 +30,7 @@ export default function LetterTracing({ charData, hintLevel = 3, onComplete, onD
     handlePointerMove,
     handlePointerUp,
     reset,
-  } = useLetterTracing({ charData, hintLevel, onComplete, skipInitialDemo, minimal });
+  } = useLetterTracing({ charData, hintLevel, onComplete, skipInitialDemo, holdDemo, minimal });
 
   // Cancel any active stroke when the canvas is disabled mid-draw
   useEffect(() => {

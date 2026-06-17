@@ -45,9 +45,17 @@ export default function StudentSelector({ onSelectStudent, onSelectPair }) {
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!newName.trim()) return;
-    // "auto" uses age 4 as default; evaluation pending flag handled by future #8B
-    const ageToSend = newAge === "auto" ? 4 : newAge;
-    const student = await api.createStudent(newName.trim(), ageToSend, avatarSeed);
+    // "auto" uses age 4 as default and flags an initial assessment so OLIBOT
+    // evaluates the child's level at the start of the first session (#8B).
+    const isAuto = newAge === "auto";
+    const ageToSend = isAuto ? 4 : newAge;
+    let student = await api.createStudent(newName.trim(), ageToSend, avatarSeed);
+    if (isAuto) {
+      // Set the needs_assessment flag and use the updated student (with beliefs)
+      // so ChatWindow enters assessment mode on entry.
+      try { student = await api.requestAssessment(student.id); }
+      catch (err) { console.error("[assessment]", err); }
+    }
     setStudents((prev) => [...prev, student]);
     onSelectStudent(student, true); // true = recién creado → mostrar tutorial
   };

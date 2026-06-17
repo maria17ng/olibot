@@ -25,23 +25,60 @@ Fase 2 additions:
     - ChatResponse extended: is_correct, next_topic_id, current_topic_id.
 """
 import logging
+import re
 import time
+import unicodedata
 from sqlalchemy.orm import Session
 
 from backend.core.bdi_bridge import BDIBridge
 
 logger = logging.getLogger("olibot.pipeline")
 from backend.core.safety_shield import SafetyShield
-from backend.llm.nlu import NLUProcessor
+from backend.llm.nlu import NLUProcessor, Intent
 from backend.llm.nlg import NLGProcessor
 from backend.llm.ollama_client import OllamaClient
 from backend.db.repositories.student_repo import StudentRepository
 from backend.db.repositories.session_repo import SessionRepository
 from backend.db.models import SessionModel
 from backend.api.schemas.chat import ChatResponse
+from backend.api.schemas.student import StudentUpdate
+from backend.core import assessment_engine
 from backend.pedagogy.curriculum import CurriculumEngine, CURRICULUM, CurriculumTopic
 
 _curriculum = CurriculumEngine()
+
+
+def _answer_tokens(text: str) -> set[str]:
+    """Lowercase, strip accents and split into alphanumeric tokens."""
+    text = (text or "").lower()
+    text = unicodedata.normalize("NFD", text)
+    text = "".join(c for c in text if unicodedata.category(c) != "Mn")
+    return {t for t in re.split(r"[^a-z0-9]+", text) if t}
+
+
+# Friendly, child-facing phrase per curriculum category, used to build an instant
+# (LLM-free) greeting and avoid the multi-second Ollama latency on the very first turn.
+_GREETING_ACTIVITY: dict[str, str] = {
+    "pregrafomotricidad": "a hacer trazos",
+    "lectoescritura":     "las letras",
+    "numeracion":         "los números",
+    "fonologia":          "los sonidos de las letras",
+    "silabas":            "las sílabas",
+    "palabras":           "a leer palabras",
+    "silabas_complejas":  "las sílabas",
+    "palabras_avanzadas": "a leer palabras",
+    "frases":             "a leer frases",
+}
+
+
+def _build_instant_greeting(student_name: str, current_topic: CurriculumTopic | None) -> str:
+    """Deterministic, personalised greeting served without calling the LLM."""
+    name = (student_name or "").strip()
+    hola = f"¡Hola {name}!" if name else "¡Hola!"
+    if current_topic is not None:
+        activity = _GREETING_ACTIVITY.get(current_topic.category.value, "a aprender")
+        return f"{hola} ¿Quieres que aprendamos {activity} hoy? 🌟"
+    return f"{hola} ¿Qué quieres aprender hoy? 🌟"
 
 
 def _build_cache_hint(
@@ -295,12 +332,104 @@ class SessionManager:
             user_message, student_id, session.id, session.topic,
         )
 
+        # ── Initial placement assessment ──────────────────────────────────────
+        # A deterministic, rubric-based staircase computed entirely in code (the
+        # LLM is NOT involved: it proved unreliable at following the rubric). OLIBOT
+        # only voices the fixed prompts. The child is never told it is a test nor
+        # which level is assigned; the level is applied silently to the profile.
+        if current_screen == "assessment_mode":
+            prev_state = student.beliefs.get(assessment_engine.STATE_KEY)
+            result = assessment_engine.step(prev_state, user_message)
+            response_text = result["say"]
+            assessment_ui = result.get("ui")
+
+            yield {
+                "type": "meta",
+                "session_id": session.id,
+                "current_topic_id": None,
+                "detected_intent": "assessment",
+                "is_correct": None,
+                "next_topic_id": None,
+                "bdi_action": "assessment",
+                "free_drawing_subject": None,
+                "assessment_ui": assessment_ui,
+            }
+            yield {"type": "token", "text": response_text}
+
+            assigned_level = None
+            updated_beliefs = dict(student.beliefs)
+            if result["complete"]:
+                assigned_level = result["level"]
+                new_age = assessment_engine.LEVEL_TO_AGE[assigned_level]
+                self.student_repo.update(student_id, StudentUpdate(age=new_age))
+                updated_beliefs["needs_assessment"] = False
+                updated_beliefs.pop(assessment_engine.STATE_KEY, None)
+                logger.info(
+                    "→ ASSESSMENT complete: level=%s → age=%s (student=%s, passed=%s)",
+                    assigned_level, new_age, student_id, result["state"].get("passed"),
+                )
+            else:
+                updated_beliefs[assessment_engine.STATE_KEY] = result["state"]
+
+            self.session_repo.add_message(
+                session_id=session.id, role="user", content=user_message,
+                detected_intent="assessment",
+            )
+            self.session_repo.add_message(
+                session_id=session.id, role="agent", content=response_text,
+                detected_intent="assessment",
+            )
+            self.student_repo.update_beliefs(student_id, updated_beliefs)
+
+            yield {
+                "type": "final",
+                "session_id": session.id,
+                "agent_response": response_text,
+                "shield_triggered": False,
+                "detected_intent": "assessment",
+                "current_beliefs": updated_beliefs,
+                "is_correct": None,
+                "next_topic_id": None,
+                "current_topic_id": None,
+                "bdi_action": "assessment",
+                "free_drawing_subject": None,
+                "all_age_topics_complete": False,
+                "assessment_complete": result["complete"],
+                "assigned_level": assigned_level,
+                "assessment_ui": assessment_ui,
+            }
+            return
+
         # ── 3-4. NLU + BDI ───────────────────────────────────────────────────
         intent = await self.nlu.extract_intent(user_message)
         logger.info(
             "→ NLU: intent=%s  conf=%.2f  entities=%s",
             intent.name, intent.confidence, intent.entities or "{}",
         )
+
+        # Deterministic answer fast-path for SYLLABLE topics. After tracing a
+        # syllable the child must say it aloud; the LLM-NLU frequently mislabels a
+        # bare syllable ("ma", "as") as greet/unknown, which would stall the
+        # syllable "say" phase forever and block advancement. If the utterance
+        # contains the topic's syllable sound, treat it as a correct attempt_answer
+        # regardless of the NLU label.
+        if (
+            current_topic is not None
+            and current_topic.id.startswith("silaba")
+            and intent.name not in ("tracing_complete", "attempt_answer")
+            and current_topic.expected_answers
+        ):
+            syllable_sound = current_topic.expected_answers[0].strip().lower()
+            if syllable_sound and syllable_sound in _answer_tokens(user_message):
+                intent = Intent(
+                    name="attempt_answer",
+                    confidence=1.0,
+                    entities={"answer": syllable_sound},
+                    raw_text=user_message,
+                )
+                logger.info(
+                    "→ NLU override: syllable answer %r → attempt_answer", syllable_sound
+                )
 
         bdi_decision = await self.bdi.process_turn(
             intent=intent,
@@ -337,30 +466,45 @@ class SessionManager:
             "recognition":      "[CONTEXTO: El niño está EN EL EJERCICIO DE RECONOCIMIENTO (elige la letra correcta). Anímate brevemente, no expliques el ejercicio.] ",
             "emotion_picker":   "[CONTEXTO: Se está mostrando la encuesta de ánimo. NO respondas sobre el contenido académico.] ",
             "activity_picker":  "[CONTEXTO: Se está mostrando el selector de actividad. NO respondas sobre el contenido académico.] ",
-            "assessment_mode":  "[EVALUACIÓN INICIAL] El maestro/a ha solicitado evaluar el nivel del niño. Realiza una evaluación breve y animada: presenta 2 tareas cortas (ej. reconocer una vocal, reconocer un número o trazar una línea sencilla). Según las respuestas, al final sugiere al docente qué nivel es más adecuado: Amarillo (trazos pregráficos), Verde (vocales y números) o Azul (consonantes y sílabas). Habla siempre al niño de forma entusiasta. ",
         }
         screen_prefix = _SCREEN_HINTS.get(current_screen or "", "")
         augmented_instruction = screen_prefix + bdi_decision.instruction
+        cache_hint = _build_cache_hint(intent.name, current_topic, bdi_decision.is_correct)
 
-        full_response = ""
-        async for token in self.nlg.generate_response_stream(
-            student=student,
-            topic=session.topic,
-            conversation_history=conversation_history,
-            agent_instruction=augmented_instruction,
-            cache_hint=_build_cache_hint(intent.name, current_topic, bdi_decision.is_correct),
-        ):
-            full_response += token
-            yield {"type": "token", "text": token}
+        # Fast path: serve the greeting deterministically (no LLM) to remove the
+        # multi-second Ollama latency on the first turn.
+        if intent.name == "greet":
+            full_response = _build_instant_greeting(student.name, current_topic)
+            logger.info("→ NLG: instant greeting (LLM bypassed)")
+            yield {"type": "token", "text": full_response}
+        elif bdi_decision.action in ("mastery_achieved", "praise_and_advance"):
+            # Fast path: short, fixed celebration (no LLM). The mastery popup narrates
+            # the option buttons in sync, so the agent must NOT ask any question or
+            # request words/letters — it would desync the voice from the buttons.
+            full_response = f"¡Lo has dominado! ¡Eres un campeón, {student.name}! 🎉"
+            logger.info("→ NLG: instant mastery celebration (LLM bypassed)")
+            yield {"type": "token", "text": full_response}
+        else:
+            full_response = ""
+            async for token in self.nlg.generate_response_stream(
+                student=student,
+                topic=session.topic,
+                conversation_history=conversation_history,
+                agent_instruction=augmented_instruction,
+                cache_hint=cache_hint,
+            ):
+                full_response += token
+                yield {"type": "token", "text": token}
 
         # ── 6. Safety Shield on full response ─────────────────────────────────
         shield_result = self.shield.evaluate(full_response, intent, student)
         final_response = self.shield.get_final_response(shield_result, full_response)
+        shield_triggered = shield_result.triggered
 
         elapsed = time.monotonic() - t0
         logger.info(
             "→ RESP (%.1fs) shield=%s  %r",
-            elapsed, shield_result.triggered, final_response[:80],
+            elapsed, shield_triggered, final_response[:80],
         )
 
         # ── 7-12. Persist (same logic as process_message) ─────────────────────
@@ -370,8 +514,8 @@ class SessionManager:
         )
         self.session_repo.add_message(
             session_id=session.id, role="agent", content=final_response,
-            shield_triggered=shield_result.triggered,
-            original_llm_response=full_response if shield_result.triggered else None,
+            shield_triggered=shield_triggered,
+            original_llm_response=full_response if shield_triggered else None,
             detected_intent=intent.name,
         )
 
@@ -440,7 +584,7 @@ class SessionManager:
             "type": "final",
             "session_id": response_session_id,
             "agent_response": final_response,
-            "shield_triggered": shield_result.triggered,
+            "shield_triggered": shield_triggered,
             "detected_intent": intent.name,
             "current_beliefs": updated_beliefs,
             "is_correct": bdi_decision.is_correct,
@@ -449,6 +593,8 @@ class SessionManager:
             "bdi_action": bdi_decision.action,
             "free_drawing_subject": bdi_decision.free_drawing_subject,
             "all_age_topics_complete": all_age_topics_complete,
+            "assessment_complete": False,
+            "assigned_level": None,
         }
 
     def _get_or_create_session(

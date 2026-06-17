@@ -42,8 +42,19 @@ def update_student(student_id: int, data: StudentUpdate, db: Session = Depends(g
 
 @router.patch("/{student_id}/beliefs", response_model=StudentResponse)
 def update_student_beliefs(student_id: int, data: BeliefsUpdate, db: Session = Depends(get_db)):
-    """Persist the student's full beliefs object (includes topics_progress for subnivel persistence)."""
-    student = StudentRepository(db).update_beliefs(student_id, data.beliefs)
+    """Merge the incoming beliefs into the stored ones (shallow, top-level).
+
+    The frontend only owns UI-side keys (e.g. topics_progress) and must NOT clobber
+    server-authoritative keys such as `mastery`, which is written by the BDI/scaffolding
+    engine. A full replace caused mastery loss when the UI saved a stale beliefs blob,
+    leaving mastered topics looking unfinished. Merging preserves server-owned keys.
+    """
+    repo = StudentRepository(db)
+    current = repo.get_by_id(student_id)
+    if not current:
+        raise HTTPException(status_code=404, detail="Student not found")
+    merged = {**(current.beliefs or {}), **(data.beliefs or {})}
+    student = repo.update_beliefs(student_id, merged)
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     return student

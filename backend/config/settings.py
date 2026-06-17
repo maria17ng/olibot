@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     # Ollama (Local LLM)
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3.1:8b"            # NLG model
+    ollama_model: str = "qwen2.5:7b-instruct"    # NLG model (GPU, gran calidad ES)
     ollama_nlu_model: str = "llama3.2:1b"        # NLU intent classification
     ollama_embed_model: str = "nomic-embed-text"  # Semantic NLU embeddings
     ollama_timeout: int = 60

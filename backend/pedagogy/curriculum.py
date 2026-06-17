@@ -1677,14 +1677,19 @@ class CurriculumEngine:
         return correct / attempts if attempts > 0 else 0.0
 
     def prerequisites_met(self, beliefs: dict, topic: CurriculumTopic, student_age: int = 4) -> bool:
-        """Check prerequisites. For age 5, min_age=3 topics are auto-considered mastered."""
+        """Check prerequisites. For age 5+, lower-level topics are auto-considered mastered."""
         for prereq_id in topic.prerequisites:
             if self.is_mastered(beliefs, prereq_id):
                 continue
-            if student_age >= 5:
-                prereq = CURRICULUM.get(prereq_id)
-                if prereq and prereq.min_age <= 3:
-                    continue  # age 5 students skip age-3 prerequisites
+            prereq = CURRICULUM.get(prereq_id)
+            if prereq is None:
+                continue
+            # age 5: auto-skip strokes (min_age<=3) and numeracion prerequisites
+            if student_age >= 5 and (prereq.min_age <= 3 or prereq.category == CurriculumCategory.NUMERACION):
+                continue
+            # age 6: auto-skip all prerequisites with min_age<=5
+            if student_age >= 6 and prereq.min_age <= 5:
+                continue
             return False
         return True
 
@@ -1706,9 +1711,12 @@ class CurriculumEngine:
         """
         available = self.get_topics_for_age(student_age)
         eligible  = [t for t in available if self.prerequisites_met(beliefs, t, student_age)]
-        # Age 5: skip age-3 topics (assumed already learned), start directly from age 4
-        if student_age >= 5:
-            eligible = [t for t in eligible if t.min_age >= 4]
+        # Age 5: skip strokes (age-3) and numeracion — start from lectoescritura/fonologia
+        if student_age == 5:
+            eligible = [t for t in eligible if t.min_age >= 4 and t.category != CurriculumCategory.NUMERACION]
+        # Age 6: only show level-6 topics (silabas_complejas, palabras_avanzadas, frases)
+        elif student_age >= 6:
+            eligible = [t for t in eligible if t.min_age >= 6]
 
         zdp_topics = [t for t in eligible if self.in_zdp(beliefs, t.id)]
         if zdp_topics:
@@ -1729,7 +1737,10 @@ class CurriculumEngine:
             return min(mastered_eligible, key=lambda t: self.get_success_rate(beliefs, t.id))
 
         # Fallback: first age-appropriate topic
-        fallback = [t for t in available if t.min_age >= 4] if student_age >= 5 else available
+        if student_age >= 6:
+            fallback = [t for t in available if t.min_age >= 6]
+            return fallback[0] if fallback else CURRICULUM["silaba_inv_as"]
+        fallback = [t for t in available if t.min_age >= 4 and t.category != CurriculumCategory.NUMERACION] if student_age >= 5 else available
         return fallback[0] if fallback else CURRICULUM["trazo_linea_h"]
 
     def get_alternatives(
@@ -1745,9 +1756,12 @@ class CurriculumEngine:
             t for t in available
             if self.prerequisites_met(beliefs, t, student_age) and t.id != current_topic_id
         ]
-        # Age 5: exclude age-3 topics from alternatives
-        if student_age >= 5:
-            eligible = [t for t in eligible if t.min_age >= 4]
+        # Age 5: exclude strokes and numeracion from alternatives
+        if student_age == 5:
+            eligible = [t for t in eligible if t.min_age >= 4 and t.category != CurriculumCategory.NUMERACION]
+        # Age 6: only show level-6 alternatives
+        elif student_age >= 6:
+            eligible = [t for t in eligible if t.min_age >= 6]
         zdp      = [t for t in eligible if self.in_zdp(beliefs, t.id)]
         unstarted = [
             t for t in eligible

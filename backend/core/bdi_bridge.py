@@ -208,6 +208,16 @@ class BDIBridge:
                 jacamo_action = fallback.action
                 jacamo_instruction = fallback.instruction
 
+            # Mastery/advance authority lives in the Python fallback (scaffolding).
+            # The Jason plan returns a generic "celebrate_tracing" even when the topic
+            # has been mastered, which would leave action and next_topic_id inconsistent
+            # (e.g. celebrate_tracing + next_topic set) and the frontend would NOT advance.
+            # When the fallback determined an advance, prefer the fallback action.
+            _advance_actions = {"mastery_achieved", "praise_and_advance"}
+            if fallback.action in _advance_actions and jacamo_action not in _advance_actions:
+                jacamo_action = fallback.action
+                jacamo_instruction = fallback.instruction
+
             return BDIDecision(
                 action=jacamo_action,
                 instruction=jacamo_instruction,
@@ -336,10 +346,19 @@ class PythonBDIFallback:
                     next_topic_id = next_topic.id if next_topic.id != topic_id else None
 
                 if is_syllable:
+                    # Syllables are traced as a whole unit; one good trace = done.
+                    # Reading-only: OLIBOT just READS the syllable aloud, it never asks
+                    # the child to say a word or spell anything. Then it advances
+                    # automatically to the next syllable (non-mastery action with a
+                    # next_topic_id makes the session auto-advance, so a fresh canvas
+                    # appears without a mastery dialog).
+                    next_syll = _curriculum.get_next_topic(beliefs, student_age)
+                    syll_next_id = next_syll.id if next_syll.id != topic_id else None
                     instruction = (
-                        f"The child traced all letters of the syllable '{syllable_sound}' with {score}% accuracy! "
-                        f"Celebrate briefly, then ask them to say '{syllable_sound}' aloud. "
-                        f"Say something like: '¡Muy bien! Ahora dilo: {syllable_sound}'"
+                        f"The child traced the syllable '{syllable_sound}' correctly ({score}%)! "
+                        f"Celebrate briefly and READ the syllable aloud so the child hears how it "
+                        f"sounds, e.g. '¡Muy bien! Esto dice: {syllable_sound} 🎉'. "
+                        f"Do NOT ask the child to say a word, spell, or answer anything."
                     )
                     return BDIDecision(
                         action="celebrate_tracing",
@@ -347,13 +366,14 @@ class PythonBDIFallback:
                         updated_beliefs=beliefs,
                         hint_level=1,
                         is_correct=True,
-                        next_topic_id=next_topic_id,
+                        next_topic_id=syll_next_id,
                     )
                 elif mastery_achieved:
                     instruction = (
-                        f"The child has MASTERED '{letter}'! Celebrate enthusiastically! "
-                        "Then ask what they want to do next — keep practicing this, "
-                        "try the next activity, or do free drawing. Keep it fun and exciting!"
+                        f"The child has MASTERED '{letter}'! Celebrate enthusiastically in ONE short "
+                        "sentence (e.g. '¡Lo has dominado! ¡Eres un campeón! 🎉'). "
+                        "Do NOT ask any question. Do NOT ask the child to say words, letters, or "
+                        "what they want to do next — the screen already shows the choices."
                     )
                     return BDIDecision(
                         action="mastery_achieved",

@@ -55,6 +55,8 @@ class OllamaClient:
             "model": self.model,
             "messages": full_messages,
             "stream": False,
+            "keep_alive": "30m",
+            "options": {"num_predict": 120},
         }
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(f"{self.base_url}/api/chat", json=payload)
@@ -72,7 +74,13 @@ class OllamaClient:
             full_messages.append({"role": "system", "content": system_prompt})
         full_messages.extend(messages)
 
-        payload = {"model": self.model, "messages": full_messages, "stream": True}
+        payload = {
+            "model": self.model,
+            "messages": full_messages,
+            "stream": True,
+            "keep_alive": "30m",
+            "options": {"num_predict": 120},
+        }
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             async with client.stream("POST", f"{self.base_url}/api/chat", json=payload) as response:

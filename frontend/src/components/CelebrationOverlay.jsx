@@ -23,6 +23,10 @@ function randomBetween(a, b) { return a + Math.random() * (b - a); }
 export default function CelebrationOverlay({ active, onDone }) {
   const canvasRef = useRef(null);
   const rafRef    = useRef(null);
+  // Keep onDone in a ref so a new inline callback from the parent on every render
+  // does NOT restart the animation (which made the confetti loop forever). — #14
+  const onDoneRef = useRef(onDone);
+  useEffect(() => { onDoneRef.current = onDone; }, [onDone]);
 
   useEffect(() => {
     if (!active) return;
@@ -82,7 +86,7 @@ export default function CelebrationOverlay({ active, onDone }) {
 
       if (elapsed > DURATION_MS) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        onDone?.();
+        onDoneRef.current?.();
         return;
       }
 
@@ -130,7 +134,7 @@ export default function CelebrationOverlay({ active, onDone }) {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [active, onDone]);
+  }, [active]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!active) return null;
 

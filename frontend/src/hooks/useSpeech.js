@@ -187,6 +187,7 @@ export function useSpeech({ onTranscript, onSilence, ttsRate }) {
     const clean = cleanForTTS(text);
     if (!clean) return;
 
+    console.log(`[TTS ${new Date().toISOString().slice(11, 23)}] speak() (cancela cola) → "${clean}"`);
     window.speechSynthesis.cancel();
 
     const utterance   = new SpeechSynthesisUtterance(clean);
@@ -195,7 +196,10 @@ export function useSpeech({ onTranscript, onSilence, ttsRate }) {
     utterance.pitch   = TTS_PITCH;
     const voice = getPreferredVoice();
     if (voice) utterance.voice = voice;
-    utterance.onstart = () => setSpeaking(true);
+    utterance.onstart = () => {
+      console.log(`[TTS ${new Date().toISOString().slice(11, 23)}] ▶ EMPEZANDO a hablar (speak) → "${clean}"`);
+      setSpeaking(true);
+    };
     utterance.onend   = () => {
       setSpeaking(false);
       ttsCooldownUntilRef.current = Date.now() + TTS_COOLDOWN_MS;
@@ -219,13 +223,17 @@ export function useSpeech({ onTranscript, onSilence, ttsRate }) {
     const clean = cleanForTTS(text);
     if (!clean) return;
 
+    console.log(`[TTS ${new Date().toISOString().slice(11, 23)}] speakQueued() (a la cola) → "${clean}"`);
     const utterance   = new SpeechSynthesisUtterance(clean);
     utterance.lang    = TTS_LANG;
     utterance.rate    = ttsRateRef.current;
     utterance.pitch   = TTS_PITCH;
     const voice = getPreferredVoice();
     if (voice) utterance.voice = voice;
-    utterance.onstart = () => setSpeaking(true);
+    utterance.onstart = () => {
+      console.log(`[TTS ${new Date().toISOString().slice(11, 23)}] ▶ EMPEZANDO a hablar (queued) → "${clean}"`);
+      setSpeaking(true);
+    };
     utterance.onend   = () => {
       setSpeaking(false);
       ttsCooldownUntilRef.current = Date.now() + TTS_COOLDOWN_MS;

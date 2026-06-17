@@ -688,6 +688,27 @@ export const LETTER_DATA = {
     ],
   },
 
+  // b — palo ascendente izquierdo + barriguita a la derecha (espejo de la d)
+  b: {
+    tutorial: "La b tiene un palo alto a la izquierda y una barriguita a la derecha abajo.",
+    strokes: [
+      { points: [{x:0.30,y:0.10},{x:0.30,y:0.40},{x:0.30,y:0.64},{x:0.30,y:0.80}] },
+      { points: [
+        {x:0.30,y:0.46},{x:0.40,y:0.34},{x:0.52,y:0.30},{x:0.66,y:0.32},
+        {x:0.78,y:0.42},{x:0.82,y:0.56},{x:0.78,y:0.70},{x:0.64,y:0.80},
+        {x:0.48,y:0.82},{x:0.36,y:0.78},{x:0.30,y:0.68},
+      ]},
+    ],
+    strokesEasy: [
+      { points: [{x:0.30,y:0.10},{x:0.30,y:0.24},{x:0.30,y:0.38},{x:0.30,y:0.52},{x:0.30,y:0.66},{x:0.30,y:0.80}] },
+      { points: [
+        {x:0.30,y:0.46},{x:0.38,y:0.36},{x:0.48,y:0.30},{x:0.60,y:0.30},{x:0.70,y:0.36},
+        {x:0.78,y:0.46},{x:0.80,y:0.58},{x:0.76,y:0.70},{x:0.66,y:0.78},{x:0.52,y:0.82},
+        {x:0.40,y:0.80},{x:0.32,y:0.72},{x:0.30,y:0.64},
+      ]},
+    ],
+  },
+
   // c — necesaria para palabras (casa, etc.)
   c: {
     tutorial: "La c es como una o pero abierta por la derecha. Empieza a la derecha y rodea hacia la izquierda.",
@@ -913,12 +934,12 @@ function _getStrokesForLevel(char, level) {
 // ══════════════════════════════════════════════════════════════════════════════
 
 const SYLLABLE_LETTERS = {
-  // Sílabas mayúsculas (edad 5)
-  silaba_ma: ["M", "A"],
-  silaba_mi: ["M", "I"],
-  silaba_sa: ["S", "A"],
-  silaba_la: ["L", "A"],
-  silaba_pa: ["P", "A"],
+  // Sílabas (edad 5) — siempre en minúscula
+  silaba_ma: ["m", "a"],
+  silaba_mi: ["m", "i"],
+  silaba_sa: ["s", "a"],
+  silaba_la: ["l", "a"],
+  silaba_pa: ["p", "a"],
   // Sílabas minúsculas (edad 5)
   silaba_ma_min: ["m", "a"],
   silaba_mi_min: ["m", "i"],
@@ -927,6 +948,17 @@ const SYLLABLE_LETTERS = {
   silaba_pa_min: ["p", "a"],
   silaba_ta_min: ["t", "a"],
   silaba_na_min: ["n", "a"],
+  // Sílabas inversas VC (edad 6 · nivel Rojo) — minúsculas, trazadas juntas
+  silaba_inv_as: ["a", "s"],
+  silaba_inv_es: ["e", "s"],
+  silaba_inv_al: ["a", "l"],
+  silaba_inv_ar: ["a", "r"],
+  silaba_inv_an: ["a", "n"],
+  // Sílabas complejas CCV (edad 6 · nivel Rojo) — minúsculas, trazadas juntas
+  silaba_bra: ["b", "r", "a"],
+  silaba_tra: ["t", "r", "a"],
+  silaba_pla: ["p", "l", "a"],
+  silaba_cla: ["c", "l", "a"],
   // Palabras (trazado letra a letra)
   palabra_mama_traz: ["m", "a", "m", "a"],
   palabra_papa_traz: ["p", "a", "p", "a"],
@@ -940,6 +972,68 @@ const SYLLABLE_LETTERS = {
  */
 export function getSyllableLetters(topicId) {
   return SYLLABLE_LETTERS[topicId] ?? null;
+}
+
+// Compone varias letras en un único glifo unido (de izquierda a derecha, con
+// línea base compartida). Así las sílabas/palabras se trazan como una sola unión
+// de letras seguidas en vez de letra por letra. Escala de forma uniforme para no
+// deformar las letras y las ajusta a una banda de escritura común.
+function _composeStrokes(letterKeys, level) {
+  const letters = letterKeys
+    .filter(k => LETTER_DATA[k])
+    .map(key => {
+      const strokes = _getStrokesForLevel(LETTER_DATA[key], level);
+      let minX = 1, maxX = 0, minY = 1, maxY = 0;
+      for (const s of strokes) for (const p of s.points) {
+        if (p.x < minX) minX = p.x;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.y > maxY) maxY = p.y;
+      }
+      return { strokes, minX, maxX, minY, maxY, w: maxX - minX, h: maxY - minY };
+    });
+  const n = letters.length;
+  if (n === 0) return null;
+
+  const TOP = 0.24, BOTTOM = 0.80, GAP = 0.20, USABLE = 0.72;
+  const tallest = Math.max(...letters.map(l => l.h)) || 1;
+  const sumW    = letters.reduce((a, l) => a + l.w, 0) || 1;
+  const sV = (BOTTOM - TOP) / tallest;                 // escala que cabe en altura
+  const sH = (USABLE - GAP * (n - 1)) / sumW;          // escala que cabe en ancho
+  const S  = Math.min(sV, sH);                          // uniforme → sin deformar
+
+  const totalW = letters.reduce((a, l) => a + l.w * S, 0) + GAP * (n - 1);
+  let cursorX  = (1 - totalW) / 2;                      // centrar horizontalmente
+
+  const out = [];
+  for (const l of letters) {
+    const offX = cursorX - l.minX * S;
+    const offY = BOTTOM - l.maxY * S;                   // alinear bases a la línea base
+    for (const s of l.strokes) {
+      out.push({ points: s.points.map(p => ({ x: offX + p.x * S, y: offY + p.y * S })) });
+    }
+    cursorX += l.w * S + GAP;
+  }
+  return out;
+}
+
+/**
+ * Devuelve los datos de trazado de una sílaba/palabra como un único glifo unido
+ * (todas las letras juntas en una línea), o null si el topic no es de sílaba.
+ * @param {string} topicId
+ * @param {0|1|2} level
+ */
+export function getSyllableCharData(topicId, level = 1) {
+  const letters = SYLLABLE_LETTERS[topicId];
+  if (!letters) return null;
+  const strokes = _composeStrokes(letters, level);
+  if (!strokes) return null;
+  const text = letters.join("");
+  return {
+    key: text,
+    tutorial: `¡Vamos a trazar ${text}! Sigue los puntitos y traza todas las letras juntas, una detrás de otra.`,
+    strokes,
+  };
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

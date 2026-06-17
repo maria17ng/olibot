@@ -26,7 +26,8 @@ import ActivityPicker from "./ActivityPicker";
 import EmotionPicker from "./EmotionPicker";
 import LetterChoice from "./LetterChoice";
 import RestBreakPicker from "./RestBreakPicker";
-import { getCharData, getSyllableLetters, getCharDataByKey } from "../data/letterData";
+import AssessmentPanel from "./AssessmentPanel";
+import { getCharData, getSyllableLetters, getSyllableCharData } from "../data/letterData";
 import { getRandomDifferentSubject, subjectFromText, isAnimalSubject } from "../data/coloringData";
 
 const MAX_TURNS_BY_AGE   = { 3: 4,  4: 8,  5: 12 };
@@ -131,10 +132,9 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
   const [tracingLevel,  setTracingLevel]  = useState(0);          // 0|1|2
   const [levelAttempts, setLevelAttempts] = useState([[], [], []]); // por nivel: últimos N booleans
   const [tracingKey,        setTracingKey]        = useState(0);
-  const [syllableLetterIdx, setSyllableLetterIdx] = useState(0);
-  const [syllableSayPhase,  setSyllableSayPhase]  = useState(false);
   // Mastery dialog
   const [masteryDialog,     setMasteryDialog]     = useState(null); // { topicId, nextTopicId }
+  const [masteryHighlight,  setMasteryHighlight]  = useState(null); // "continue" | "next" | "draw"
   // Age-complete popup (parents)
   const [ageCompleteDialog, setAgeCompleteDialog] = useState(false);
   // Free drawing
@@ -143,6 +143,9 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
   const [topicPickerOpen,    setTopicPickerOpen]    = useState(false);
   const [accessibleTopics,   setAccessibleTopics]   = useState([]);
   const [topicPickerPending, setTopicPickerPending] = useState(false);
+  // Harder-mode picker (child asked for something more difficult → child-friendly ActivityPicker)
+  const [harderPickerPending, setHarderPickerPending] = useState(false);
+  const [activityHarderMode,  setActivityHarderMode]  = useState(false);
   // Tutorial
   const [tutorialStep, setTutorialStep] = useState(null); // null=done, 0-2=active
   const [menuOpen,     setMenuOpen]     = useState(false);
@@ -169,6 +172,8 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
   const [recognitionMode,     setRecognitionMode]     = useState(false); // #13 letter recognition
   const [activityPickerActive, setActivityPickerActive] = useState(false); // shown when bored/tired
   const [assessmentActive,    setAssessmentActive]    = useState(false); // #8B initial assessment
+  // Touch/visual assessment UI for the current step: {kind:"draw"|"choice"|"done", options:[...]}
+  const [assessmentUi,        setAssessmentUi]        = useState(null);
 
   // ── Voice ─────────────────────────────────────────────────────────────────
   const sendRef           = useRef(null);
@@ -180,6 +185,15 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
   const tutorialStepRef   = useRef(null);    // mirrors tutorialStep
   const badgeRef          = useRef(null);    // level-progress badge div (kept for future use)
   const tutorialVoiceSpokenRef = useRef(-1); // step whose voice was already spoken by advanceTutorial
+  // Greeting-ordering guard: while the first BDI "hola" turn is streaming, defer the
+  // tracing demo's "¡Ahora tú!" prompt so it never jumps ahead of the spoken greeting. — #11
+  const greetingInProgressRef = useRef(false);
+  const pendingDemoPromptRef  = useRef(false);
+  // While true, LetterTracing keeps replaying its demo (loops) instead of finishing.
+  // We hold it during the greeting so the demo→tracing transition — and the spoken
+  // "¡Ahora tú!" fired on that transition — always happen together, right AFTER the
+  // greeting. This keeps the prompt and the start of tracing in sync. — #12
+  const [holdDemo, setHoldDemo] = useState(false);
   // Sprint B refs
   const prevTracingLevelRef  = useRef(-1);        // for detecting genuine level advances
   const currentBeliefsRef    = useRef({});        // mirrors currentBeliefs (for stable closures)
@@ -191,6 +205,7 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
   const activityPickerActiveRef = useRef(false);
   const recognitionModeRef      = useRef(false);
   const restBreakActiveRef      = useRef(false);
+  const assessmentActiveRef     = useRef(false);
   // Handler refs for voice-routing into overlays (updated via effects)
   const emotionPickerHandleRef  = useRef(null);
   const activityPickerHandleRef = useRef(null);
@@ -206,6 +221,9 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
   const playerStateCacheRef    = useRef(players.map(() => null));
   const switchPlayerRef        = useRef(null);  // stable function ref
   const lastHandledPlayerIdxRef = useRef(-1);   // tracks last idx the student-init handled
+  // Pair mode: when a player completes a sublevel/topic we first run the emotion
+  // check-in and only switch to the partner AFTER it (never mid-practice).
+  const pendingSwitchRef       = useRef(false);
 
   const [badgeRight, setBadgeRight] = useState(8);
   const [badgeRect,  setBadgeRect]  = useState(null); // real DOM rect for spotlight
@@ -445,6 +463,9 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
         setTracingLevel(0);
         setLevelAttempts([[], [], []]);
         prevTracingLevelRef.current = 0;
+        greetingInProgressRef.current = true;
+        pendingDemoPromptRef.current  = false;
+        setHoldDemo(true);
         setTimeout(() => { if (sendRef.current) sendRef.current("hola"); }, 500);
       }
 
@@ -486,6 +507,7 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
     // #8B — activate assessment mode if flagged in beliefs
     if (student.beliefs?.needs_assessment) {
       setAssessmentActive(true);
+      assessmentActiveRef.current = true;
       // Clear the flag so it doesn't re-trigger on next session
       const clearedBeliefs = { ...student.beliefs, needs_assessment: false };
       currentBeliefsRef.current = clearedBeliefs;
@@ -493,21 +515,25 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
       api.updateStudentBeliefs(student.id, clearedBeliefs).catch(console.error);
     } else {
       setAssessmentActive(false);
+      assessmentActiveRef.current = false;
     }
 
     const tutKey = `olibot_tutorial_${student.id}`;
     const showTutorial = isNewStudent || !localStorage.getItem(tutKey);
     console.log("[TUTORIAL] student.id:", student.id, "isNewStudent:", isNewStudent, "tutKey:", tutKey, "stored:", localStorage.getItem(tutKey), "→ showTutorial:", showTutorial);
     if (showTutorial) {
-      // Nuevo estudiante: tutorial primero, BDI arranca cuando el tutorial termina
-      speak(welcome);   // only speak welcome when the tutorial will show
+      // Don't speak welcome here — the BDI response to "hola" (sent when tutorial ends)
+      // will be the child's first greeting. This avoids the double-greeting bug.
       const tid = setTimeout(() => {
         console.log("[TUTORIAL] Firing setTutorialStep(0)");
         setTutorialStep(0);
-      }, 2200);
+      }, 400); // short render-settle delay
       return () => clearTimeout(tid);
     } else {
       // Estudiante conocido: el BDI ya saluda — no hablar bienvenida para evitar solapamiento
+      greetingInProgressRef.current = true;
+      pendingDemoPromptRef.current  = false;
+      setHoldDemo(true);
       const tid = setTimeout(() => { if (sendRef.current) sendRef.current("hola"); }, 1200);
       return () => clearTimeout(tid);
     }
@@ -519,6 +545,25 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
   const currentTopicIdRef = useRef(currentTopicId);
   useEffect(() => { currentTopicIdRef.current = currentTopicId; }, [currentTopicId]);
 
+  // Replay the tracing demo whenever the child returns to the exercises after being on
+  // another screen (free drawing, letter recognition), so they see again how to trace —
+  // "por si no se acuerda". Profile entry and topic changes already replay it on their own. — #13
+  const onOtherScreen = !!coloringSubject || recognitionMode;
+  const prevOnOtherScreenRef = useRef(onOtherScreen);
+  useEffect(() => {
+    const wasOnOther = prevOnOtherScreenRef.current;
+    prevOnOtherScreenRef.current = onOtherScreen;
+    // Only on a real return (other screen → exercises) with a demo already shown before,
+    // and never mid-greeting (that flow plays the demo by itself).
+    if (wasOnOther && !onOtherScreen &&
+        currentTopicIdRef.current &&
+        demoShownRef.current !== null &&
+        !greetingInProgressRef.current) {
+      demoShownRef.current = null;     // force the demo to replay
+      setTracingKey((k) => k + 1);     // remount LetterTracing → demo runs again
+    }
+  }, [onOtherScreen]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Reset practice counter, syllable step on topic change + queue tutorial text
   const prevTopicIdRef = useRef(null);
   useEffect(() => {
@@ -527,8 +572,6 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
     const restoredLevel = saved?.tracing_level ?? 0;
     setTracingLevel(restoredLevel);
     setLevelAttempts(saved?.level_attempts ?? [[], [], []]);
-    setSyllableLetterIdx(0);
-    setSyllableSayPhase(false);
     setTracingKey((k) => k + 1);
     demoShownRef.current    = null;
     failureStreakRef.current = 0;
@@ -536,8 +579,18 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
     prevTracingLevelRef.current = restoredLevel;
     // Mark that this level change is from a topic reset (not a genuine advance)
     topicJustChangedRef.current = true;
+
+    // Determine if this is the very first topic assignment in this session.
+    // On first assignment the BDI is still streaming its greeting — skip recognition/tutorial
+    // voice here; they will fire correctly on all subsequent topic changes.
+    const isFirstTopicAssignment = prevTopicIdRef.current === null;
+
     // Show recognition exercise for new letter/number topics (#13)
-    if (currentTopicId && !currentTopicId.startsWith("trazo_") &&
+    // Skip on first assignment to avoid overlapping with the BDI welcome stream.
+    // Skip for syllables (nivel rojo): these are trace-only, no selection exercise.
+    const isSyllableTopic = !!getSyllableLetters(currentTopicId);
+    if (!isFirstTopicAssignment && currentTopicId && !currentTopicId.startsWith("trazo_") &&
+        !isSyllableTopic &&
         !recognitionDoneRef.current.has(currentTopicId) && !saved) {
       setRecognitionMode(true);
       const charKey = getCharData(currentTopicId)?.key;
@@ -545,12 +598,11 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
     }
 
     if (currentTopicId && currentTopicId !== prevTopicIdRef.current) {
-      const wasFirstTopic = prevTopicIdRef.current === null;
       prevTopicIdRef.current = currentTopicId;
-      const tut = getCharData(currentTopicId)?.tutorial;
+      const tut = getCharData(currentTopicId)?.tutorial ?? getSyllableCharData(currentTopicId)?.tutorial;
       // Skip tutorial voice on the very first topic assignment (BDI greeting already
       // introduces the exercise; speaking tutorial mid-stream causes triple overlap).
-      if (tut && !wasFirstTopic) {
+      if (tut && !isFirstTopicAssignment) {
         const tid = setTimeout(() => speakQueued(tut), 600);
         return () => clearTimeout(tid);
       }
@@ -569,6 +621,7 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
   useEffect(() => { activityPickerActiveRef.current = activityPickerActive; }, [activityPickerActive]);
   useEffect(() => { recognitionModeRef.current      = recognitionMode;      }, [recognitionMode]);
   useEffect(() => { restBreakActiveRef.current      = restBreakActive;      }, [restBreakActive]);
+  useEffect(() => { assessmentActiveRef.current     = assessmentActive;     }, [assessmentActive]);
   // Pair mode ref mirrors
   useEffect(() => { isPairModeRef.current       = isPairMode;        }, [isPairMode]);
   useEffect(() => { activePlayerIdxRef.current  = activePlayerIdx;   }, [activePlayerIdx]);
@@ -580,33 +633,28 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
     if (!currentTopicId || !student) return;
     const timer = setTimeout(() => {
       const existing = currentBeliefsRef.current ?? {};
-      const newBeliefs = {
-        ...existing,
-        topics_progress: {
-          ...(existing.topics_progress ?? {}),
-          [currentTopicId]: { tracing_level: tracingLevel, level_attempts: levelAttempts },
-        },
+      const newTopicsProgress = {
+        ...(existing.topics_progress ?? {}),
+        [currentTopicId]: { tracing_level: tracingLevel, level_attempts: levelAttempts },
       };
-      currentBeliefsRef.current = newBeliefs;
-      setCurrentBeliefs(newBeliefs);
-      api.updateStudentBeliefs(student.id, newBeliefs).catch(console.error);
+      // Keep local mirror coherent, but only PATCH the UI-owned key. The backend
+      // merges this in, so server-authoritative keys like `mastery` are preserved
+      // and never clobbered by a stale local beliefs blob.
+      currentBeliefsRef.current = { ...existing, topics_progress: newTopicsProgress };
+      setCurrentBeliefs(currentBeliefsRef.current);
+      api.updateStudentBeliefs(student.id, { topics_progress: newTopicsProgress }).catch(console.error);
     }, 800);
     return () => clearTimeout(timer);
   }, [tracingLevel, levelAttempts]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Celebrate when tracingLevel genuinely advances (not on topic reset) — #6
+  // Keep prevTracingLevelRef in sync. The level-up celebration is fired directly
+  // in handleTracingComplete (see the level-advance branch) instead of here, because
+  // the very first 0→1 advance was being swallowed: on mount setTracingLevel(0) does
+  // not change the value, so this effect never ran to consume topicJustChangedRef,
+  // leaving the guard stale and eating the first celebration. — #6
   useEffect(() => {
-    if (topicJustChangedRef.current) {
-      // prevTracingLevelRef already set synchronously in [currentTopicId] effect
-      topicJustChangedRef.current = false;
-      return;
-    }
-    if (tracingLevel > prevTracingLevelRef.current) {
-      setCelebrationState("big");  // cleared by CelebrationOverlay.onDone
-      // Show emotion check-in after the celebration — #9
-      setTimeout(() => setEmotionPickerActive(true), 2800);
-    }
     prevTracingLevelRef.current = tracingLevel;
+    topicJustChangedRef.current = false;
   }, [tracingLevel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Adaptive rest: start countdown when entering free drawing — #10
@@ -668,13 +716,60 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
       .catch(e => console.error("[topics]", e));
   }, [topicPickerPending, student]);
 
-  // Mastery dialog: queue verbal options
+  // Child asked for something harder → open the child-friendly ActivityPicker with the
+  // newest unlocked topics (max 3, spoken aloud, no scroll). If none are left, motivate.
+  useEffect(() => {
+    if (!harderPickerPending || !student) return;
+    setHarderPickerPending(false);
+    api.getAccessibleTopics(student.id)
+      .then(topics => {
+        setAccessibleTopics(topics);
+        const alts = topics
+          .filter(t => !t.locked && t.id !== currentTopicIdRef.current)
+          .slice(-3); // newest unlocked (curriculum order is easy → hard)
+        if (alts.length === 0) {
+          // Nothing new to unlock yet → motivate the child to keep going.
+          const msg = "¡Lo estás haciendo genial! Sigue un poquito más, que ya casi lo dominas. 💪";
+          setLastMessage(msg);
+          speakRef.current?.(msg);
+        } else {
+          setActivityHarderMode(true);
+          activityPickerActiveRef.current = true;
+          setActivityPickerActive(true);
+          // OLIBOT's BDI response is already spoken; ActivityPicker narrates each option.
+        }
+      })
+      .catch(e => console.error("[harder-topics]", e));
+  }, [harderPickerPending, student]);
+
+  // Mastery dialog: highlight each option in turn while OLIBOT narrates what each
+  // button does — same self-contained timed pattern as EmotionPicker (which works
+  // perfectly). A fixed START delay lets the short, fixed celebration finish first,
+  // then each option is highlighted + spoken in sync. NOT gated on `speaking` (that
+  // gate was unreliable and left the popup silent).
   useEffect(() => {
     if (!masteryDialog) return;
-    const options = masteryDialog.nextTopicId
-      ? "Di continuar para seguir practicando, siguiente para la próxima actividad, o dibujar para pintar algo bonito."
-      : "Di continuar para seguir practicando, o dibujar para pintar algo bonito.";
-    speakQueued(options);
+    const opts = [
+      { key: "continue", say: "Toca este botón, o di continuar, para seguir practicando." },
+      ...(masteryDialog.nextTopicId
+        ? [{ key: "next", say: "Toca este botón, o di siguiente, para la siguiente actividad." }]
+        : []),
+      { key: "draw", say: "Toca este botón, o di dibujar, para hacer un dibujo." },
+    ];
+    // Wait for the short celebration to finish before narrating the buttons
+    // (same idea as EmotionPicker's CYCLE_START), scaled by ttsRate for younger kids.
+    const START = Math.round(2800 * (0.85 / ttsRate));  // ms before first highlight
+    // Per-level pacing: younger children (slower ttsRate) get more time per option
+    // so the highlight stays in sync with the slower narration.
+    const STEP  = Math.round(2600 * (0.85 / ttsRate));  // ms per option
+    const timers = opts.map((o, i) =>
+      setTimeout(() => {
+        setMasteryHighlight(o.key);
+        speakQueued(o.say);
+      }, START + i * STEP)
+    );
+    const clear = setTimeout(() => setMasteryHighlight(null), START + opts.length * STEP);
+    return () => { timers.forEach(clearTimeout); clearTimeout(clear); setMasteryHighlight(null); };
   }, [masteryDialog]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keep mic active during mastery dialog
@@ -725,6 +820,7 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
   useEffect(() => {
     if (listening || speaking || loading || !supported) return;
     if (topicPickerOpen) return;
+    if (assessmentActiveRef.current) return;
     const tid = setTimeout(() => startListeningStable(), 600);
     return () => clearTimeout(tid);
   }, [listening, speaking, loading, supported, startListeningStable, topicPickerOpen]);
@@ -743,7 +839,7 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
       : recognitionModeRef.current     ? "recognition"
       : emotionPickerActiveRef.current  ? "emotion_picker"
       : activityPickerActiveRef.current ? "activity_picker"
-      : assessmentActive                ? "assessment_mode"
+      : assessmentActiveRef.current     ? "assessment_mode"
       : "tracing";
 
     const sentenceEnd = /^([\s\S]+?[.!?])(\s|$)/;
@@ -761,6 +857,8 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
           if (event.bdi_action === "start_free_drawing" && event.free_drawing_subject) {
             setColoringSubject(event.free_drawing_subject);
           }
+          // Touch/visual assessment: render the canvas or tap-cards for this step.
+          if (event.assessment_ui) setAssessmentUi(event.assessment_ui);
 
         } else if (event.type === "token") {
           accumulated += event.text;
@@ -792,16 +890,57 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
           if (event.current_beliefs) setCurrentBeliefs(event.current_beliefs);
 
           if (masteryActions.includes(event.bdi_action)) {
-            setMasteryDialog({ topicId: event.current_topic_id, nextTopicId: event.next_topic_id });
-            if (event.all_age_topics_complete && student && student.age < 5) {
-              setAgeCompleteDialog(true);
+            // Celebración mayor al completar un ejercicio entero (los 3 niveles) — #6
+            setCelebrationState("big");
+            if (isPairModeRef.current) {
+              // Modo parejas: sin diálogo (no se ofrece dibujar). Avanzamos en
+              // silencio al siguiente tema para que el jugador retome un ejercicio
+              // nuevo en su próximo turno; el cambio de compañero lo gestiona el
+              // control de ánimo (handleEmotionSelect).
+              const nextId = event.next_topic_id;
+              if (nextId && event.session_id) {
+                setCurrentTopicId(nextId);
+                api.advanceSession(event.session_id, nextId)
+                  .then(r => setSessionId(r.session_id))
+                  .catch(console.error);
+              }
+            } else {
+              setMasteryDialog({ topicId: event.current_topic_id, nextTopicId: event.next_topic_id });
+              if (event.all_age_topics_complete && student && student.age < 5) {
+                setAgeCompleteDialog(true);
+              }
             }
           }
           if (event.bdi_action === "offer_alternatives") {
-            setTopicPickerPending(true);
+            // Child-friendly: show up to 3 newest unlocked topics (no scroll, spoken).
+            setHarderPickerPending(true);
           }
           if (event.bdi_action === "start_free_drawing") {
             setColoringSubject(event.free_drawing_subject || "perro");
+          }
+          // #8B — initial assessment finished: the level was assigned silently in the
+          // backend. Hide the orange dot and start a fresh session so the child
+          // continues at the newly assigned level. The child is never told the result.
+          if (event.assessment_complete) {
+            setAssessmentActive(false);
+            assessmentActiveRef.current = false;
+            setAssessmentUi(null);
+            setSessionId(null);
+            setCurrentTopicId(null);
+            // Reflect the new level locally (pacing/voice) — backend already saved
+            // the age in the DB; mirror it so this session uses the right profile.
+            const LEVEL_AGE = { amarillo: 3, verde: 4, azul: 5, rojo: 6 };
+            const newAge = LEVEL_AGE[event.assigned_level];
+            if (newAge && student) student.age = newAge;
+            if (student) api.getAccessibleTopics(student.id).then(setAccessibleTopics).catch(console.error);
+            // Auto-start the first exercise of the assigned level: sending a greeting
+            // makes the backend create a session and pick the topic, which fills
+            // currentTopicId → charData → the tracing canvas appears. — fixes the
+            // "canvas not showing after assessment" bug.
+            setTimeout(() => {
+              setLastMessage("¡Vamos a jugar! ¡Tú puedes!");
+              if (sendRef.current) sendRef.current("hola");
+            }, 1200);
           }
           setTurnCount((n) => n + 1);
 
@@ -821,16 +960,25 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
           const finalText = event.agent_response;
           setLastMessage(finalText);
 
-          if (event.detected_intent === "attempt_answer") {
-            setSyllableSayPhase(false);
-          }
-
           if (event.shield_triggered || !firstQueued) {
             stopSpeaking();
             speak(finalText);
           } else if (ttsBuffer.trim()) {
             speakQueued(ttsBuffer.trim());
           }
+
+          // First greeting turn finished — release the guard and flush any deferred
+          // tracing-demo prompt so it is spoken AFTER the greeting, never before. — #11
+          if (greetingInProgressRef.current) {
+            greetingInProgressRef.current = false;
+            if (pendingDemoPromptRef.current) {
+              pendingDemoPromptRef.current = false;
+              speakQueued("¡Ahora tú! ¡Inténtalo!");
+            }
+          }
+          // Release the demo hold: the demo finishes its current pass and the
+          // demo→tracing transition fires "¡Ahora tú!" right when tracing starts. — #12
+          setHoldDemo(false);
 
           setLoading(false);
 
@@ -844,6 +992,9 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
       setLastMessage(err + " 🙈");
       stopSpeaking();
       speak(err);
+      greetingInProgressRef.current = false;
+      pendingDemoPromptRef.current  = false;
+      setHoldDemo(false);
       setLoading(false);
     }
   }, [loading, sessionId, student, speak, speakQueued, stopSpeaking, stopListening]);
@@ -920,6 +1071,9 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
       if (student) localStorage.setItem(`olibot_tutorial_${student.id}`, "1");
       // Cancel tutorial TTS, then start BDI after a comfortable pause
       window.speechSynthesis?.cancel();
+      greetingInProgressRef.current = true;
+      pendingDemoPromptRef.current  = false;
+      setHoldDemo(true);
       setTimeout(() => { if (sendRef.current) sendRef.current("hola"); }, 2000);
       setTutorialStep(null);
       return;
@@ -938,6 +1092,13 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
   // ── Demo end ──────────────────────────────────────────────────────────────
   const handleDemoEnd = useCallback(() => {
     demoShownRef.current = currentTopicIdRef.current;
+    // If the first BDI greeting is still streaming, defer this prompt so it plays
+    // AFTER the greeting instead of jumping ahead in the TTS queue. — #11
+    if (greetingInProgressRef.current) {
+      pendingDemoPromptRef.current = true;
+      console.log("[TTS] demo terminado durante el saludo → se aplaza '¡Ahora tú!'");
+      return;
+    }
     speakQueued("¡Ahora tú! ¡Inténtalo!");
   }, [speakQueued]);
 
@@ -956,27 +1117,6 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
 
     const syllableLetters = getSyllableLetters(currentTopicId);
     const score = Math.round(((shapeScore + orderScore) / 2) * 100);
-
-    if (syllableLetters) {
-      const nextIdx = syllableLetterIdx + 1;
-      if (nextIdx < syllableLetters.length) {
-        setSyllableLetterIdx(nextIdx);
-        setTracingKey((k) => k + 1);
-        const msg = passed ? "¡Muy bien! 🌟" : "¡Casi! 💪 Inténtalo otra vez...";
-        setLastMessage(msg);
-        speak(msg);
-        return;
-      }
-      setSyllableLetterIdx(0);
-      setSyllableSayPhase(true);
-      const syllableKey = syllableLetters.join("");
-      const msg = passed
-        ? `He trazado la sílaba ${syllableKey} y me ha salido bien (${score}% de acierto)`
-        : `He intentado trazar la sílaba ${syllableKey} pero necesito practicar más (${score}%)`;
-      sendMessage(msg);
-      if (isPairModeRef.current) setTimeout(() => switchPlayerRef.current?.(), 2500);
-      return;
-    }
 
     if (passed) {
       failureStreakRef.current = 0;
@@ -1008,17 +1148,36 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
           : "¡Increíble! ¡Ahora el nivel más difícil! 🌟🌟🌟";
         setLastMessage(levelMsg);
         speak(levelMsg);
-        if (isPairModeRef.current) setTimeout(() => switchPlayerRef.current?.(), 2500);
+        // Celebración grande al subir de nivel (fácil→medio→difícil) — #6
+        setCelebrationState("big");
+        // Control de ánimo tras la celebración — #9
+        setTimeout(() => setEmotionPickerActive(true), 2800);
+        // Modo parejas: el cambio de compañero ocurre DESPUÉS del estado de ánimo
+        // (se dispara al elegir emoción), nunca a mitad de práctica.
+        if (isPairModeRef.current) pendingSwitchRef.current = true;
         return;
       } else {
         // ── Nivel difícil completado → reportar al agente (posible mastery) ─
-        const charInfo = getCharData(currentTopicId);
-        const key      = charInfo?.key ?? "";
-        const isStroke = currentTopicId?.startsWith("trazo_");
-        const subject  = isStroke ? `el trazo ${key}` : `la letra ${key}`;
-        const msg = `He trazado ${subject} y me ha salido bien en todos los niveles (${score}% de acierto)`;
+        // Las sílabas (nivel rojo) son solo lectura: el mensaje de sílaba hace que
+        // el backend la lea en voz alta y avance automáticamente a la siguiente.
+        let msg;
+        if (syllableLetters) {
+          const syllableKey = syllableLetters.join("");
+          msg = `He trazado la sílaba ${syllableKey} y me ha salido bien en todos los niveles (${score}% de acierto)`;
+        } else {
+          const charInfo = getCharData(currentTopicId);
+          const key      = charInfo?.key ?? "";
+          const isStroke = currentTopicId?.startsWith("trazo_");
+          const subject  = isStroke ? `el trazo ${key}` : `la letra ${key}`;
+          msg = `He trazado ${subject} y me ha salido bien en todos los niveles (${score}% de acierto)`;
+        }
         sendMessage(msg);
-        if (isPairModeRef.current) setTimeout(() => switchPlayerRef.current?.(), 2500);
+        // Modo parejas: tras dominar el ejercicio, primero estado de ánimo y
+        // luego el cambio de compañero (al elegir emoción).
+        if (isPairModeRef.current) {
+          pendingSwitchRef.current = true;
+          setTimeout(() => setEmotionPickerActive(true), 2800);
+        }
         return;
       }
     }
@@ -1031,7 +1190,6 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
       setLastMessage(msg);
       speak(msg);
       setTracingKey((k) => k + 1);
-      if (isPairModeRef.current) setTimeout(() => switchPlayerRef.current?.(), 2500);
       return;
     }
     setTracingKey((k) => k + 1);
@@ -1043,8 +1201,7 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
       setCelebrationState("small");
       setTimeout(() => setCelebrationState(null), 900);
     }
-    if (isPairModeRef.current) setTimeout(() => switchPlayerRef.current?.(), 2500);
-  }, [tracingLevel, levelAttempts, currentTopicId, syllableLetterIdx, speak, sendMessage]);
+  }, [tracingLevel, levelAttempts, currentTopicId, speak, sendMessage]);
 
   // ── Pair mode: switch active player ──────────────────────────────────────
   const switchPlayer = useCallback(() => {
@@ -1073,11 +1230,48 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
 
   // Keep switchPlayerRef always pointing to the latest switchPlayer
   useEffect(() => { switchPlayerRef.current = switchPlayer; }, [switchPlayer]);
+
+  // ── Pair mode: MANUAL turn change ─────────────────────────────────────────
+  // Lets the pair hand the turn to the other partner at ANY moment, without
+  // having to finish the current sublevel. Triggered by tapping the inactive
+  // partner's avatar. Saves the current player's state so it is restored when
+  // they come back, exactly like the automatic switch.
+  const handleManualSwitch = useCallback((targetIdx) => {
+    if (!isPairModeRef.current) return;
+    if (loading) return;                       // avoid switching mid-stream
+    const currentIdx = activePlayerIdxRef.current;
+    if (targetIdx === currentIdx) return;      // already this player's turn
+
+    stopSpeaking();
+    stopListening();
+
+    // Save current player's state so it is restored on return.
+    playerStateCacheRef.current[currentIdx] = {
+      currentTopicId:  currentTopicIdRef.current,
+      tracingLevel:    tracingLevelRef.current,
+      levelAttempts:   levelAttemptsRef.current,
+      currentBeliefs:  currentBeliefsRef.current,
+      sessionId:       sessionIdRef.current,
+      prevTracingLevel: prevTracingLevelRef.current,
+    };
+
+    const nextPlayer = players[targetIdx];
+    speakRef.current?.(`¡Ahora le toca a ${nextPlayer.name}!`);
+    setActivePlayerIdx(targetIdx);
+  }, [loading, players, stopSpeaking, stopListening]);
+
   const handleEmotionSelect = useCallback((emotion) => {
     emotionPickerActiveRef.current = false; // update ref immediately (avoid transition window)
     setEmotionPickerActive(false);
     // #20 — log emotional checkpoint after level-up check-in
     if (student) api.createEmotionalCheckpoint(student.id, "post_levelup", emotion).catch(console.error);
+    // Modo parejas: tras el control de ánimo, cambiar al compañero. En este modo
+    // NUNCA se ofrece dibujar — solo ejercicios.
+    if (isPairModeRef.current && pendingSwitchRef.current) {
+      pendingSwitchRef.current = false;
+      switchPlayerRef.current?.();
+      return;
+    }
     if (emotion === "angry" || emotion === "tired") {
       // Show activity picker so child chooses between alternatives or free drawing
       activityPickerActiveRef.current = true;
@@ -1099,6 +1293,7 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
   const handleActivitySelect = useCallback(({ type, topicId }) => {
     activityPickerActiveRef.current = false; // update ref immediately
     setActivityPickerActive(false);
+    setActivityHarderMode(false);
     if (type === "draw") {
       coloringSubjectRef.current = "perro"; // update ref immediately
       setColoringSubject("perro");
@@ -1196,12 +1391,13 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
   const charData = useMemo(() => {
     if (isPlacementInProgress) return null;
     if (syllableLetters) {
-      if (syllableSayPhase) return null;
-      return getCharDataByKey(syllableLetters[syllableLetterIdx], tracingDifficulty);
+      // Sílaba completa como un solo glifo unido (letras juntas). Siempre visible:
+      // ya no hay fase de "decir" que oculte el lienzo (solo lectura).
+      return getSyllableCharData(currentTopicId, tracingDifficulty);
     }
     return getCharData(currentTopicId, tracingDifficulty);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPlacementInProgress, syllableSayPhase, syllableLetterIdx, tracingDifficulty, currentTopicId]);
+  }, [isPlacementInProgress, tracingDifficulty, currentTopicId]);
   charDataRef.current = charData;
 
   const avatarState = speaking ? "speaking" : listening ? "listening" : loading ? "thinking" : "idle";
@@ -1220,6 +1416,8 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
       }}
     >
       {/* ── Pair mode indicator: two small avatars, active player highlighted ── */}
+      {/* Tapping the inactive partner's avatar passes the turn at any time (no need
+          to finish the current sublevel). */}
       {isPairMode && (
         <div style={{
           position: "fixed", top: 12, left: 112, zIndex: 40,
@@ -1228,14 +1426,22 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
           {players.map((p, i) => {
             const seed = p.avatar_id && p.avatar_id !== "robot" ? p.avatar_id : p.name;
             const isActive = i === activePlayerIdx;
+            const canSwitch = !isActive && !loading;
             return (
-              <div key={p.id} style={{
-                borderRadius: "50%",
-                border: isActive ? "3px solid #f59e0b" : "2px solid rgba(255,255,255,0.4)",
-                boxShadow: isActive ? "0 0 0 4px rgba(245,158,11,0.35)" : "none",
-                transition: "border 0.35s, box-shadow 0.35s",
-                flexShrink: 0,
-              }}>
+              <div
+                key={p.id}
+                onClick={canSwitch ? () => handleManualSwitch(i) : undefined}
+                title={isActive ? `Le toca a ${p.name}` : `Toca para pasar el turno a ${p.name}`}
+                style={{
+                  borderRadius: "50%",
+                  border: isActive ? "3px solid #f59e0b" : "2px solid rgba(255,255,255,0.4)",
+                  boxShadow: isActive ? "0 0 0 4px rgba(245,158,11,0.35)" : "none",
+                  transition: "border 0.35s, box-shadow 0.35s, transform 0.2s",
+                  flexShrink: 0,
+                  cursor: canSwitch ? "pointer" : "default",
+                  opacity: isActive ? 1 : (loading ? 0.5 : 0.85),
+                }}
+              >
                 <DiceBearAvatar seed={seed} size={48} state="idle" />
               </div>
             );
@@ -1244,20 +1450,19 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
       )}
       {/* ── Assessment mode badge (#8B) ─────────────────────────────────────── */}
       {assessmentActive && (
-        <div style={{
-          position: "fixed", top: isPairMode ? 72 : 12, left: 112, zIndex: 40,
-          display: "flex", alignItems: "center", gap: 6,
-          background: "rgba(245,158,11,0.92)", borderRadius: "20px",
-          padding: "4px 12px 4px 8px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        }}>
-          <span style={{ fontSize: 16 }}>🎯</span>
-          <span style={{ fontSize: 12, fontWeight: "bold", color: "white" }}>Evaluando</span>
-          <button
-            onClick={() => setAssessmentActive(false)}
-            style={{ marginLeft: 4, background: "rgba(255,255,255,0.3)", border: "none", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: 11, color: "white", display: "flex", alignItems: "center", justifyContent: "center" }}
-          >✕</button>
-        </div>
+        <button
+          onClick={() => { setAssessmentActive(false); assessmentActiveRef.current = false; }}
+          title="Evaluando nivel — toca para terminar"
+          style={{
+            position: "fixed", top: isPairMode ? 72 : 12, left: 112, zIndex: 40,
+            width: 18, height: 18, borderRadius: "50%", padding: 0,
+            background: "#f59e0b", border: "2px solid rgba(255,255,255,0.85)",
+            boxShadow: "0 0 0 4px rgba(245,158,11,0.30), 0 2px 6px rgba(0,0,0,0.2)",
+            cursor: "pointer", animation: "olibotPulse 1.6s ease-in-out infinite",
+          }}
+        >
+          <style>{`@keyframes olibotPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.25);opacity:0.75} }`}</style>
+        </button>
       )}
       {masteryDialog && (
         <div
@@ -1283,17 +1488,24 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
             }}
           >
             <div style={{ fontSize: "56px", marginBottom: "8px" }}>⭐</div>
-            <div style={{ fontSize: "22px", fontWeight: "bold", color: "#1e3a5f", marginBottom: "6px" }}>
-              ¡Lo has conseguido!
-            </div>
-            <div style={{ fontSize: "15px", color: "#4a5568", marginBottom: "20px" }}>
+            <div style={{ fontSize: "18px", fontWeight: "bold", color: "#1e3a5f", marginBottom: "20px" }}>
               ¿Qué quieres hacer ahora?
             </div>
             <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "8px" }}>
               <button
                 onClick={handleMasteryContinue}
                 title="Seguir practicando"
-                style={{ width: "80px", height: "80px", borderRadius: "50%", border: "3px solid #dce8f5", background: "white", fontSize: "40px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.12)" }}
+                style={{
+                  width: "80px", height: "80px", borderRadius: "50%",
+                  border: masteryHighlight === "continue" ? "4px solid #4a90d9" : "3px solid #dce8f5",
+                  background: masteryHighlight === "continue" ? "#e8f0fb" : "white",
+                  fontSize: "40px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: masteryHighlight === "continue"
+                    ? "0 0 0 7px rgba(74,144,217,0.22), 0 6px 18px rgba(74,144,217,0.18)"
+                    : "0 4px 12px rgba(0,0,0,0.12)",
+                  transform: masteryHighlight === "continue" ? "scale(1.08)" : "scale(1)",
+                  transition: "transform 0.2s, box-shadow 0.2s, border-color 0.2s, background 0.2s",
+                }}
               >
                 🔄
               </button>
@@ -1301,7 +1513,16 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
                 <button
                   onClick={handleMasteryNext}
                   title="Siguiente actividad"
-                  style={{ width: "80px", height: "80px", borderRadius: "50%", border: "none", background: "#4a90d9", fontSize: "40px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.22)" }}
+                  style={{
+                    width: "80px", height: "80px", borderRadius: "50%", border: "none",
+                    background: "#4a90d9", fontSize: "40px", cursor: "pointer", display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    boxShadow: masteryHighlight === "next"
+                      ? "0 0 0 7px rgba(74,144,217,0.30), 0 6px 18px rgba(74,144,217,0.30)"
+                      : "0 4px 12px rgba(0,0,0,0.22)",
+                    transform: masteryHighlight === "next" ? "scale(1.08)" : "scale(1)",
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                  }}
                 >
                   ⏭️
                 </button>
@@ -1309,7 +1530,16 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
               <button
                 onClick={handleMasteryFreeDraw}
                 title="Dibujo libre"
-                style={{ width: "80px", height: "80px", borderRadius: "50%", border: "none", background: "#f59e0b", fontSize: "40px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.22)" }}
+                style={{
+                  width: "80px", height: "80px", borderRadius: "50%", border: "none",
+                  background: "#f59e0b", fontSize: "40px", cursor: "pointer", display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  boxShadow: masteryHighlight === "draw"
+                    ? "0 0 0 7px rgba(245,158,11,0.30), 0 6px 18px rgba(245,158,11,0.30)"
+                    : "0 4px 12px rgba(0,0,0,0.22)",
+                  transform: masteryHighlight === "draw" ? "scale(1.08)" : "scale(1)",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                }}
               >
                 🎨
               </button>
@@ -1520,6 +1750,7 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
                 if (!student) return;
                 api.requestAssessment(student.id).then(() => {
                   setAssessmentActive(true);
+                  assessmentActiveRef.current = true;
                   speakRef.current?.("Empezamos la evaluación inicial.");
                   setTimeout(() => { if (sendRef.current) sendRef.current("quiero evaluar el nivel del niño"); }, 800);
                 }).catch(console.error);
@@ -1566,6 +1797,7 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
             hintLevel={hintLevel}
             onComplete={handleTracingComplete}
             onDemoEnd={handleDemoEnd}
+            holdDemo={holdDemo}
             skipInitialDemo={demoShownRef.current === currentTopicId}
             disabled={loading || speaking}
             isThinking={loading}
@@ -1767,6 +1999,15 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
         </div>
       )}
 
+      {/* ── Initial placement assessment — touch/visual, no microphone (#8B) ── */}
+      {assessmentActive && assessmentUi && assessmentUi.kind !== "done" && !masteryDialog && (
+        <AssessmentPanel
+          ui={assessmentUi}
+          disabled={loading || speaking}
+          onAnswer={(value) => { if (sendRef.current) sendRef.current(value); }}
+        />
+      )}
+
       {/* ── Celebration confetti burst — big level-up (#6) ───────────────── */}
       <CelebrationOverlay
         active={celebrationState === "big"}
@@ -1793,9 +2034,16 @@ export default function ChatWindow({ players, isNewStudent = false, onExit, onRe
       {/* ── Activity picker — shown when bored/tired (replaces TopicNavBar) ── */}
       {activityPickerActive && (
         <ActivityPicker
-          alternatives={accessibleTopics.filter(t => !t.locked && t.id !== currentTopicId).slice(0, 3)}
+          alternatives={
+            // Siempre los 3 mejores ejercicios DESBLOQUEADOS (los más avanzados del
+            // currículo, que está ordenado fácil → difícil). slice(-3) = los 3 más
+            // recientes desbloqueados, no los más fáciles. Así a un alumno de nivel
+            // rojo no se le ofrece "línea recta / curva suave".
+            accessibleTopics.filter(t => !t.locked && t.id !== currentTopicId).slice(-3)
+          }
           onSelect={handleActivitySelect}
           onHighlight={(label) => speakRef.current?.(label)}
+          hideDraw={isPairMode}
         />
       )}
 

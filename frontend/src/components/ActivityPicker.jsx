@@ -8,6 +8,8 @@
  *   alternatives  [{ id, display_name, emoji }]  — unlocked topics ≠ current
  *   onSelect      ({ type: "topic"|"draw"|"stay", topicId? }) => void
  *   onHighlight   (label: string) => void
+ *   hideDraw      bool  — when true, the drawing option is not shown (pair mode:
+ *                         partners only do exercises, never free drawing).
  */
 import { useState, useEffect } from "react";
 
@@ -19,12 +21,16 @@ function cleanName(name) {
   return name.replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9\s]/g, "").replace(/\s+/g, " ").trim();
 }
 
-export default function ActivityPicker({ alternatives = [], onSelect, onHighlight }) {
+export default function ActivityPicker({ alternatives = [], onSelect, onHighlight, hideDraw = false }) {
   const topicCards = alternatives.slice(0, 3);
 
-  // All items in order: topic cards + draw card (index topicCards.length)
-  const totalItems = topicCards.length + 1;
+  // All items in order: topic cards + (draw card?) + stay card
+  const totalItems = topicCards.length + (hideDraw ? 1 : 2);
   const [highlighted, setHighlighted] = useState(null);
+
+  // Indices of the draw and stay (continue) buttons within the highlight cycle
+  const drawIdx = hideDraw ? -1 : topicCards.length;
+  const stayIdx = topicCards.length + (hideDraw ? 0 : 1);
 
   useEffect(() => {
     const timers = topicCards.map((t, i) =>
@@ -33,12 +39,16 @@ export default function ActivityPicker({ alternatives = [], onSelect, onHighligh
         onHighlight?.(cleanName(t.display_name));
       }, CYCLE_START + i * CYCLE_INTERVAL)
     );
-    const tDraw = setTimeout(() => {
-      setHighlighted(topicCards.length);
+    const tDraw = hideDraw ? null : setTimeout(() => {
+      setHighlighted(drawIdx);
       onHighlight?.("Dibujar");
-    }, CYCLE_START + topicCards.length * CYCLE_INTERVAL);
+    }, CYCLE_START + drawIdx * CYCLE_INTERVAL);
+    const tStay = setTimeout(() => {
+      setHighlighted(stayIdx);
+      onHighlight?.("Seguir con lo de ahora");
+    }, CYCLE_START + stayIdx * CYCLE_INTERVAL);
     const clear = setTimeout(() => setHighlighted(null), CYCLE_START + totalItems * CYCLE_INTERVAL);
-    return () => { timers.forEach(clearTimeout); clearTimeout(tDraw); clearTimeout(clear); };
+    return () => { timers.forEach(clearTimeout); if (tDraw) clearTimeout(tDraw); clearTimeout(tStay); clearTimeout(clear); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cardStyle = (hl) => ({
@@ -112,14 +122,15 @@ export default function ActivityPicker({ alternatives = [], onSelect, onHighligh
             </button>
           ))}
 
-          {/* Draw option */}
+          {/* Draw option — hidden in pair mode (exercises only) */}
+          {!hideDraw && (
           <button
             onClick={() => onSelect({ type: "draw" })}
             style={{
-              ...cardStyle(highlighted === topicCards.length),
-              border: highlighted === topicCards.length ? "4px solid #f59e0b" : "3px solid #f59e0b",
-              background: highlighted === topicCards.length ? "#fff7ed" : "white",
-              boxShadow: highlighted === topicCards.length
+              ...cardStyle(highlighted === drawIdx),
+              border: highlighted === drawIdx ? "4px solid #f59e0b" : "3px solid #f59e0b",
+              background: highlighted === drawIdx ? "#fff7ed" : "white",
+              boxShadow: highlighted === drawIdx
                 ? "0 0 0 7px rgba(245,158,11,0.22), 0 6px 18px rgba(245,158,11,0.18)"
                 : "0 4px 14px rgba(245,158,11,0.12)",
             }}
@@ -129,22 +140,28 @@ export default function ActivityPicker({ alternatives = [], onSelect, onHighligh
           >
             <span style={{ fontSize: "64px", lineHeight: 1 }}>🎨</span>
           </button>
+          )}
         </div>
 
-        {/* Stay — emoji only (no text label) */}
+        {/* Stay / continue with the current activity — 💪 (narrated as "Seguir con lo de ahora") */}
         <button
           onClick={() => onSelect({ type: "stay" })}
           style={{
-            width: "56px",
-            height: "56px",
+            width: highlighted === stayIdx ? "76px" : "56px",
+            height: highlighted === stayIdx ? "76px" : "56px",
             borderRadius: "50%",
-            border: "2px solid #d1d5db",
-            background: "rgba(255,255,255,0.7)",
+            border: highlighted === stayIdx ? "4px solid #16a34a" : "2px solid #d1d5db",
+            background: highlighted === stayIdx ? "#ecfdf5" : "rgba(255,255,255,0.7)",
             cursor: "pointer",
-            fontSize: "30px",
+            fontSize: highlighted === stayIdx ? "40px" : "30px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            boxShadow: highlighted === stayIdx
+              ? "0 0 0 7px rgba(22,163,74,0.20), 0 6px 18px rgba(22,163,74,0.25)"
+              : "none",
+            transform: highlighted === stayIdx ? "scale(1.08)" : "scale(1)",
+            transition: "transform 0.2s, box-shadow 0.2s, width 0.2s, height 0.2s, font-size 0.2s",
           }}
         >
           💪

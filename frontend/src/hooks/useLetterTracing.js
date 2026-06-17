@@ -93,7 +93,7 @@ function evaluateStroke(drawnPath, waypoints, hitRadius) {
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInitialDemo = false, minimal = false }) {
+export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInitialDemo = false, holdDemo = false, minimal = false }) {
   const canvasRef      = useRef(null);
   const drawingRef     = useRef(false);
   const currentPath    = useRef([]);
@@ -111,6 +111,10 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
   const demoRafRef        = useRef(null);
   const charDataRef       = useRef(charData);
   const redrawRef         = useRef(null);   // always points at latest redraw()
+  // While true, the demo keeps replaying instead of switching to "tracing".
+  // Read live inside the RAF loop via this ref to avoid stale closures. — #12
+  const holdDemoRef       = useRef(holdDemo);
+  useEffect(() => { holdDemoRef.current = holdDemo; }, [holdDemo]);
 
   const [currentStrokeIdx, setCurrentStrokeIdx] = useState(0);
   // phase: "demo" | "tracing" | "done"
@@ -413,9 +417,11 @@ export function useLetterTracing({ charData, hintLevel = 3, onComplete, skipInit
       if (t >= 1) {
         const nextSi = si + 1;
         if (nextSi >= (cd.demoStrokes ?? cd.strokes).length) {
-          // One full pass done — check if we should repeat
-          if (demoRepeatCountRef.current < DEMO_REPEATS - 1) {
-            demoRepeatCountRef.current += 1;
+          // One full pass done — repeat if more passes remain OR we're holding the
+          // demo until the greeting finishes (so the demo→tracing transition, and the
+          // "¡Ahora tú!" prompt fired on it, land together right after the greeting). — #12
+          if (demoRepeatCountRef.current < DEMO_REPEATS - 1 || holdDemoRef.current) {
+            if (demoRepeatCountRef.current < DEMO_REPEATS - 1) demoRepeatCountRef.current += 1;
             demoStrokeIdxRef.current = 0;
             demoElapsedRef.current = 0;
             demoLastTimeRef.current = null;

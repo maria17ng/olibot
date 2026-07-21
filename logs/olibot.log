@@ -2831,3 +2831,174 @@
 2026-06-18 00:55:16 [olibot.pipeline] INFO: → BDI: action=mastery_achieved  is_correct=True  next_topic=trazo_curva
 2026-06-18 00:55:16 [olibot.pipeline] INFO: → NLG: instant mastery celebration (LLM bypassed)
 2026-06-18 00:55:16 [olibot.pipeline] INFO: → RESP (0.1s) shield=False  '¡Lo has dominado! ¡Eres un campeón, Lola! 🎉'
+2026-06-18 09:18:37 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=1  topic=vocal_a
+2026-06-18 09:18:37 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 09:18:37 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:18:37 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:18:37 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Pepe! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:18:45 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=2  topic=vocal_a
+2026-06-18 09:18:45 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 09:18:45 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:18:45 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:18:45 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Pepe! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:20:36 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=4  topic=vocal_a
+2026-06-18 09:20:36 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 09:20:36 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:20:36 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:20:36 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Pepe! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:22:34 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=6  topic=vocal_a
+2026-06-18 09:22:34 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 09:22:34 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:22:34 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:22:34 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Pepe! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:22:42 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=7  topic=vocal_a
+2026-06-18 09:22:42 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 09:22:42 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:22:42 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:22:42 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Pepe! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:23:14 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=8  topic=vocal_a
+2026-06-18 09:23:14 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 09:23:14 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:23:14 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:23:14 [olibot.pipeline] INFO: → RESP (0.3s) shield=False  '¡Hola Pepe! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:26:10 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=11  topic=vocal_a
+2026-06-18 09:26:10 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 09:26:10 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:26:10 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:26:10 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Pepe! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:26:15 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=12  topic=vocal_a
+2026-06-18 09:26:15 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 09:26:15 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:26:15 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:26:15 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Pepe! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:29:21 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=1  topic=vocal_a
+2026-06-18 09:29:21 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 09:29:21 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:29:21 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:29:21 [olibot.pipeline] INFO: → RESP (0.3s) shield=False  '¡Hola Pepe! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:36:01 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=1  topic=vocal_a
+2026-06-18 09:36:01 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 09:36:01 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:36:01 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:36:01 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Hector! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:36:07 [olibot.pipeline] INFO: ← msg='Vale'  student=1  session=1  topic=vocal_a
+2026-06-18 09:36:08 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={'greeting_id': 'vale'}
+2026-06-18 09:36:08 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:36:08 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:36:08 [olibot.pipeline] INFO: → RESP (0.8s) shield=False  '¡Hola Hector! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:36:16 [olibot.pipeline] INFO: ← msg='Sí'  student=1  session=1  topic=vocal_a
+2026-06-18 09:36:17 [olibot.pipeline] INFO: → NLU: intent=greet  conf=0.90  entities={'answer': 'Sí'}
+2026-06-18 09:36:17 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:36:17 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:36:17 [olibot.pipeline] INFO: → RESP (0.8s) shield=False  '¡Hola Hector! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:36:26 [olibot.pipeline] INFO: ← msg='Sí'  student=1  session=1  topic=vocal_a
+2026-06-18 09:36:27 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={'answer': 'Sí'}
+2026-06-18 09:36:27 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:36:27 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:36:27 [olibot.pipeline] INFO: → RESP (0.9s) shield=False  '¡Hola Hector! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:36:35 [olibot.pipeline] INFO: ← msg='Que sí'  student=1  session=1  topic=vocal_a
+2026-06-18 09:36:36 [olibot.pipeline] INFO: → NLU: intent=greet  conf=0.90  entities={'expression_emotion': 'smile'}
+2026-06-18 09:36:36 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:36:36 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:36:36 [olibot.pipeline] INFO: → RESP (0.9s) shield=False  '¡Hola Hector! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:36:43 [olibot.pipeline] INFO: ← msg='hola'  student=1  session=2  topic=vocal_a
+2026-06-18 09:36:43 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 09:36:43 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:36:43 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:36:43 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Hector! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 09:39:01 [olibot.pipeline] INFO: ← msg='He trazado la letra A y me ha salido bien en todos los niveles (100% de acierto)'  student=1  session=2  topic=vocal_a
+2026-06-18 09:39:01 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': 'A', 'passed': True, 'score': 100}
+2026-06-18 09:39:01 [olibot.pipeline] INFO: → BDI: action=mastery_achieved  is_correct=True  next_topic=vocal_e
+2026-06-18 09:39:01 [olibot.pipeline] INFO: → NLG: instant mastery celebration (LLM bypassed)
+2026-06-18 09:39:01 [olibot.pipeline] INFO: → RESP (0.1s) shield=False  '¡Lo has dominado! ¡Eres un campeón, Hector! 🎉'
+2026-06-18 09:40:08 [olibot.pipeline] INFO: ← msg='hola'  student=2  session=4  topic=silaba_inv_as
+2026-06-18 09:40:08 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 09:40:08 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 09:40:08 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 09:40:08 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Hector! ¿Quieres que aprendamos las sílabas hoy? 🌟'
+2026-06-18 09:44:51 [olibot.pipeline] INFO: ← msg='He trazado la sílaba as y me ha salido bien en todos los niveles (88% de acierto)'  student=2  session=4  topic=silaba_inv_as
+2026-06-18 09:44:51 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': 'as', 'passed': True, 'score': 88}
+2026-06-18 09:44:51 [olibot.pipeline] INFO: → BDI: action=celebrate_tracing  is_correct=True  next_topic=silaba_inv_es
+2026-06-18 09:44:56 [olibot.pipeline] INFO: → RESP (4.9s) shield=False  '¡Qué bien, Hector! ¿Podrías decirme una palabra que tenga la sílaba "as"? 🌟'
+2026-06-18 09:47:14 [olibot.pipeline] INFO: ← msg='He trazado la sílaba es y me ha salido bien en todos los niveles (81% de acierto)'  student=2  session=5  topic=silaba_inv_es
+2026-06-18 09:47:14 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': 'es', 'passed': True, 'score': 81}
+2026-06-18 09:47:14 [olibot.pipeline] INFO: → BDI: action=celebrate_tracing  is_correct=True  next_topic=silaba_inv_al
+2026-06-18 09:47:15 [olibot.pipeline] INFO: → RESP (1.3s) shield=False  '¡Qué bien, Hector! ¡Eso es súper! ¿Podrías decirme una palabra que tenga la síla'
+2026-06-18 09:49:11 [olibot.pipeline] INFO: ← msg='He trazado la sílaba al y me ha salido bien en todos los niveles (100% de acierto)'  student=2  session=6  topic=silaba_inv_al
+2026-06-18 09:49:11 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': 'al', 'passed': True, 'score': 100}
+2026-06-18 09:49:11 [olibot.pipeline] INFO: → BDI: action=celebrate_tracing  is_correct=True  next_topic=silaba_inv_ar
+2026-06-18 09:49:13 [olibot.pipeline] INFO: → RESP (1.2s) shield=False  '¡Qué bien, Hector! ¿Podrías decirme alguna palabra que tenga la sílaba "al" en e'
+2026-06-18 09:51:06 [olibot.pipeline] INFO: ← msg='He trazado la sílaba ar y me ha salido bien en todos los niveles (100% de acierto)'  student=2  session=7  topic=silaba_inv_ar
+2026-06-18 09:51:06 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': 'ar', 'passed': True, 'score': 100}
+2026-06-18 09:51:06 [olibot.pipeline] INFO: → BDI: action=celebrate_tracing  is_correct=True  next_topic=silaba_inv_an
+2026-06-18 09:51:07 [olibot.pipeline] INFO: → RESP (1.1s) shield=False  '¡Fantástico, Hector! 🎉 ¿Qué otra sílaba te gustaría practicar hoy?'
+2026-06-18 10:05:15 [olibot.pipeline] INFO: ← msg='hola'  student=3  session=9  topic=trazo_linea_h
+2026-06-18 10:05:39 [olibot.pipeline] INFO: ← msg='ya'  student=3  session=9  topic=trazo_linea_h
+2026-06-18 10:05:46 [olibot.pipeline] INFO: ← msg='A'  student=3  session=9  topic=trazo_linea_h
+2026-06-18 10:06:02 [olibot.pipeline] INFO: ← msg='ya'  student=3  session=9  topic=trazo_linea_h
+2026-06-18 10:06:07 [olibot.pipeline] INFO: ← msg='M'  student=3  session=9  topic=trazo_linea_h
+2026-06-18 10:06:13 [olibot.pipeline] INFO: ← msg='3'  student=3  session=9  topic=trazo_linea_h
+2026-06-18 10:06:17 [olibot.pipeline] INFO: ← msg='S'  student=3  session=9  topic=trazo_linea_h
+2026-06-18 10:06:32 [olibot.pipeline] INFO: ← msg='ya'  student=3  session=9  topic=trazo_linea_h
+2026-06-18 10:06:40 [olibot.pipeline] INFO: ← msg='MA'  student=3  session=9  topic=trazo_linea_h
+2026-06-18 10:06:40 [olibot.pipeline] INFO: → ASSESSMENT complete: level=rojo → age=6 (student=3, passed=5)
+2026-06-18 10:06:41 [olibot.pipeline] INFO: ← msg='hola'  student=3  session=10  topic=silaba_inv_as
+2026-06-18 10:06:41 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 10:06:41 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 10:06:41 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 10:06:41 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Cayetana! ¿Quieres que aprendamos las sílabas hoy? 🌟'
+2026-06-18 10:18:45 [olibot.pipeline] INFO: ← msg='He trazado la letra 1 y me ha salido bien en todos los niveles (100% de acierto)'  student=3  session=11  topic=numero_1
+2026-06-18 10:18:45 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': '1', 'passed': True, 'score': 100}
+2026-06-18 10:18:45 [olibot.pipeline] INFO: → BDI: action=mastery_achieved  is_correct=True  next_topic=silaba_inv_as
+2026-06-18 10:18:45 [olibot.pipeline] INFO: → NLG: instant mastery celebration (LLM bypassed)
+2026-06-18 10:18:45 [olibot.pipeline] INFO: → RESP (0.1s) shield=False  '¡Lo has dominado! ¡Eres un campeón, Cayetana! 🎉'
+2026-06-18 10:37:09 [olibot.pipeline] INFO: ← msg='hola'  student=4  session=12  topic=vocal_a
+2026-06-18 10:37:09 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 10:37:09 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 10:37:09 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 10:37:09 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Angela! ¿Quieres que aprendamos las letras hoy? 🌟'
+2026-06-18 10:39:12 [olibot.pipeline] INFO: ← msg='He trazado la letra A y me ha salido bien en todos los niveles (96% de acierto)'  student=4  session=12  topic=vocal_a
+2026-06-18 10:39:12 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': 'A', 'passed': True, 'score': 96}
+2026-06-18 10:39:13 [olibot.pipeline] INFO: → BDI: action=mastery_achieved  is_correct=True  next_topic=vocal_e
+2026-06-18 10:39:13 [olibot.pipeline] INFO: → NLG: instant mastery celebration (LLM bypassed)
+2026-06-18 10:39:13 [olibot.pipeline] INFO: → RESP (0.1s) shield=False  '¡Lo has dominado! ¡Eres un campeón, Angela! 🎉'
+2026-06-18 11:44:42 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=13  topic=trazo_linea_h
+2026-06-18 11:44:42 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 11:44:42 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 11:44:42 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 11:44:42 [olibot.pipeline] INFO: → RESP (0.3s) shield=False  '¡Hola Oliver! ¿Quieres que aprendamos a hacer trazos hoy? 🌟'
+2026-06-18 11:48:50 [olibot.pipeline] INFO: ← msg='He trazado el trazo LINEA_H y me ha salido bien en todos los niveles (100% de acierto)'  student=5  session=13  topic=trazo_linea_h
+2026-06-18 11:48:50 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': 'LINEA_H', 'passed': True, 'score': 100}
+2026-06-18 11:48:50 [olibot.pipeline] INFO: → BDI: action=mastery_achieved  is_correct=True  next_topic=trazo_linea_v
+2026-06-18 11:48:50 [olibot.pipeline] INFO: → NLG: instant mastery celebration (LLM bypassed)
+2026-06-18 11:48:50 [olibot.pipeline] INFO: → RESP (0.1s) shield=False  '¡Lo has dominado! ¡Eres un campeón, Oliver! 🎉'
+2026-06-18 11:50:15 [olibot.pipeline] INFO: ← msg='He trazado el trazo LINEA_V y me ha salido bien en todos los niveles (100% de acierto)'  student=5  session=14  topic=trazo_linea_v
+2026-06-18 11:50:15 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': 'LINEA_V', 'passed': True, 'score': 100}
+2026-06-18 11:50:15 [olibot.pipeline] INFO: → BDI: action=mastery_achieved  is_correct=True  next_topic=trazo_curva
+2026-06-18 11:50:15 [olibot.pipeline] INFO: → NLG: instant mastery celebration (LLM bypassed)
+2026-06-18 11:50:15 [olibot.pipeline] INFO: → RESP (0.1s) shield=False  '¡Lo has dominado! ¡Eres un campeón, Oliver! 🎉'
+2026-06-18 11:51:39 [olibot.pipeline] INFO: ← msg='He trazado el trazo CURVA y me ha salido bien en todos los niveles (100% de acierto)'  student=5  session=15  topic=trazo_curva
+2026-06-18 11:51:39 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': 'CURVA', 'passed': True, 'score': 100}
+2026-06-18 11:51:39 [olibot.pipeline] INFO: → BDI: action=mastery_achieved  is_correct=True  next_topic=numero_1
+2026-06-18 11:51:39 [olibot.pipeline] INFO: → NLG: instant mastery celebration (LLM bypassed)
+2026-06-18 11:51:39 [olibot.pipeline] INFO: → RESP (0.1s) shield=False  '¡Lo has dominado! ¡Eres un campeón, Oliver! 🎉'
+2026-06-18 11:53:05 [olibot.pipeline] INFO: ← msg='He trazado la letra 1 y me ha salido bien en todos los niveles (100% de acierto)'  student=5  session=16  topic=numero_1
+2026-06-18 11:53:05 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': '1', 'passed': True, 'score': 100}
+2026-06-18 11:53:05 [olibot.pipeline] INFO: → BDI: action=mastery_achieved  is_correct=True  next_topic=numero_2
+2026-06-18 11:53:05 [olibot.pipeline] INFO: → NLG: instant mastery celebration (LLM bypassed)
+2026-06-18 11:53:05 [olibot.pipeline] INFO: → RESP (0.1s) shield=False  '¡Lo has dominado! ¡Eres un campeón, Oliver! 🎉'
+2026-06-18 11:56:21 [olibot.pipeline] INFO: ← msg='hola'  student=5  session=17  topic=numero_2
+2026-06-18 11:56:21 [olibot.pipeline] INFO: → NLU: intent=greet  conf=1.00  entities={}
+2026-06-18 11:56:21 [olibot.pipeline] INFO: → BDI: action=greet_and_propose  is_correct=None  next_topic=None
+2026-06-18 11:56:21 [olibot.pipeline] INFO: → NLG: instant greeting (LLM bypassed)
+2026-06-18 11:56:21 [olibot.pipeline] INFO: → RESP (0.2s) shield=False  '¡Hola Oliver! ¿Quieres que aprendamos los números hoy? 🌟'
+2026-06-18 11:58:37 [olibot.pipeline] INFO: ← msg='He trazado la letra 2 y me ha salido bien en todos los niveles (100% de acierto)'  student=5  session=17  topic=numero_2
+2026-06-18 11:58:37 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': '2', 'passed': True, 'score': 100}
+2026-06-18 11:58:38 [olibot.pipeline] INFO: → BDI: action=mastery_achieved  is_correct=True  next_topic=numero_3
+2026-06-18 11:58:38 [olibot.pipeline] INFO: → NLG: instant mastery celebration (LLM bypassed)
+2026-06-18 11:58:38 [olibot.pipeline] INFO: → RESP (0.1s) shield=False  '¡Lo has dominado! ¡Eres un campeón, Oliver! 🎉'
+2026-06-18 12:00:40 [olibot.pipeline] INFO: ← msg='He trazado la letra 3 y me ha salido bien en todos los niveles (100% de acierto)'  student=5  session=18  topic=numero_3
+2026-06-18 12:00:40 [olibot.pipeline] INFO: → NLU: intent=tracing_complete  conf=1.00  entities={'letter': '3', 'passed': True, 'score': 100}
+2026-06-18 12:00:40 [olibot.pipeline] INFO: → BDI: action=mastery_achieved  is_correct=True  next_topic=numero_4
+2026-06-18 12:00:40 [olibot.pipeline] INFO: → NLG: instant mastery celebration (LLM bypassed)
+2026-06-18 12:00:40 [olibot.pipeline] INFO: → RESP (0.1s) shield=False  '¡Lo has dominado! ¡Eres un campeón, Oliver! 🎉'

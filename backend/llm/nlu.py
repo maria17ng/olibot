@@ -130,7 +130,7 @@ _CURRICULUM_TOPIC_IDS = (
     "vocal_a, vocal_a_min, vocal_e, vocal_e_min, vocal_i, vocal_i_min, "
     "vocal_o, vocal_o_min, vocal_u, vocal_u_min, "
     "numero_1, numero_2, numero_3, numero_4, numero_5, "
-    "numero_6, numero_7, numero_8, numero_9, numero_10, "
+    "numero_6, numero_7, numero_8, numero_9, "
     "consonante_m, consonante_p, consonante_t, consonante_s, consonante_l, "
     "consonante_n, consonante_d, consonante_f, consonante_r, "
     "silaba_ma, silaba_mi, silaba_sa, silaba_la, silaba_pa, "

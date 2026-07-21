@@ -396,16 +396,6 @@ CURRICULUM: dict[str, CurriculumTopic] = {
         example_questions=["¿Qué número viene después del 8?"],
     ),
 
-    "numero_10": CurriculumTopic(
-        id="numero_10", display_name="El número 10", emoji="🔟",
-        category=CurriculumCategory.NUMERACION,
-        difficulty=1, prerequisites=["numero_9"], min_age=4,
-        description_for_student="¡El 10! Los dedos de las dos manos.",
-        hints=["¿Cuántos dedos tienes en las dos manos? 🙌", "Viene después del 9...", "Cinco más cinco es..."],
-        expected_answers=["10", "diez", "el 10", "el diez"],
-        example_questions=["¿Cuántos dedos tienes en total?"],
-    ),
-
     # ── CONSONANTES FASE 1 — 4 años (m, l, s, p) ────────────────────────────
 
     "consonante_m": CurriculumTopic(
